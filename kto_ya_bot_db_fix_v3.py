@@ -481,6 +481,7 @@ def main_menu(admin=False, group=False):
             InlineKeyboardButton("👤 Профиль", callback_data="profile"),
             InlineKeyboardButton("💸 Вывод USDT", callback_data="withdraw"),
         ])
+        buttons.append([InlineKeyboardButton("🔎 Поиск по ID", callback_data="search_user")])
     buttons.append([InlineKeyboardButton("🏆 Топ 3", callback_data="top3")])
     if admin:
         buttons.append([InlineKeyboardButton("⚙️ Админ-меню", callback_data="admin_menu")])
@@ -494,6 +495,7 @@ def role_menu(bonus_id: str, group=False):
             InlineKeyboardButton("👤 Профиль", callback_data="profile"),
             InlineKeyboardButton("💸 Вывод USDT", callback_data="withdraw"),
         ])
+        buttons.append([InlineKeyboardButton("🔎 Поиск по ID", callback_data="search_user")])
     return InlineKeyboardMarkup(buttons)
 
 
@@ -505,7 +507,6 @@ def admin_menu():
         [InlineKeyboardButton("💰 Выдать USDT", callback_data="give_usdt")],
         [InlineKeyboardButton("➖ Забрать USDT", callback_data="take_usdt")],
         [InlineKeyboardButton("🆔 Выдать кастом UID", callback_data="custom_uid")],
-        [InlineKeyboardButton("🔎 Поиск по ID", callback_data="search_user")],
         [InlineKeyboardButton("🙈 Скрыть пользователя", callback_data="hide_user")],
         [InlineKeyboardButton("👁 Раскрыть пользователя", callback_data="unhide_user")],
         [InlineKeyboardButton("👥 Группы с ботом", callback_data="groups")],
@@ -659,6 +660,22 @@ async def profile_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def top_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     await send_result(update, context, top_text())
+
+
+async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Напиши так:\n/search 123456789")
+        return
+
+    target = int(context.args[0])
+    result = search_user_text(target)
+
+    if result is None:
+        await update.message.reply_text("❌ Такого человека нет в боте.")
+    else:
+        await update.message.reply_text(result, parse_mode="HTML")
 
 
 async def dbpath_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -939,17 +956,18 @@ async def unhide_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def search_user_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
-    if not is_admin(q.from_user.id):
-        await q.message.reply_text("⛔ У тебя нет доступа.")
+
+    if q.message.chat.type != "private":
+        await q.message.reply_text("🔎 Поиск по ID доступен в личке с ботом.")
         return ConversationHandler.END
+
+    register_user(q.from_user)
     await q.message.reply_text("🔎 Введите Telegram ID пользователя для поиска:")
     return WAIT_SEARCH_USER
 
 
 async def search_user_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not is_admin(update.effective_user.id):
-        await update.message.reply_text("⛔ У тебя нет доступа.")
-        return ConversationHandler.END
+    register_user(update.effective_user)
 
     if not update.message.text.strip().isdigit():
         await update.message.reply_text("Введите Telegram ID числом.")
@@ -1049,6 +1067,7 @@ def main():
     app.add_handler(CommandHandler("delete", delete_cmd))
     app.add_handler(CommandHandler("profile", profile_cmd))
     app.add_handler(CommandHandler("top", top_cmd))
+    app.add_handler(CommandHandler("search", search_cmd))
     app.add_handler(CommandHandler("dbpath", dbpath_cmd))
 
     app.add_handler(ConversationHandler(
