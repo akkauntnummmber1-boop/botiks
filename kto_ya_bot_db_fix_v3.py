@@ -20,13 +20,30 @@ BONUS_AMOUNT_MILLI = 100
 MIN_WITHDRAW_MILLI = 100000
 DAY_SECONDS = 24 * 60 * 60
 DAILY_ROLE_BONUS_LIMIT = 5
-RARITY_CHANCES = [('common', 70), ('rare', 20), ('epic', 8), ('legendary', 2)]
+RARITY_CHANCES = [
+    ('common', 69),
+    ('rare', 20),
+    ('epic', 8),
+    ('legendary', 2),
+    ('secret', 1),
+]
+
 RARITY_LABELS = {
     'common': 'Обычная',
     'rare': 'Редкая',
     'epic': 'Эпическая',
     'legendary': 'Легендарная',
+    'secret': 'Секретная',
 }
+
+ROLE_REWARDS_MILLI = {
+    'common': 100,       # 0.1 USDT
+    'rare': 200,         # 0.2 USDT
+    'epic': 300,         # 0.3 USDT
+    'legendary': 500,    # 0.5 USDT
+    'secret': 40000,     # 40 USDT
+}
+
 RARITY_ALIASES = {
     'обычная': 'common',
     'обычный': 'common',
@@ -40,6 +57,10 @@ RARITY_ALIASES = {
     'легендарная': 'legendary',
     'легендарный': 'legendary',
     'legendary': 'legendary',
+    'секретная': 'secret',
+    'секретный': 'secret',
+    'секрет': 'secret',
+    'secret': 'secret',
 }
 DAILY_BONUS_CHANCES = [
     (5000, 1),   # 5 USDT — 1%
@@ -379,13 +400,10 @@ def claim_bonus(bonus_id: str, user_id: int) -> str:
             return 'Этот бонус не для вас.'
         if claimed:
             return 'Вы уже получили этот бонус.'
-        claimed_today = claimed_role_bonuses_today(conn, user_id)
-        if claimed_today >= DAILY_ROLE_BONUS_LIMIT:
-            return f'Дневной лимит бонусов исчерпан: {DAILY_ROLE_BONUS_LIMIT}/{DAILY_ROLE_BONUS_LIMIT}. Попробуйте завтра.'
         conn.execute('UPDATE bonus_claims SET claimed=1, claimed_at=? WHERE bonus_id=?', (ts(), bonus_id))
         conn.execute('UPDATE users SET balance_milli=balance_milli+? WHERE user_id=?', (amount, user_id))
         conn.commit()
-    return f'Вы получили {money(amount)} ({claimed_today + 1}/{DAILY_ROLE_BONUS_LIMIT} сегодня)'
+    return f'Вы получили {money(amount)}'
 
 def claim_daily_bonus(user_id: int) -> str:
     amount = roll_daily_bonus_amount()
@@ -457,20 +475,21 @@ def main_menu(admin=False, group=False):
     buttons = [[InlineKeyboardButton('Кто я?', callback_data='whoami')]]
     if not group:
         buttons.append([InlineKeyboardButton('Профиль', callback_data='profile'), InlineKeyboardButton('Вывод USDT', callback_data='withdraw')])
-        buttons.append([InlineKeyboardButton('Ежедневный бонус', callback_data='daily_bonus')])
         buttons.append([InlineKeyboardButton('Поиск по ID', callback_data='search_user')])
     buttons.append([InlineKeyboardButton('Топ 3', callback_data='top3')])
     if admin:
         buttons.append([InlineKeyboardButton('Админ-меню', callback_data='admin_menu')])
     return InlineKeyboardMarkup(buttons)
 
-def role_menu(bonus_id: str, group=False):
-    buttons = [[InlineKeyboardButton('Бонус', callback_data=f'bonus:{bonus_id}')]]
+def role_menu(group=False):
+    buttons = []
+
     if not group:
         buttons.append([InlineKeyboardButton('Профиль', callback_data='profile'), InlineKeyboardButton('Вывод USDT', callback_data='withdraw')])
-        buttons.append([InlineKeyboardButton('Ежедневный бонус', callback_data='daily_bonus')])
         buttons.append([InlineKeyboardButton('Поиск по ID', callback_data='search_user')])
-    return InlineKeyboardMarkup(buttons)
+
+    return InlineKeyboardMarkup(buttons) if buttons else None
+
 
 def admin_menu():
     return InlineKeyboardMarkup([[InlineKeyboardButton('Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('Статистика', callback_data='admin_stats')], [InlineKeyboardButton('Выдать USDT', callback_data='give_usdt')], [InlineKeyboardButton('Забрать USDT', callback_data='take_usdt')], [InlineKeyboardButton('Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('Группы с ботом', callback_data='groups')], [InlineKeyboardButton('Назад', callback_data='back')]])
@@ -537,9 +556,19 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     phrase, rarity = phrase_data
     rarity_label = RARITY_LABELS.get(rarity, rarity)
+    reward_milli = ROLE_REWARDS_MILLI.get(rarity, 100)
+
     inc_opening(user.id)
-    bonus_id = create_bonus(user.id)
-    await send_result(update, context, f'🎭 {mention(user)}, {html.escape(phrase)}\n⭐ Редкость: {html.escape(rarity_label)}', reply_markup=role_menu(bonus_id, group=is_group(chat)))
+    add_balance(user.id, reward_milli)
+
+    await send_result(
+        update,
+        context,
+        f'🎭 {mention(user)}, {html.escape(phrase)}\n'
+        f'⭐ Редкость: {html.escape(rarity_label)}\n'
+        f'💰 Добавлено: +{money(reward_milli)}',
+        reply_markup=role_menu(group=is_group(chat))
+    )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -1017,11 +1046,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == 'top3':
         await send_result(update, context, top_text())
     elif data == 'daily_bonus':
-        if q.message.chat.type != 'private':
-            await q.answer('Ежедневный бонус доступен только в личке.', show_alert=True)
-        else:
-            register_user(q.from_user)
-            await send_result(update, context, claim_daily_bonus(q.from_user.id))
+        await q.answer('Ежедневный бонус отключен.', show_alert=True)
     elif data == 'admin_menu':
         if is_admin(q.from_user.id):
             await q.edit_message_text(pe('⚙️ Админ-меню:'), reply_markup=admin_menu(), parse_mode='HTML')
