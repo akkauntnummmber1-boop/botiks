@@ -59,6 +59,55 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# =========================
+# Premium emoji
+# =========================
+# Работает в сообщениях с parse_mode="HTML".
+# В InlineKeyboardButton custom emoji не отображаются, поэтому кнопки остаются обычными.
+PE_USER = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
+PE_OK = '<tg-emoji emoji-id="5260726538302660868">✅</tg-emoji>'
+PE_USERS = '<tg-emoji emoji-id="5258513401784573443">👥</tg-emoji>'
+PE_ANNOUNCE = '<tg-emoji emoji-id="5260268501515377807">📣</tg-emoji>'
+PE_INFO = '<tg-emoji emoji-id="5258503720928288433">ℹ️</tg-emoji>'
+PE_STOP = '<tg-emoji emoji-id="5258362429389152256">✋</tg-emoji>'
+PE_WALLET = '<tg-emoji emoji-id="5258204546391351475">💰</tg-emoji>'
+PE_PLUS = '<tg-emoji emoji-id="5274008024585871702">➕</tg-emoji>'
+PE_CHART = '<tg-emoji emoji-id="5258391025281408576">📈</tg-emoji>'
+PE_CHAT = '<tg-emoji emoji-id="5260348422266822411">💬</tg-emoji>'
+PE_WARN = '<tg-emoji emoji-id="5258474669769497337">❗️</tg-emoji>'
+PE_HOME = '<tg-emoji emoji-id="5257963315258204021">🏘</tg-emoji>'
+PE_STAR = '<tg-emoji emoji-id="5258185631351475">⭐️</tg-emoji>'
+
+
+def pe(text: str) -> str:
+    """Заменяет обычные emoji на premium emoji в HTML-тексте сообщения."""
+    replacements = {
+        "👤": PE_USER,
+        "✅": PE_OK,
+        "👥": PE_USERS,
+        "📣": PE_ANNOUNCE,
+        "ℹ️": PE_INFO,
+        "✋": PE_STOP,
+        "⛔": PE_STOP,
+        "🚫": PE_STOP,
+        "💰": PE_WALLET,
+        "💸": PE_WALLET,
+        "➕": PE_PLUS,
+        "📈": PE_CHART,
+        "📊": PE_CHART,
+        "💬": PE_CHAT,
+        "❗️": PE_WARN,
+        "❌": PE_WARN,
+        "⚠️": PE_WARN,
+        "🏘": PE_HOME,
+        "🏠": PE_HOME,
+        "⭐️": PE_STAR,
+        "⭐": PE_STAR,
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
 
 def ts() -> int:
     return int(time.time())
@@ -314,7 +363,7 @@ def admin_stats_text() -> str:
     rows = get_all_users(include_hidden=True)
 
     if not rows:
-        return "📊 <b>Статистика</b>\n\nЗарегистрировано: <b>0</b>"
+        return pe("📊 <b>Статистика</b>\n\nЗарегистрировано: <b>0</b>")
 
     lines = [
         "📊 <b>Статистика</b>",
@@ -333,7 +382,7 @@ def admin_stats_text() -> str:
             f"  ID: <code>{user_id}</code> | UID: <code>{html.escape(str(uid))}</code>{hidden_text}"
         )
 
-    return "\n".join(lines)
+    return pe("\n".join(lines))
 
 
 def add_balance(user_id: int, amount: int):
@@ -403,7 +452,7 @@ def search_user_text(user_id: int) -> str | None:
     username_text = f"@{username}" if username else "нет"
     first_name_text = first_name or "нет"
 
-    return (
+    return pe(
         "🔎 <b>Пользователь найден</b>\n\n"
         f"🆔 Telegram ID: <code>{user_id}</code>\n"
         f"🔖 UID: <code>{html.escape(str(uid))}</code>\n"
@@ -469,7 +518,7 @@ def top_text() -> str:
     for i, (user_id, username, first_name, uid, balance) in enumerate(rows):
         name = f"@{username}" if username else (first_name or f"ID {user_id}")
         lines.append(f"{medals[i]} {html.escape(name)} | UID: <code>{html.escape(str(uid))}</code> | <b>{money(balance)}</b>")
-    return "\n".join(lines)
+    return pe("\n".join(lines))
 
 
 def profile_text(user_id: int) -> str:
@@ -479,7 +528,7 @@ def profile_text(user_id: int) -> str:
     user_id, username, first_name, uid, balance, openings, last_role, hidden = row
     uname = f"@{username}" if username else "нет"
     hidden_line = "\n🙈 Статус: <b>скрыт</b>" if hidden else ""
-    return (
+    return pe(
         "👤 <b>Профиль</b>\n\n"
         f"🆔 Telegram ID: <code>{user_id}</code>\n"
         f"🔖 UID: <code>{html.escape(str(uid))}</code>\n"
@@ -500,7 +549,7 @@ def groups_text() -> str:
         title = title or "Без названия"
         uname = f"@{username}" if username else "нет username"
         lines.append(f"• <b>{html.escape(title)}</b>\n  ID: <code>{chat_id}</code>\n  Username: {html.escape(uname)}")
-    return "\n\n".join(lines)
+    return pe("\n\n".join(lines))
 
 
 def create_withdrawal(user_id: int, wallet: str, amount: int) -> int:
@@ -595,7 +644,7 @@ async def send_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: 
     chat = update.effective_chat
     if chat.type == "private":
         await delete_last_private(context, chat.id)
-    msg = await context.bot.send_message(chat.id, text, parse_mode="HTML", reply_markup=reply_markup)
+    msg = await context.bot.send_message(chat.id, pe(text), parse_mode="HTML", reply_markup=reply_markup)
     if chat.type == "private":
         context.user_data["last_private_result"] = msg.message_id
     return msg
@@ -605,7 +654,7 @@ async def send_long_message(bot, chat_id: int, text: str, reply_markup=None):
     max_len = 3900
 
     if len(text) <= max_len:
-        await bot.send_message(chat_id, text, parse_mode="HTML", reply_markup=reply_markup)
+        await bot.send_message(chat_id, pe(text), parse_mode="HTML", reply_markup=reply_markup)
         return
 
     parts = []
