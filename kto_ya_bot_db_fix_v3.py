@@ -585,38 +585,24 @@ async def delete_last_group_clean_result(context: ContextTypes.DEFAULT_TYPE, cha
 
 async def send_clean_group_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
     """
-    Используется только для результатов казино и топа.
-    В группах удаляет прошлый результат казино/топа.
-    Выдачи ролей не используют эту функцию и не удаляются.
+    Сообщения больше не удаляются ни в ЛС, ни в группах.
+    Функция оставлена для совместимости с кодом казино и топа.
     """
-    chat = update.effective_chat
-
-    if chat.type == "private":
-        return await send_result(update, context, text, reply_markup=reply_markup)
-
-    if is_group(chat):
-        await delete_last_group_clean_result(context, chat.id)
-
-        msg = await context.bot.send_message(
-            chat.id,
-            pe(text),
-            parse_mode="HTML",
-            reply_markup=reply_markup
-        )
-
-        context.chat_data["last_clean_result_message_id"] = msg.message_id
-        return msg
-
     return await send_result(update, context, text, reply_markup=reply_markup)
+
 
 
 async def send_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
     chat = update.effective_chat
-    if chat.type == 'private':
-        await delete_last_private(context, chat.id)
-    msg = await context.bot.send_message(chat.id, pe(text), parse_mode='HTML', reply_markup=reply_markup)
-    if chat.type == 'private':
-        context.user_data['last_private_result'] = msg.message_id
+
+    # В ЛС сообщения больше не удаляются.
+    msg = await context.bot.send_message(
+        chat.id,
+        pe(text),
+        parse_mode='HTML',
+        reply_markup=reply_markup
+    )
+
     return msg
 
 async def send_long_message(bot, chat_id: int, text: str, reply_markup=None):
