@@ -20,6 +20,10 @@ ROLE_COOLDOWN_SECONDS = 10 * 60
 CASINO_COOLDOWN_SECONDS = 30
 MIN_SLOT_BET_MILLI = 100       # 0.1 USDT
 MAX_SLOT_BET_MILLI = 10000     # 10 USDT
+SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–15%
+
+MIN_COIN_BET_MILLI = 100       # 0.1 USDT
+MAX_COIN_BET_MILLI = 10000     # 10 USDT
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
 SLOT_PAY_TABLE = {
@@ -630,6 +634,8 @@ def casino_menu():
         [InlineKeyboardButton('🎰 Слоты 0.5 USDT', callback_data='slots_bet:0.5')],
         [InlineKeyboardButton('🎰 Слоты 1 USDT', callback_data='slots_bet:1')],
         [InlineKeyboardButton('🎰 Слоты 5 USDT', callback_data='slots_bet:5')],
+        [InlineKeyboardButton('🪙 Орел 1 USDT', callback_data='coin_bet:orel:1')],
+        [InlineKeyboardButton('🪙 Решка 1 USDT', callback_data='coin_bet:reshka:1')],
     ])
 
 
@@ -639,6 +645,24 @@ def slots_menu():
         [InlineKeyboardButton('🔄 Еще раз 0.5', callback_data='slots_bet:0.5')],
         [InlineKeyboardButton('🔄 Еще раз 1', callback_data='slots_bet:1')],
         [InlineKeyboardButton('🔄 Еще раз 5', callback_data='slots_bet:5')],
+        [InlineKeyboardButton('🎰 Казино', callback_data='casino')],
+    ])
+
+
+def coin_menu():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton('🪙 Орел 0.5', callback_data='coin_bet:orel:0.5'),
+            InlineKeyboardButton('🪙 Решка 0.5', callback_data='coin_bet:reshka:0.5'),
+        ],
+        [
+            InlineKeyboardButton('🪙 Орел 1', callback_data='coin_bet:orel:1'),
+            InlineKeyboardButton('🪙 Решка 1', callback_data='coin_bet:reshka:1'),
+        ],
+        [
+            InlineKeyboardButton('🪙 Орел 5', callback_data='coin_bet:orel:5'),
+            InlineKeyboardButton('🪙 Решка 5', callback_data='coin_bet:reshka:5'),
+        ],
         [InlineKeyboardButton('🎰 Казино', callback_data='casino')],
     ])
 
@@ -662,7 +686,32 @@ def set_casino_last_spin(user_id: int) -> None:
 
 
 def roll_slots() -> list[str]:
-    return [random.choice(SLOT_SYMBOLS) for _ in range(3)]
+    """
+    Шанс выигрышной комбинации примерно 10–15%.
+    Проигрышная комбинация специально делается без совпадений,
+    чтобы не было случайного x0.5.
+    """
+    win_roll = random.randint(1, 100) <= SLOT_WIN_CHANCE_PERCENT
+
+    if win_roll:
+        number = random.randint(1, 100)
+
+        if number <= 2:
+            return ['7️⃣', '7️⃣', '7️⃣']
+        if number <= 6:
+            return ['💎', '💎', '💎']
+        if number <= 14:
+            return ['⭐️', '⭐️', '⭐️']
+        if number <= 30:
+            return ['🍒', '🍒', '🍒']
+
+        # Любые 3 одинаковых = x2.
+        symbol = random.choice(['🍋'])
+        return [symbol, symbol, symbol]
+
+    # Проигрыш: 3 разных символа.
+    return random.sample(SLOT_SYMBOLS, 3)
+
 
 
 def get_slot_multiplier(symbols: list[str]) -> float:
@@ -674,10 +723,9 @@ def get_slot_multiplier(symbols: list[str]) -> float:
     if symbols[0] == symbols[1] == symbols[2]:
         return 2
 
-    if symbols[0] == symbols[1] or symbols[0] == symbols[2] or symbols[1] == symbols[2]:
-        return 0.5
-
+    # Две одинаковые картинки больше не дают x0.5.
     return 0
+
 
 
 def slot_result_text(user, bet_milli: int, symbols: list[str], multiplier: float, win_milli: int, balance_after: int) -> str:
@@ -708,11 +756,15 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         "🎰 <b>Казино</b>\n\n"
-        "Выбери ставку для слотов или напиши команду:\n"
-        "<code>/slots 1</code>\n\n"
-        f"⏲ Кулдаун между спинами: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>\n"
+        "Выбери ставку для слотов или монетки.\n"
+        "Команды:\n"
+        "<code>/slots 1</code>\n"
+        "<code>/coin орел 1</code>\n"
+        "<code>/coin решка 1</code>\n\n"
+        f"⏲ Кулдаун между играми: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>\n"
         f"💲 Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>\n"
-        f"💲 Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>\n\n"
+        f"💲 Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>\n"
+        f"📈 Шанс выигрыша: <b>{SLOT_WIN_CHANCE_PERCENT}%</b>\n\n"
         "Выплаты слотов:\n"
         "7️⃣ 7️⃣ 7️⃣ = x20\n"
         "💎 💎 💎 = x10\n"
@@ -778,6 +830,104 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
         context,
         slot_result_text(user, bet_milli, symbols, multiplier, win_milli, balance_after),
         reply_markup=slots_menu()
+    )
+
+
+
+
+def normalize_coin_side(text: str) -> str | None:
+    value = (text or "").strip().lower()
+
+    if value in ("орел", "орёл", "orel", "heads", "o"):
+        return "orel"
+
+    if value in ("решка", "reshka", "tails", "r"):
+        return "reshka"
+
+    return None
+
+
+def coin_side_label(side: str) -> str:
+    return "Орел" if side == "orel" else "Решка"
+
+
+def roll_coin() -> str:
+    return random.choice(["orel", "reshka"])
+
+
+def coin_result_text(user, bet_milli: int, choice: str, result: str, win_milli: int, balance_after: int) -> str:
+    win = choice == result
+
+    if win:
+        result_line = f"✅ Выигрыш: +{money(win_milli)}"
+    else:
+        result_line = f"❌ Проигрыш: -{money(bet_milli)}"
+
+    return (
+        f"🪙 <b>Орел и решка</b>\n\n"
+        f"👤 Игрок: {mention(user)}\n"
+        f"💲 Ставка: <b>{money(bet_milli)}</b>\n"
+        f"✍️ Выбор: <b>{coin_side_label(choice)}</b>\n"
+        f"🪙 Выпало: <b>{coin_side_label(result)}</b>\n\n"
+        f"{result_line}\n"
+        f"💰 Баланс: <b>{money(balance_after)}</b>"
+    )
+
+
+async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: str, bet_milli: int):
+    user = update.effective_user
+    register_user(user)
+    remember_group(update.effective_chat)
+
+    row = get_user(user.id)
+
+    if not row:
+        await send_clean_group_result(update, context, "❌ Профиль не найден. Напиши /start.")
+        return
+
+    balance_milli = int(row[4])
+
+    if bet_milli < MIN_COIN_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_COIN_BET_MILLI)}</b>")
+        return
+
+    if bet_milli > MAX_COIN_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_COIN_BET_MILLI)}</b>")
+        return
+
+    if balance_milli < bet_milli:
+        await send_clean_group_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
+        return
+
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+
+    if left > 0:
+        await send_clean_group_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+
+    if not ok:
+        await send_clean_group_result(update, context, f"❌ {html.escape(msg)}")
+        return
+
+    result = roll_coin()
+    win_milli = bet_milli * 2 if side == result else 0
+
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    set_casino_last_spin(user.id)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+
+    await send_clean_group_result(
+        update,
+        context,
+        coin_result_text(user, bet_milli, side, result, win_milli, balance_after),
+        reply_markup=coin_menu()
     )
 
 
@@ -1019,6 +1169,36 @@ async def slots_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     await play_slots(update, context, amount)
+
+
+
+async def coin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if len(context.args) < 2:
+        await send_clean_group_result(
+            update,
+            context,
+            "Напиши выбор и ставку:\n"
+            "<code>/coin орел 1</code>\n"
+            "<code>/coin решка 1</code>"
+        )
+        return
+
+    side = normalize_coin_side(context.args[0])
+
+    if side is None:
+        await send_clean_group_result(update, context, "Выбери: <b>орел</b> или <b>решка</b>.")
+        return
+
+    amount = parse_money(context.args[1])
+
+    if amount is None:
+        await send_clean_group_result(update, context, "Введите ставку числом. Например:\n<code>/coin орел 1</code>")
+        return
+
+    await play_coin(update, context, side, amount)
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1409,6 +1589,24 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await play_slots(update, context, amount)
         return
 
+    if data.startswith('coin_bet:'):
+        await q.answer()
+        parts = data.split(':')
+
+        if len(parts) != 3:
+            await send_clean_group_result(update, context, '❌ Ошибка ставки.')
+            return
+
+        side = normalize_coin_side(parts[1])
+        amount = parse_money(parts[2])
+
+        if side is None or amount is None:
+            await send_clean_group_result(update, context, '❌ Ошибка ставки.')
+            return
+
+        await play_coin(update, context, side, amount)
+        return
+
     if data.startswith('bonus:'):
         msg = claim_bonus(data.split(':', 1)[1], q.from_user.id)
         await q.answer(msg, show_alert=True)
@@ -1500,6 +1698,7 @@ def main():
     app.add_handler(CommandHandler('top', top_cmd))
     app.add_handler(CommandHandler('casino', casino_cmd))
     app.add_handler(CommandHandler('slots', slots_cmd))
+    app.add_handler(CommandHandler('coin', coin_cmd))
     app.add_handler(CommandHandler('search', search_cmd))
     app.add_handler(CommandHandler('dbpath', dbpath_cmd))
     app.add_handler(CommandHandler('adminstats', admin_stats_cmd))
