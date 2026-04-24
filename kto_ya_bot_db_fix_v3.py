@@ -50,6 +50,8 @@ WAIT_UID_VALUE = 9
 WAIT_HIDE_USER = 10
 WAIT_SEARCH_USER = 11
 WAIT_UNHIDE_USER = 12
+WAIT_DELETE_PHRASE = 13
+WAIT_BROADCAST_TEXT = 14
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -282,6 +284,58 @@ def delete_phrase_db(pid: int) -> bool:
         return cur.rowcount > 0
 
 
+def get_all_users(include_hidden: bool = True):
+    with db() as conn:
+        if include_hidden:
+            return conn.execute(
+                """
+                SELECT user_id, username, first_name, uid, balance_milli, openings, hidden
+                FROM users
+                ORDER BY user_id ASC
+                """
+            ).fetchall()
+
+        return conn.execute(
+            """
+            SELECT user_id, username, first_name, uid, balance_milli, openings, hidden
+            FROM users
+            WHERE hidden=0
+            ORDER BY user_id ASC
+            """
+        ).fetchall()
+
+
+def registered_users_count() -> int:
+    with db() as conn:
+        return int(conn.execute("SELECT COUNT(*) FROM users").fetchone()[0])
+
+
+def admin_stats_text() -> str:
+    rows = get_all_users(include_hidden=True)
+
+    if not rows:
+        return "📊 <b>Статистика</b>\n\nЗарегистрировано: <b>0</b>"
+
+    lines = [
+        "📊 <b>Статистика</b>",
+        "",
+        f"👥 Зарегистрировано: <b>{len(rows)}</b>",
+        "",
+        "<b>Пользователи:</b>",
+    ]
+
+    for user_id, username, first_name, uid, balance, openings, hidden in rows:
+        username_text = f"@{username}" if username else "нет username"
+        name_text = first_name or "без имени"
+        hidden_text = " | скрыт" if hidden else ""
+        lines.append(
+            f"• {html.escape(username_text)} | {html.escape(name_text)}\n"
+            f"  ID: <code>{user_id}</code> | UID: <code>{html.escape(str(uid))}</code>{hidden_text}"
+        )
+
+    return "\n".join(lines)
+
+
 def add_balance(user_id: int, amount: int):
     with db() as conn:
         conn.execute("UPDATE users SET balance_milli=balance_milli+? WHERE user_id=?", (amount, user_id))
@@ -502,8 +556,11 @@ def role_menu(bonus_id: str, group=False):
 def admin_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("➕ Добавить фразу", callback_data="add_phrase")],
+        [InlineKeyboardButton("🗑 Удалить фразу", callback_data="delete_phrase_btn")],
         [InlineKeyboardButton("📋 Последние фразы", callback_data="last_phrases")],
         [InlineKeyboardButton("🔢 Количество фраз", callback_data="phrase_count")],
+        [InlineKeyboardButton("📣 Уведомление в бот", callback_data="broadcast")],
+        [InlineKeyboardButton("📊 Статистика", callback_data="admin_stats")],
         [InlineKeyboardButton("💰 Выдать USDT", callback_data="give_usdt")],
         [InlineKeyboardButton("➖ Забрать USDT", callback_data="take_usdt")],
         [InlineKeyboardButton("🆔 Выдать кастом UID", callback_data="custom_uid")],
@@ -542,6 +599,35 @@ async def send_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: 
     if chat.type == "private":
         context.user_data["last_private_result"] = msg.message_id
     return msg
+
+
+async def send_long_message(bot, chat_id: int, text: str, reply_markup=None):
+    max_len = 3900
+
+    if len(text) <= max_len:
+        await bot.send_message(chat_id, text, parse_mode="HTML", reply_markup=reply_markup)
+        return
+
+    parts = []
+    current = ""
+
+    for line in text.split("\n"):
+        if len(current) + len(line) + 1 > max_len:
+            parts.append(current)
+            current = line
+        else:
+            current = line if not current else current + "\n" + line
+
+    if current:
+        parts.append(current)
+
+    for index, part in enumerate(parts):
+        await bot.send_message(
+            chat_id,
+            part,
+            parse_mode="HTML",
+            reply_markup=reply_markup if index == len(parts) - 1 else None,
+        )
 
 
 async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -707,6 +793,14 @@ async def dbpath_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+async def admin_stats_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("⛔ У тебя нет доступа.")
+        return
+
+    await send_long_message(context.bot, update.effective_chat.id, admin_stats_text(), reply_markup=admin_menu())
+
+
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Отменено.")
     return ConversationHandler.END
@@ -718,7 +812,7 @@ async def add_phrase_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(q.from_user.id):
         await q.message.reply_text("⛔ У тебя нет доступа.")
         return ConversationHandler.END
-    await q.message.reply_text("➕ Отправь новую фразу одним сообщением.\n\nДля отмены напиши /cancel")
+    await q.message.reply_text("➕ Отправь новую фразу одним сообщением.\n\nМожно также отправить .txt файл: каждая непустая строка добавится как отдельная фраза.\n\nДля отмены напиши /cancel")
     return WAIT_PHRASE
 
 
@@ -732,6 +826,156 @@ async def receive_phrase(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Такая фраза уже есть или текст пустой.", reply_markup=admin_menu())
     return ConversationHandler.END
+
+
+async def delete_phrase_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+
+    if not is_admin(q.from_user.id):
+        await q.message.reply_text("⛔ У тебя нет доступа.")
+        return ConversationHandler.END
+
+    await q.message.reply_text(
+        "🗑 Введите ID фразы, которую нужно удалить.\n\n"
+        "ID можно посмотреть через кнопку «Последние фразы» или команду /list.\n"
+        "Для отмены напиши /cancel"
+    )
+    return WAIT_DELETE_PHRASE
+
+
+async def delete_phrase_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("⛔ У тебя нет доступа.")
+        return ConversationHandler.END
+
+    raw = update.message.text.strip()
+
+    if not raw.isdigit():
+        await update.message.reply_text("Введите ID фразы числом.")
+        return WAIT_DELETE_PHRASE
+
+    ok = delete_phrase_db(int(raw))
+
+    if ok:
+        await update.message.reply_text("✅ Фраза удалена.", reply_markup=admin_menu())
+    else:
+        await update.message.reply_text("⚠️ Фраза с таким ID не найдена.", reply_markup=admin_menu())
+
+    return ConversationHandler.END
+
+
+async def broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+
+    if not is_admin(q.from_user.id):
+        await q.message.reply_text("⛔ У тебя нет доступа.")
+        return ConversationHandler.END
+
+    await q.message.reply_text(
+        "📣 Отправь текст уведомления, который нужно разослать всем пользователям бота.\n\n"
+        "Для отмены напиши /cancel"
+    )
+    return WAIT_BROADCAST_TEXT
+
+
+async def broadcast_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("⛔ У тебя нет доступа.")
+        return ConversationHandler.END
+
+    text = update.message.text.strip()
+
+    if not text:
+        await update.message.reply_text("Текст пустой. Отправь уведомление еще раз.")
+        return WAIT_BROADCAST_TEXT
+
+    rows = get_all_users(include_hidden=True)
+    sent = 0
+    failed = 0
+
+    await update.message.reply_text(f"📣 Начинаю рассылку для {len(rows)} пользователей...")
+
+    for user_id, username, first_name, uid, balance, openings, hidden in rows:
+        try:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=f"📣 <b>Уведомление</b>\n\n{html.escape(text)}",
+                parse_mode="HTML",
+            )
+            sent += 1
+        except Exception:
+            failed += 1
+
+    await update.message.reply_text(
+        f"✅ Рассылка завершена.\n\nОтправлено: <b>{sent}</b>\nНе отправлено: <b>{failed}</b>",
+        parse_mode="HTML",
+        reply_markup=admin_menu(),
+    )
+
+    return ConversationHandler.END
+
+
+async def txt_phrases_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+
+    if not user or not is_admin(user.id):
+        return
+
+    document = update.message.document
+
+    if not document:
+        return
+
+    filename = document.file_name or ""
+
+    if not filename.lower().endswith(".txt"):
+        await update.message.reply_text("⚠️ Отправь файл именно в формате .txt")
+        return
+
+    try:
+        file = await context.bot.get_file(document.file_id)
+        data = await file.download_as_bytearray()
+        content = bytes(data).decode("utf-8-sig", errors="ignore")
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Не удалось прочитать файл: {html.escape(str(e))}", parse_mode="HTML")
+        return
+
+    lines = [line.strip() for line in content.splitlines() if line.strip()]
+
+    if not lines:
+        await update.message.reply_text("⚠️ В файле нет фраз. Добавь каждую фразу с новой строки.")
+        return
+
+    added = 0
+    skipped = 0
+
+    for phrase in lines:
+        if add_phrase_db(phrase):
+            added += 1
+        else:
+            skipped += 1
+
+    await update.message.reply_text(
+        "📄 <b>Импорт .txt завершен</b>\n\n"
+        f"Добавлено: <b>{added}</b>\n"
+        f"Пропущено: <b>{skipped}</b>\n"
+        f"Всего строк: <b>{len(lines)}</b>",
+        parse_mode="HTML",
+        reply_markup=admin_menu(),
+    )
+
+
+async def admin_stats_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+
+    if not is_admin(q.from_user.id):
+        await q.message.reply_text("⛔ У тебя нет доступа.")
+        return
+
+    await send_long_message(context.bot, q.message.chat.id, admin_stats_text(), reply_markup=admin_menu())
 
 
 async def withdraw_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1051,6 +1295,11 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.edit_message_text(text, parse_mode="HTML", reply_markup=admin_menu())
     elif data == "phrase_count":
         await q.edit_message_text(f"🔢 В базе фраз: {phrase_count()}", reply_markup=admin_menu())
+    elif data == "admin_stats":
+        if not is_admin(q.from_user.id):
+            await q.message.reply_text("⛔ У тебя нет доступа.")
+            return
+        await send_long_message(context.bot, q.message.chat.id, admin_stats_text(), reply_markup=admin_menu())
     elif data == "groups":
         await q.message.reply_text(groups_text(), parse_mode="HTML")
 
@@ -1069,6 +1318,7 @@ def main():
     app.add_handler(CommandHandler("top", top_cmd))
     app.add_handler(CommandHandler("search", search_cmd))
     app.add_handler(CommandHandler("dbpath", dbpath_cmd))
+    app.add_handler(CommandHandler("adminstats", admin_stats_cmd))
 
     app.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(add_phrase_start, pattern="^add_phrase$")],
@@ -1124,6 +1374,22 @@ def main():
         states={WAIT_SEARCH_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_user_finish)]},
         fallbacks=[CommandHandler("cancel", cancel)],
     ))
+
+    app.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(delete_phrase_start, pattern="^delete_phrase_btn$")],
+        states={WAIT_DELETE_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, delete_phrase_finish)]},
+        fallbacks=[CommandHandler("cancel", cancel)],
+    ))
+
+    app.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(broadcast_start, pattern="^broadcast$")],
+        states={WAIT_BROADCAST_TEXT: [MessageHandler(filters.TEXT & ~filters.COMMAND, broadcast_finish)]},
+        fallbacks=[CommandHandler("cancel", cancel)],
+    ))
+
+    app.add_handler(CallbackQueryHandler(admin_stats_button, pattern="^admin_stats$"))
+
+    app.add_handler(MessageHandler(filters.Document.ALL, txt_phrases_handler))
 
     app.add_handler(CallbackQueryHandler(buttons))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, trigger))
