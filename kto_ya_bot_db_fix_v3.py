@@ -9,7 +9,7 @@ from pathlib import Path
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
-BOT_TOKEN = '8442673427:AAEj15lEhVaxBFHUBw_EUYdJEV_-99_e6p4'
+BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
 ADMIN_IDS = {5037478748, 6991875}
 DB_DIR = 'data'
 DB_PATH = os.path.join(DB_DIR, 'bot.db')
