@@ -9,7 +9,7 @@ from pathlib import Path
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
-BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
+BOT_TOKEN = '8442673427:AAEj15lEhVaxBFHUBw_EUYdJEV_-99_e6p4'
 ADMIN_IDS = {5037478748, 6991875}
 DB_DIR = 'data'
 DB_PATH = os.path.join(DB_DIR, 'bot.db')
@@ -18,6 +18,36 @@ TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 10 * 60
 BONUS_AMOUNT_MILLI = 100
 MIN_WITHDRAW_MILLI = 100000
+DAY_SECONDS = 24 * 60 * 60
+DAILY_ROLE_BONUS_LIMIT = 5
+RARITY_CHANCES = [('common', 70), ('rare', 20), ('epic', 8), ('legendary', 2)]
+RARITY_LABELS = {
+    'common': 'Обычная',
+    'rare': 'Редкая',
+    'epic': 'Эпическая',
+    'legendary': 'Легендарная',
+}
+RARITY_ALIASES = {
+    'обычная': 'common',
+    'обычный': 'common',
+    'common': 'common',
+    'редкая': 'rare',
+    'редкий': 'rare',
+    'rare': 'rare',
+    'эпическая': 'epic',
+    'эпический': 'epic',
+    'epic': 'epic',
+    'легендарная': 'legendary',
+    'легендарный': 'legendary',
+    'legendary': 'legendary',
+}
+DAILY_BONUS_CHANCES = [
+    (5000, 1),   # 5 USDT — 1%
+    (4000, 5),   # 4 USDT — 5%
+    (3000, 6),   # 3 USDT — 6%
+    (2000, 7),   # 2 USDT — 7%
+    (1000, 81),  # 1 USDT — 70% + оставшиеся 11%, чтобы бонус всегда выпадал
+]
 WAIT_PHRASE = 1
 WAIT_WALLET = 2
 WAIT_AMOUNT = 3
@@ -76,6 +106,18 @@ def pe(text: str) -> str:
 def ts() -> int:
     return int(time.time())
 
+def day_start() -> int:
+    now = ts()
+    return now - now % DAY_SECONDS
+
+def seconds_until_next_day() -> int:
+    return day_start() + DAY_SECONDS - ts()
+
+def format_time_left(seconds: int) -> str:
+    hours = seconds // 3600
+    minutes = seconds % 3600 // 60
+    return f'{hours} ч. {minutes} мин.'
+
 def is_admin(user_id: int | None) -> bool:
     return user_id in ADMIN_IDS
 
@@ -96,6 +138,36 @@ def parse_money(text: str) -> int | None:
         return None
     return int(round(value * 1000))
 
+def normalize_rarity(value: str) -> str | None:
+    value = (value or '').strip().lower()
+    return RARITY_ALIASES.get(value)
+
+def parse_phrase_input(text: str) -> tuple[str, str]:
+    text = (text or '').strip()
+    if '|' in text:
+        left, right = text.split('|', 1)
+        rarity = normalize_rarity(left)
+        phrase = right.strip()
+        if rarity and phrase:
+            return phrase, rarity
+    return text, 'common'
+
+def roll_weighted(items):
+    total = sum(weight for _, weight in items)
+    number = random.randint(1, total)
+    current = 0
+    for value, weight in items:
+        current += weight
+        if number <= current:
+            return value
+    return items[-1][0]
+
+def roll_role_rarity() -> str:
+    return roll_weighted(RARITY_CHANCES)
+
+def roll_daily_bonus_amount() -> int:
+    return roll_weighted(DAILY_BONUS_CHANCES)
+
 def mention(user) -> str:
     name = user.full_name or user.username or str(user.id)
     return f'<a href="tg://user?id={user.id}">{html.escape(name)}</a>'
@@ -115,8 +187,12 @@ def init_db():
     cur.execute('\n        CREATE TABLE IF NOT EXISTS phrases (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            text TEXT NOT NULL UNIQUE,\n            created_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS users (\n            user_id INTEGER PRIMARY KEY,\n            username TEXT,\n            first_name TEXT,\n            uid TEXT UNIQUE,\n            balance_milli INTEGER NOT NULL DEFAULT 0,\n            openings INTEGER NOT NULL DEFAULT 0,\n            last_role_at INTEGER NOT NULL DEFAULT 0,\n            hidden INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS bonus_claims (\n            bonus_id TEXT PRIMARY KEY,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL,\n            claimed_at INTEGER\n        )\n        ')
+    cur.execute('\n        CREATE TABLE IF NOT EXISTS daily_bonuses (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS groups (\n            chat_id INTEGER PRIMARY KEY,\n            title TEXT,\n            username TEXT,\n            type TEXT,\n            added_at INTEGER NOT NULL,\n            last_seen_at INTEGER NOT NULL\n        )\n        ')
     cur.execute("\n        CREATE TABLE IF NOT EXISTS withdrawals (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            user_id INTEGER NOT NULL,\n            wallet TEXT NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            status TEXT NOT NULL DEFAULT 'pending',\n            created_at INTEGER NOT NULL,\n            reviewed_by INTEGER,\n            reviewed_at INTEGER\n        )\n        ")
+    phrase_cols = columns(conn, 'phrases')
+    if 'rarity' not in phrase_cols:
+        cur.execute("ALTER TABLE phrases ADD COLUMN rarity TEXT NOT NULL DEFAULT 'common'")
     user_cols = columns(conn, 'users')
     if 'hidden' not in user_cols:
         cur.execute('ALTER TABLE users ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0')
@@ -158,27 +234,31 @@ def get_user(user_id: int):
         return conn.execute('\n            SELECT user_id, username, first_name, uid, balance_milli, openings, last_role_at, hidden\n            FROM users WHERE user_id=?\n            ', (user_id,)).fetchone()
 
 def add_phrase_db(text: str) -> bool:
-    text = text.strip()
-    if not text:
+    phrase, rarity = parse_phrase_input(text)
+    if not phrase:
         return False
     with db() as conn:
         try:
-            conn.execute('INSERT INTO phrases (text, created_at) VALUES (?, ?)', (text, ts()))
+            conn.execute('INSERT INTO phrases (text, rarity, created_at) VALUES (?, ?, ?)', (phrase, rarity, ts()))
             conn.commit()
             return True
         except sqlite3.IntegrityError:
             return False
 
-def random_phrase() -> str | None:
+def random_phrase() -> tuple[str, str] | None:
+    rarity = roll_role_rarity()
     with db() as conn:
-        rows = conn.execute('SELECT text FROM phrases').fetchall()
+        rows = conn.execute('SELECT text, rarity FROM phrases WHERE rarity=?', (rarity,)).fetchall()
+        if not rows:
+            rows = conn.execute('SELECT text, rarity FROM phrases').fetchall()
     if not rows:
         return None
-    return random.choice(rows)[0]
+    phrase_text, rarity = random.choice(rows)
+    return phrase_text, rarity or 'common'
 
 def last_phrases(limit=10):
     with db() as conn:
-        return conn.execute('SELECT id, text FROM phrases ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
+        return conn.execute('SELECT id, text, rarity FROM phrases ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
 
 def phrase_count() -> int:
     with db() as conn:
@@ -282,6 +362,13 @@ def create_bonus(user_id: int) -> str:
         conn.commit()
     return bonus_id
 
+def claimed_role_bonuses_today(conn, user_id: int) -> int:
+    row = conn.execute(
+        'SELECT COUNT(*) FROM bonus_claims WHERE user_id=? AND claimed=1 AND claimed_at>=?',
+        (user_id, day_start()),
+    ).fetchone()
+    return int(row[0]) if row else 0
+
 def claim_bonus(bonus_id: str, user_id: int) -> str:
     with db() as conn:
         row = conn.execute('SELECT user_id, amount_milli, claimed FROM bonus_claims WHERE bonus_id=?', (bonus_id,)).fetchone()
@@ -292,10 +379,27 @@ def claim_bonus(bonus_id: str, user_id: int) -> str:
             return 'Этот бонус не для вас.'
         if claimed:
             return 'Вы уже получили этот бонус.'
+        claimed_today = claimed_role_bonuses_today(conn, user_id)
+        if claimed_today >= DAILY_ROLE_BONUS_LIMIT:
+            return f'Дневной лимит бонусов исчерпан: {DAILY_ROLE_BONUS_LIMIT}/{DAILY_ROLE_BONUS_LIMIT}. Попробуйте завтра.'
         conn.execute('UPDATE bonus_claims SET claimed=1, claimed_at=? WHERE bonus_id=?', (ts(), bonus_id))
         conn.execute('UPDATE users SET balance_milli=balance_milli+? WHERE user_id=?', (amount, user_id))
         conn.commit()
-    return f'Вы получили {money(amount)}'
+    return f'Вы получили {money(amount)} ({claimed_today + 1}/{DAILY_ROLE_BONUS_LIMIT} сегодня)'
+
+def claim_daily_bonus(user_id: int) -> str:
+    amount = roll_daily_bonus_amount()
+    with db() as conn:
+        row = conn.execute(
+            'SELECT amount_milli, claimed_at FROM daily_bonuses WHERE user_id=? AND claimed_at>=? ORDER BY claimed_at DESC LIMIT 1',
+            (user_id, day_start()),
+        ).fetchone()
+        if row:
+            return f'Ежедневный бонус уже получен. Следующий через {format_time_left(seconds_until_next_day())}.'
+        conn.execute('INSERT INTO daily_bonuses (user_id, amount_milli, claimed_at) VALUES (?, ?, ?)', (user_id, amount, ts()))
+        conn.execute('UPDATE users SET balance_milli=balance_milli+? WHERE user_id=?', (amount, user_id))
+        conn.commit()
+    return f'Ежедневный бонус: {money(amount)}'
 
 def top_text() -> str:
     with db() as conn:
@@ -353,6 +457,7 @@ def main_menu(admin=False, group=False):
     buttons = [[InlineKeyboardButton('Кто я?', callback_data='whoami')]]
     if not group:
         buttons.append([InlineKeyboardButton('Профиль', callback_data='profile'), InlineKeyboardButton('Вывод USDT', callback_data='withdraw')])
+        buttons.append([InlineKeyboardButton('Ежедневный бонус', callback_data='daily_bonus')])
         buttons.append([InlineKeyboardButton('Поиск по ID', callback_data='search_user')])
     buttons.append([InlineKeyboardButton('Топ 3', callback_data='top3')])
     if admin:
@@ -363,6 +468,7 @@ def role_menu(bonus_id: str, group=False):
     buttons = [[InlineKeyboardButton('Бонус', callback_data=f'bonus:{bonus_id}')]]
     if not group:
         buttons.append([InlineKeyboardButton('Профиль', callback_data='profile'), InlineKeyboardButton('Вывод USDT', callback_data='withdraw')])
+        buttons.append([InlineKeyboardButton('Ежедневный бонус', callback_data='daily_bonus')])
         buttons.append([InlineKeyboardButton('Поиск по ID', callback_data='search_user')])
     return InlineKeyboardMarkup(buttons)
 
@@ -425,13 +531,15 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if left > 0:
         await send_result(update, context, f'⏳ {mention(user)}, подожди еще {left // 60} мин. {left % 60} сек.')
         return
-    phrase = random_phrase()
-    if not phrase:
+    phrase_data = random_phrase()
+    if not phrase_data:
         await send_result(update, context, 'В базе пока нет фраз.')
         return
+    phrase, rarity = phrase_data
+    rarity_label = RARITY_LABELS.get(rarity, rarity)
     inc_opening(user.id)
     bonus_id = create_bonus(user.id)
-    await send_result(update, context, f'🎭 {mention(user)}, {html.escape(phrase)}', reply_markup=role_menu(bonus_id, group=is_group(chat)))
+    await send_result(update, context, f'🎭 {mention(user)}, {html.escape(phrase)}\n⭐ Редкость: {html.escape(rarity_label)}', reply_markup=role_menu(bonus_id, group=is_group(chat)))
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -464,7 +572,7 @@ async def add_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     text = ' '.join(context.args).strip()
     if not text:
-        await update.message.reply_text(pe('Напиши так:\n/add Шрек'), parse_mode='HTML')
+        await update.message.reply_text(pe('Напиши так:\n/add Шрек\n\nМожно указать редкость:\n/add rare | Шрек'), parse_mode='HTML')
         return
     if add_phrase_db(text):
         await update.message.reply_text(pe(f'✅ Фраза добавлена: <b>{html.escape(text)}</b>'), parse_mode='HTML')
@@ -479,7 +587,7 @@ async def list_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not rows:
         await update.message.reply_text(pe('Фраз пока нет.'), parse_mode='HTML')
         return
-    text = '📋 Последние фразы:\n\n' + '\n'.join((f'{pid}. {html.escape(txt)}' for pid, txt in rows))
+    text = '📋 Последние фразы:\n\n' + '\n'.join((f'{pid}. [{RARITY_LABELS.get(rarity, rarity)}] {html.escape(txt)}' for pid, txt, rarity in rows))
     await update.message.reply_text(pe(text), parse_mode='HTML')
 
 async def delete_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -543,7 +651,7 @@ async def add_phrase_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(q.from_user.id):
         await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return ConversationHandler.END
-    await q.message.reply_text(pe('➕ Отправь новую фразу одним сообщением.\n\nМожно также отправить .txt файл: каждая непустая строка добавится как отдельная фраза.\n\nДля отмены напиши /cancel'), parse_mode='HTML')
+    await q.message.reply_text(pe('➕ Отправь новую фразу одним сообщением.\n\nМожно указать редкость так:\nrare | Шрек\nepic | Супергерой\nlegendary | Легенда\n\nМожно также отправить .txt файл: каждая непустая строка добавится как отдельная фраза. В .txt тоже можно использовать формат rare | фраза.\n\nДля отмены напиши /cancel'), parse_mode='HTML')
     return WAIT_PHRASE
 
 async def receive_phrase(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -908,6 +1016,12 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await send_result(update, context, profile_text(q.from_user.id))
     elif data == 'top3':
         await send_result(update, context, top_text())
+    elif data == 'daily_bonus':
+        if q.message.chat.type != 'private':
+            await q.answer('Ежедневный бонус доступен только в личке.', show_alert=True)
+        else:
+            register_user(q.from_user)
+            await send_result(update, context, claim_daily_bonus(q.from_user.id))
     elif data == 'admin_menu':
         if is_admin(q.from_user.id):
             await q.edit_message_text(pe('⚙️ Админ-меню:'), reply_markup=admin_menu(), parse_mode='HTML')
@@ -917,7 +1031,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.edit_message_text(pe('Главное меню:'), reply_markup=main_menu(is_admin(q.from_user.id), is_group(q.message.chat)), parse_mode='HTML')
     elif data == 'last_phrases':
         rows = last_phrases(10)
-        text = 'Фраз пока нет.' if not rows else '📋 Последние фразы:\n\n' + '\n'.join((f'{pid}. {html.escape(txt)}' for pid, txt in rows))
+        text = 'Фраз пока нет.' if not rows else '📋 Последние фразы:\n\n' + '\n'.join((f'{pid}. [{RARITY_LABELS.get(rarity, rarity)}] {html.escape(txt)}' for pid, txt, rarity in rows))
         await q.edit_message_text(pe(text), parse_mode='HTML', reply_markup=admin_menu())
     elif data == 'phrase_count':
         await q.edit_message_text(pe(f'🔢 В базе фраз: {phrase_count()}'), reply_markup=admin_menu(), parse_mode='HTML')
