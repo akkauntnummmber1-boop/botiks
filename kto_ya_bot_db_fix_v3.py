@@ -6,7 +6,7 @@ import uuid
 import html
 import os
 from pathlib import Path
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
 BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
@@ -16,6 +16,19 @@ DB_PATH = os.path.join(DB_DIR, 'bot.db')
 os.makedirs(DB_DIR, exist_ok=True)
 TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 10 * 60
+
+CASINO_COOLDOWN_SECONDS = 30
+MIN_SLOT_BET_MILLI = 100       # 0.1 USDT
+MAX_SLOT_BET_MILLI = 10000     # 10 USDT
+
+SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
+SLOT_PAY_TABLE = {
+    ('7️⃣', '7️⃣', '7️⃣'): 20,
+    ('💎', '💎', '💎'): 10,
+    ('⭐️', '⭐️', '⭐️'): 5,
+    ('🍒', '🍒', '🍒'): 3,
+}
+
 BONUS_AMOUNT_MILLI = 100
 MIN_WITHDRAW_MILLI = 100000
 DAY_SECONDS = 24 * 60 * 60
@@ -108,13 +121,25 @@ PE_SEARCH = '<tg-emoji emoji-id="5429571366384842791">🔎</tg-emoji>'
 PE_CROSS = '<tg-emoji emoji-id="5260342697075416641">❌</tg-emoji>'
 PE_TIMER = '<tg-emoji emoji-id="5258258882022612173">⏲</tg-emoji>'
 PE_MASKS = '<tg-emoji emoji-id="5258430848218176413">🎭</tg-emoji>'
+PE_CASINO = '<tg-emoji emoji-id="5453884647966524953">🎰</tg-emoji>'
+PE_DICE = '<tg-emoji emoji-id="5260547274957672345">🎲</tg-emoji>'
+PE_COIN = '<tg-emoji emoji-id="5379600444098093058">🪙</tg-emoji>'
+PE_DOLLAR = '<tg-emoji emoji-id="5945214041747100767">💲</tg-emoji>'
+PE_X2 = '<tg-emoji emoji-id="5785038454828043276">✖️</tg-emoji>'
+PE_PLUS_ONE = '<tg-emoji emoji-id="5784967785436154901">➕</tg-emoji>'
+PE_LOADING = '<tg-emoji emoji-id="5787344001862471785">✍️</tg-emoji>'
+PE_FLYING_MONEY = '<tg-emoji emoji-id="5472030678633684592">💸</tg-emoji>'
+PE_SLOT_CHERRY = '<tg-emoji emoji-id="5406759193052995173">🍒</tg-emoji>'
+PE_SLOT_STAR = '<tg-emoji emoji-id="5435957248314579621">⭐️</tg-emoji>'
+PE_SLOT_DIAMOND = '<tg-emoji emoji-id="5471952986970267163">💎</tg-emoji>'
+PE_SLOT_SEVEN = '<tg-emoji emoji-id="5382132232829804982">7️⃣</tg-emoji>'
 
 def pe(text: str) -> str:
     """Заменяет обычные emoji на premium emoji в HTML-тексте сообщения."""
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_WALLET), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('🎭', PE_MASKS), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('7️⃣', PE_SLOT_SEVEN), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -206,7 +231,7 @@ def init_db():
     cur = conn.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS phrases (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            text TEXT NOT NULL UNIQUE,\n            created_at INTEGER NOT NULL\n        )\n        ')
-    cur.execute('\n        CREATE TABLE IF NOT EXISTS users (\n            user_id INTEGER PRIMARY KEY,\n            username TEXT,\n            first_name TEXT,\n            uid TEXT UNIQUE,\n            balance_milli INTEGER NOT NULL DEFAULT 0,\n            openings INTEGER NOT NULL DEFAULT 0,\n            last_role_at INTEGER NOT NULL DEFAULT 0,\n            hidden INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL\n        )\n        ')
+    cur.execute('\n        CREATE TABLE IF NOT EXISTS users (\n            user_id INTEGER PRIMARY KEY,\n            username TEXT,\n            first_name TEXT,\n            uid TEXT UNIQUE,\n            balance_milli INTEGER NOT NULL DEFAULT 0,\n            openings INTEGER NOT NULL DEFAULT 0,\n            last_role_at INTEGER NOT NULL DEFAULT 0,\n            hidden INTEGER NOT NULL DEFAULT 0,\n            casino_last_spin_at INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS bonus_claims (\n            bonus_id TEXT PRIMARY KEY,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL,\n            claimed_at INTEGER\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS daily_bonuses (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS groups (\n            chat_id INTEGER PRIMARY KEY,\n            title TEXT,\n            username TEXT,\n            type TEXT,\n            added_at INTEGER NOT NULL,\n            last_seen_at INTEGER NOT NULL\n        )\n        ')
@@ -217,6 +242,10 @@ def init_db():
     user_cols = columns(conn, 'users')
     if 'hidden' not in user_cols:
         cur.execute('ALTER TABLE users ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0')
+
+    if 'casino_last_spin_at' not in user_cols:
+        cur.execute('ALTER TABLE users ADD COLUMN casino_last_spin_at INTEGER NOT NULL DEFAULT 0')
+
     cur.execute("INSERT OR IGNORE INTO meta (key, value) VALUES ('next_uid', '1')")
     conn.commit()
     conn.close()
@@ -252,7 +281,7 @@ def remember_group(chat):
 
 def get_user(user_id: int):
     with db() as conn:
-        return conn.execute('\n            SELECT user_id, username, first_name, uid, balance_milli, openings, last_role_at, hidden\n            FROM users WHERE user_id=?\n            ', (user_id,)).fetchone()
+        return conn.execute('\n            SELECT user_id, username, first_name, uid, balance_milli, openings, last_role_at, hidden, casino_last_spin_at\n            FROM users WHERE user_id=?\n            ', (user_id,)).fetchone()
 
 def add_phrase_db(text: str) -> bool:
     phrase, rarity = parse_phrase_input(text)
@@ -364,7 +393,7 @@ def search_user_text(user_id: int) -> str | None:
     row = get_user(user_id)
     if not row:
         return None
-    user_id, username, first_name, uid, balance, openings, last_role, hidden = row
+    user_id, username, first_name, uid, balance, openings, last_role, hidden, *_ = row
     if hidden:
         return None
     username_text = f'@{username}' if username else 'нет'
@@ -435,7 +464,7 @@ def profile_text(user_id: int) -> str:
     row = get_user(user_id)
     if not row:
         return 'Профиль не найден. Напиши /start.'
-    user_id, username, first_name, uid, balance, openings, last_role, hidden = row
+    user_id, username, first_name, uid, balance, openings, last_role, hidden, *_ = row
     uname = f'@{username}' if username else 'нет'
     hidden_line = '\n🙈 Статус: <b>скрыт</b>' if hidden else ''
     return f'👤 <b>Профиль</b>\n\n🆔 Telegram ID: <code>{user_id}</code>\n🔖 UID: <code>{html.escape(str(uid))}</code>\n👁 Открытия: <b>{openings}</b>\n💰 Баланс: <b>{money(balance)}</b>\n📛 Username: {html.escape(uname)}{hidden_line}'
@@ -472,30 +501,59 @@ def set_withdrawal(wid: int, status: str, admin_id: int) -> bool:
     return True
 
 def main_menu(admin=False, group=False):
-    buttons = [[InlineKeyboardButton('Кто я?', callback_data='whoami')]]
+    # Inline-меню. В группах используется оно, чтобы не было нижней клавиатуры.
+    buttons = [[InlineKeyboardButton('🎭 Кто я', callback_data='whoami')]]
+
     if not group:
-        buttons.append([InlineKeyboardButton('Профиль', callback_data='profile'), InlineKeyboardButton('Вывод USDT', callback_data='withdraw')])
-        buttons.append([InlineKeyboardButton('Поиск по ID', callback_data='search_user')])
-    buttons.append([InlineKeyboardButton('Топ 3', callback_data='top3')])
+        buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
+        buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
+
+    buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
+    buttons.append([InlineKeyboardButton('🏆 Топ 3', callback_data='top3')])
+
     if admin:
-        buttons.append([InlineKeyboardButton('Админ-меню', callback_data='admin_menu')])
+        buttons.append([InlineKeyboardButton('⚙️ Админ-меню', callback_data='admin_menu')])
+
     return InlineKeyboardMarkup(buttons)
+
+def reply_main_menu(admin=False, group=False):
+    # Нижняя клавиатура используется только в ЛС.
+    # В группах меню показывается inline-кнопками под сообщением.
+    if group:
+        rows = []
+    else:
+        rows = [
+            ['🎭 Кто я'],
+            ['👤 Профиль', '💸 Вывод USDT'],
+            ['🔎 Поиск по ID', '🎰 Казино'],
+            ['🏆 Топ 3'],
+        ]
+
+    if admin:
+        rows.append(['⚙️ Админ-меню'])
+
+    return ReplyKeyboardMarkup(
+        rows,
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder='Выберите действие...'
+    )
 
 def role_menu(group=False):
     buttons = []
 
     if not group:
-        buttons.append([InlineKeyboardButton('Профиль', callback_data='profile'), InlineKeyboardButton('Вывод USDT', callback_data='withdraw')])
-        buttons.append([InlineKeyboardButton('Поиск по ID', callback_data='search_user')])
+        buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
+        buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
+        buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
 
     return InlineKeyboardMarkup(buttons) if buttons else None
 
-
 def admin_menu():
-    return InlineKeyboardMarkup([[InlineKeyboardButton('Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('Статистика', callback_data='admin_stats')], [InlineKeyboardButton('Выдать USDT', callback_data='give_usdt')], [InlineKeyboardButton('Забрать USDT', callback_data='take_usdt')], [InlineKeyboardButton('Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('Группы с ботом', callback_data='groups')], [InlineKeyboardButton('Назад', callback_data='back')]])
+    return InlineKeyboardMarkup([[InlineKeyboardButton('➕ Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('🗑 Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('📋 Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('🔢 Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('📣 Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('📊 Статистика', callback_data='admin_stats')], [InlineKeyboardButton('💰 Выдать USDT', callback_data='give_usdt')], [InlineKeyboardButton('➖ Забрать USDT', callback_data='take_usdt')], [InlineKeyboardButton('🆔 Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('🙈 Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('👁 Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('👥 Группы с ботом', callback_data='groups')], [InlineKeyboardButton('⬅️ Назад', callback_data='back')]])
 
 def withdraw_admin_menu(wid: int):
-    return InlineKeyboardMarkup([[InlineKeyboardButton('Одобрить', callback_data=f'wd_ok:{wid}'), InlineKeyboardButton('Отклонить', callback_data=f'wd_no:{wid}')]])
+    return InlineKeyboardMarkup([[InlineKeyboardButton('✅ Одобрить', callback_data=f'wd_ok:{wid}'), InlineKeyboardButton('❌ Отклонить', callback_data=f'wd_no:{wid}')]])
 
 async def delete_last_private(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
     mid = context.user_data.get('last_private_result')
@@ -508,6 +566,49 @@ async def delete_last_private(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
     except Exception:
         pass
     context.user_data['last_private_result'] = None
+
+async def delete_last_group_clean_result(context: ContextTypes.DEFAULT_TYPE, chat_id: int):
+    last_id = context.chat_data.get("last_clean_result_message_id")
+
+    if not last_id:
+        return
+
+    try:
+        await context.bot.delete_message(chat_id=chat_id, message_id=last_id)
+    except BadRequest:
+        pass
+    except Exception:
+        pass
+
+    context.chat_data["last_clean_result_message_id"] = None
+
+
+async def send_clean_group_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+    """
+    Используется только для результатов казино и топа.
+    В группах удаляет прошлый результат казино/топа.
+    Выдачи ролей не используют эту функцию и не удаляются.
+    """
+    chat = update.effective_chat
+
+    if chat.type == "private":
+        return await send_result(update, context, text, reply_markup=reply_markup)
+
+    if is_group(chat):
+        await delete_last_group_clean_result(context, chat.id)
+
+        msg = await context.bot.send_message(
+            chat.id,
+            pe(text),
+            parse_mode="HTML",
+            reply_markup=reply_markup
+        )
+
+        context.chat_data["last_clean_result_message_id"] = msg.message_id
+        return msg
+
+    return await send_result(update, context, text, reply_markup=reply_markup)
+
 
 async def send_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
     chat = update.effective_chat
@@ -535,6 +636,165 @@ async def send_long_message(bot, chat_id: int, text: str, reply_markup=None):
         parts.append(current)
     for index, part in enumerate(parts):
         await bot.send_message(chat_id, pe(part), parse_mode='HTML', reply_markup=reply_markup if index == len(parts) - 1 else None)
+
+
+def casino_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton('🎰 Слоты 0.1 USDT', callback_data='slots_bet:0.1')],
+        [InlineKeyboardButton('🎰 Слоты 0.5 USDT', callback_data='slots_bet:0.5')],
+        [InlineKeyboardButton('🎰 Слоты 1 USDT', callback_data='slots_bet:1')],
+        [InlineKeyboardButton('🎰 Слоты 5 USDT', callback_data='slots_bet:5')],
+    ])
+
+
+def slots_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton('🔄 Еще раз 0.1', callback_data='slots_bet:0.1')],
+        [InlineKeyboardButton('🔄 Еще раз 0.5', callback_data='slots_bet:0.5')],
+        [InlineKeyboardButton('🔄 Еще раз 1', callback_data='slots_bet:1')],
+        [InlineKeyboardButton('🔄 Еще раз 5', callback_data='slots_bet:5')],
+        [InlineKeyboardButton('🎰 Казино', callback_data='casino')],
+    ])
+
+
+def get_casino_last_spin(user_id: int) -> int:
+    row = get_user(user_id)
+
+    if not row:
+        return 0
+
+    if len(row) >= 9:
+        return int(row[8] or 0)
+
+    return 0
+
+
+def set_casino_last_spin(user_id: int) -> None:
+    with db() as conn:
+        conn.execute("UPDATE users SET casino_last_spin_at=? WHERE user_id=?", (ts(), user_id))
+        conn.commit()
+
+
+def roll_slots() -> list[str]:
+    return [random.choice(SLOT_SYMBOLS) for _ in range(3)]
+
+
+def get_slot_multiplier(symbols: list[str]) -> float:
+    combo = tuple(symbols)
+
+    if combo in SLOT_PAY_TABLE:
+        return SLOT_PAY_TABLE[combo]
+
+    if symbols[0] == symbols[1] == symbols[2]:
+        return 2
+
+    if symbols[0] == symbols[1] or symbols[0] == symbols[2] or symbols[1] == symbols[2]:
+        return 0.5
+
+    return 0
+
+
+def slot_result_text(user, bet_milli: int, symbols: list[str], multiplier: float, win_milli: int, balance_after: int) -> str:
+    symbols_line = " | ".join(symbols)
+
+    if multiplier > 0:
+        result_line = f"✅ Выигрыш: +{money(win_milli)}"
+
+        if multiplier == 20:
+            result_line = f"🎰 ДЖЕКПОТ: +{money(win_milli)}"
+    else:
+        result_line = f"❌ Проигрыш: -{money(bet_milli)}"
+
+    return (
+        f"🎰 <b>Слоты</b>\n\n"
+        f"👤 Игрок: {mention(user)}\n"
+        f"💲 Ставка: <b>{money(bet_milli)}</b>\n\n"
+        f"{symbols_line}\n\n"
+        f"✖️ Множитель: <b>x{multiplier}</b>\n"
+        f"{result_line}\n"
+        f"💰 Баланс: <b>{money(balance_after)}</b>"
+    )
+
+
+async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    text = (
+        "🎰 <b>Казино</b>\n\n"
+        "Выбери ставку для слотов или напиши команду:\n"
+        "<code>/slots 1</code>\n\n"
+        f"⏲ Кулдаун между спинами: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>\n"
+        f"💲 Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>\n"
+        f"💲 Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>\n\n"
+        "Выплаты слотов:\n"
+        "7️⃣ 7️⃣ 7️⃣ = x20\n"
+        "💎 💎 💎 = x10\n"
+        "⭐️ ⭐️ ⭐️ = x5\n"
+        "🍒 🍒 🍒 = x3"
+    )
+
+    await send_clean_group_result(update, context, text, reply_markup=casino_menu())
+
+
+async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_milli: int):
+    user = update.effective_user
+    register_user(user)
+    remember_group(update.effective_chat)
+
+    row = get_user(user.id)
+
+    if not row:
+        await send_clean_group_result(update, context, "❌ Профиль не найден. Напиши /start.")
+        return
+
+    balance_milli = int(row[4])
+
+    if bet_milli < MIN_SLOT_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>")
+        return
+
+    if bet_milli > MAX_SLOT_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>")
+        return
+
+    if balance_milli < bet_milli:
+        await send_clean_group_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
+        return
+
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+
+    if left > 0:
+        await send_clean_group_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующим спином.")
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+
+    if not ok:
+        await send_clean_group_result(update, context, f"❌ {html.escape(msg)}")
+        return
+
+    symbols = roll_slots()
+    multiplier = get_slot_multiplier(symbols)
+    win_milli = int(round(bet_milli * multiplier))
+
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    set_casino_last_spin(user.id)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+
+    await send_clean_group_result(
+        update,
+        context,
+        slot_result_text(user, bet_milli, symbols, multiplier, win_milli, balance_after),
+        reply_markup=slots_menu()
+    )
+
+
 
 async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -564,16 +824,54 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_result(
         update,
         context,
-        f'🎭 {mention(user)}, {html.escape(phrase)}\n'
-        f'⭐ Редкость: {html.escape(rarity_label)}\n'
-        f'💰 Добавлено: +{money(reward_milli)}',
+        f'{mention(user)} — <b>{html.escape(phrase)}</b>\n'
+        f'⭐ Редкость: <b>{html.escape(rarity_label)}</b>\n'
+        f'💰 Добавлено: <b>+{money(reward_milli)}</b>',
         reply_markup=role_menu(group=is_group(chat))
     )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
-    await update.message.reply_text(pe('🎭 Бот для игры «Кто я?»\n\nВ группе напиши: <b>кто я</b>, <b>кто</b> или <b>я</b>.'), parse_mode='HTML', reply_markup=main_menu(is_admin(update.effective_user.id), is_group(update.effective_chat)))
+
+    if is_group(update.effective_chat):
+        await update.message.reply_text(
+            pe('🎭 Бот для игры «Кто я?»'),
+            parse_mode='HTML',
+            reply_markup=ReplyKeyboardRemove()
+        )
+
+        await update.message.reply_text(
+            pe('Главное меню:'),
+            parse_mode='HTML',
+            reply_markup=main_menu(is_admin(update.effective_user.id), group=True)
+        )
+        return
+
+    await update.message.reply_text(
+        pe('🎭 Бот для игры «Кто я?»\n\nГлавное меню открыто снизу.'),
+        parse_mode='HTML',
+        reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
+    )
+
+async def menu_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if is_group(update.effective_chat):
+        await update.message.reply_text(
+            pe('Главное меню:'),
+            parse_mode='HTML',
+            reply_markup=main_menu(is_admin(update.effective_user.id), group=True)
+        )
+        return
+
+    await update.message.reply_text(
+        pe('Главное меню открыто снизу.'),
+        parse_mode='HTML',
+        reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
+    )
+
 
 async def whoami(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_role(update, context)
@@ -581,10 +879,55 @@ async def whoami(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
+
     register_user(update.effective_user)
     remember_group(update.effective_chat)
-    if update.message.text.strip().lower() in TRIGGERS:
+
+    raw_text = update.message.text.strip()
+    lower_text = raw_text.lower()
+
+    if lower_text in TRIGGERS or lower_text in ('кто я?', '🎭 кто я'):
         await send_role(update, context)
+        return
+
+    if lower_text in ('профиль', '👤 профиль'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+
+        await send_result(update, context, profile_text(update.effective_user.id))
+        return
+
+    if lower_text in ('топ 3', '🏆 топ 3'):
+        await send_clean_group_result(update, context, top_text())
+        return
+
+    if lower_text in ('казино', '🎰 казино'):
+        await show_casino(update, context)
+        return
+
+    if lower_text in ('админ-меню', '⚙️ админ-меню', '⚙ админ-меню'):
+        if not is_admin(update.effective_user.id):
+            await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+            return
+
+        await update.message.reply_text(pe('⚙️ Админ-меню:'), parse_mode='HTML', reply_markup=admin_menu())
+        return
+
+    if lower_text in ('меню', '🏠 меню'):
+        if is_group(update.effective_chat):
+            await update.message.reply_text(
+                pe('Главное меню:'),
+                parse_mode='HTML',
+                reply_markup=main_menu(is_admin(update.effective_user.id), group=True)
+            )
+        else:
+            await update.message.reply_text(
+                pe('Главное меню открыто снизу.'),
+                parse_mode='HTML',
+                reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
+            )
+        return
 
 async def admin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -635,7 +978,7 @@ async def profile_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def top_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
-    await send_result(update, context, top_text())
+    await send_clean_group_result(update, context, top_text())
 
 async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -669,6 +1012,28 @@ async def admin_stats_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return
     await send_long_message(context.bot, update.effective_chat.id, admin_stats_text(), reply_markup=admin_menu())
+
+
+async def casino_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await show_casino(update, context)
+
+
+async def slots_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if not context.args:
+        await send_clean_group_result(update, context, "Напиши ставку:\n<code>/slots 1</code>")
+        return
+
+    amount = parse_money(context.args[0])
+
+    if amount is None:
+        await send_clean_group_result(update, context, "Введите ставку числом. Например:\n<code>/slots 1</code>")
+        return
+
+    await play_slots(update, context, amount)
+
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(pe('Отменено.'), parse_mode='HTML')
@@ -786,6 +1151,35 @@ async def admin_stats_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return
     await send_long_message(context.bot, q.message.chat.id, admin_stats_text(), reply_markup=admin_menu())
+
+async def withdraw_start_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+
+    if update.effective_chat.type != 'private':
+        await update.message.reply_text(pe('Вывод доступен только в личке с ботом.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    row = get_user(update.effective_user.id)
+
+    if not row:
+        await update.message.reply_text(pe('Профиль не найден. Напиши /start.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    balance_milli = row[4]
+
+    if balance_milli < MIN_WITHDRAW_MILLI:
+        await send_result(
+            update,
+            context,
+            '❌ Недостаточно средств для вывода.\n'
+            f'Минимальная сумма вывода: <b>{money(MIN_WITHDRAW_MILLI)}</b>\n'
+            f'Ваш баланс: <b>{money(balance_milli)}</b>'
+        )
+        return ConversationHandler.END
+
+    await send_result(update, context, '💸 Введите адрес кошелька USDT в сети TON:')
+    return WAIT_WALLET
+
 
 async def withdraw_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
@@ -973,6 +1367,17 @@ async def unhide_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(pe(f"{('✅' if ok else '⚠️')} {msg}"), parse_mode='HTML')
     return ConversationHandler.END
 
+async def search_user_start_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+
+    if update.effective_chat.type != 'private':
+        await update.message.reply_text(pe('🔎 Поиск по ID доступен в личке с ботом.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    await update.message.reply_text(pe('🔎 Введите Telegram ID пользователя для поиска:'), parse_mode='HTML')
+    return WAIT_SEARCH_USER
+
+
 async def search_user_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -1002,6 +1407,22 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(q.from_user)
     if q.message:
         remember_group(q.message.chat)
+    if data == 'casino':
+        await q.answer()
+        await show_casino(update, context)
+        return
+
+    if data.startswith('slots_bet:'):
+        await q.answer()
+        amount = parse_money(data.split(':', 1)[1])
+
+        if amount is None:
+            await send_result(update, context, '❌ Ошибка ставки.')
+            return
+
+        await play_slots(update, context, amount)
+        return
+
     if data.startswith('bonus:'):
         msg = claim_bonus(data.split(':', 1)[1], q.from_user.id)
         await q.answer(msg, show_alert=True)
@@ -1044,7 +1465,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await send_result(update, context, profile_text(q.from_user.id))
     elif data == 'top3':
-        await send_result(update, context, top_text())
+        await send_clean_group_result(update, context, top_text())
     elif data == 'daily_bonus':
         await q.answer('Ежедневный бонус отключен.', show_alert=True)
     elif data == 'admin_menu':
@@ -1053,7 +1474,18 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
     elif data == 'back':
-        await q.edit_message_text(pe('Главное меню:'), reply_markup=main_menu(is_admin(q.from_user.id), is_group(q.message.chat)), parse_mode='HTML')
+        if is_group(q.message.chat):
+            await q.message.reply_text(
+                pe('Главное меню:'),
+                parse_mode='HTML',
+                reply_markup=main_menu(is_admin(q.from_user.id), group=True)
+            )
+        else:
+            await q.message.reply_text(
+                pe('Главное меню открыто снизу.'),
+                parse_mode='HTML',
+                reply_markup=reply_main_menu(is_admin(q.from_user.id), group=False)
+            )
     elif data == 'last_phrases':
         rows = last_phrases(10)
         text = 'Фраз пока нет.' if not rows else '📋 Последние фразы:\n\n' + '\n'.join((f'{pid}. [{RARITY_LABELS.get(rarity, rarity)}] {html.escape(txt)}' for pid, txt, rarity in rows))
@@ -1072,6 +1504,7 @@ def main():
     init_db()
     app = Application.builder().token(BOT_TOKEN).defaults(Defaults(parse_mode="HTML")).build()
     app.add_handler(CommandHandler('start', start))
+    app.add_handler(CommandHandler('menu', menu_cmd))
     app.add_handler(CommandHandler('whoami', whoami))
     app.add_handler(CommandHandler('admin', admin_cmd))
     app.add_handler(CommandHandler('add', add_cmd))
@@ -1079,17 +1512,19 @@ def main():
     app.add_handler(CommandHandler('delete', delete_cmd))
     app.add_handler(CommandHandler('profile', profile_cmd))
     app.add_handler(CommandHandler('top', top_cmd))
+    app.add_handler(CommandHandler('casino', casino_cmd))
+    app.add_handler(CommandHandler('slots', slots_cmd))
     app.add_handler(CommandHandler('search', search_cmd))
     app.add_handler(CommandHandler('dbpath', dbpath_cmd))
     app.add_handler(CommandHandler('adminstats', admin_stats_cmd))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(add_phrase_start, pattern='^add_phrase$')], states={WAIT_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phrase)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(withdraw_start, pattern='^withdraw$')], states={WAIT_WALLET: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_wallet)], WAIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(withdraw_start, pattern='^withdraw$'), MessageHandler(filters.Regex('^(💸 )?Вывод USDT$'), withdraw_start_text)], states={WAIT_WALLET: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_wallet)], WAIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(give_start, pattern='^give_usdt$')], states={WAIT_GIVE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_user)], WAIT_GIVE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(take_start, pattern='^take_usdt$')], states={WAIT_TAKE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_user)], WAIT_TAKE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(uid_start, pattern='^custom_uid$')], states={WAIT_UID_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_user)], WAIT_UID_VALUE: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_value)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(hide_start, pattern='^hide_user$')], states={WAIT_HIDE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, hide_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(unhide_start, pattern='^unhide_user$')], states={WAIT_UNHIDE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, unhide_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(search_user_start, pattern='^search_user$')], states={WAIT_SEARCH_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_user_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(search_user_start, pattern='^search_user$'), MessageHandler(filters.Regex('^(🔎 )?Поиск по ID$'), search_user_start_text)], states={WAIT_SEARCH_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_user_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(delete_phrase_start, pattern='^delete_phrase_btn$')], states={WAIT_DELETE_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, delete_phrase_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(broadcast_start, pattern='^broadcast$')], states={WAIT_BROADCAST_TEXT: [MessageHandler(filters.TEXT & ~filters.COMMAND, broadcast_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(CallbackQueryHandler(admin_stats_button, pattern='^admin_stats$'))
