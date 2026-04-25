@@ -1,6 +1,7 @@
 import random
 import sqlite3
 import logging
+import asyncio
 import time
 import uuid
 import html
@@ -30,6 +31,9 @@ SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–
 
 MIN_COIN_BET_MILLI = 100       # 0.1 USDT
 MAX_COIN_BET_MILLI = 10000     # 10 USDT
+MIN_BALL_BET_MILLI = 100       # 0.1 USDT
+MAX_BALL_BET_MILLI = 10000     # 10 USDT
+BASKETBALL_ANIMATION_DELAY = 4
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
 SLOT_PAY_TABLE = {
@@ -147,6 +151,7 @@ PE_TRANSFER_USDT = '<tg-emoji emoji-id="5201692367437974073">💵</tg-emoji>'
 PE_TRANSFER_GIFT = '<tg-emoji emoji-id="5199749070830197566">🎁</tg-emoji>'
 PE_TRANSFER_CHAT = '<tg-emoji emoji-id="5895457880710058528">💬</tg-emoji>'
 PE_TRANSFER_USER = '<tg-emoji emoji-id="5373012449597335010">👤</tg-emoji>'
+PE_BASKETBALL = '<tg-emoji emoji-id="5384088040677319401">🏀</tg-emoji>'
 PE_SLOT_CHERRY = '<tg-emoji emoji-id="5406759193052995173">🍒</tg-emoji>'
 PE_SLOT_STAR = '<tg-emoji emoji-id="5435957248314579621">⭐️</tg-emoji>'
 PE_SLOT_DIAMOND = '<tg-emoji emoji-id="5471952986970267163">💎</tg-emoji>'
@@ -172,7 +177,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -1448,25 +1453,15 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
     remember_group(update.effective_chat)
 
     text = (
-        "🎰 <b>Казино</b>\n\n"
-        "Выбери ставку для слотов или монетки.\n"
-        "Команды:\n"
-        "<code>/slots 1</code>\n"
-        "<code>/coin орел 1</code>\n"
-        "<code>/coin решка 1</code>\n"
-        "<code>/case open</code>\n\n"
-        f"⏲ Кулдаун между играми: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>\n"
-        f"💲 Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>\n"
-        f"💲 Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>\n"
-        f"📈 Шанс выигрыша: <b>{SLOT_WIN_CHANCE_PERCENT}%</b>\n\n"
-        "Выплаты слотов:\n"
-        "7️⃣ 7️⃣ 7️⃣ = x20\n"
-        "💎 💎 💎 = x10\n"
-        "⭐️ ⭐️ ⭐️ = x5\n"
-        "🍒 🍒 🍒 = x3"
+        "🎰 <b>Казино</b>\n"
+        "🎰 <code>/slots 1</code> — слоты\n"
+        "🪙 <code>/coin орел 1</code> — орел и решка\n"
+        "🏀 <code>/ball 1</code> — баскетбол\n"
+        "🎁 <code>/case open</code> — открыть кейс"
     )
 
     await send_clean_group_result(update, context, text)
+
 
 
 async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_milli: int):
@@ -2526,6 +2521,117 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
 
+def ball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
+    # Для Telegram-баскетбола значения 4 и 5 считаем попаданием.
+    is_hit = dice_value >= 4
+
+    if is_hit:
+        result_line = f"✅ <b>Попадание!</b> Выигрыш: <b>+{money(win_milli)}</b>"
+    else:
+        result_line = f"❌ <b>Мимо!</b> Проигрыш: <b>-{money(bet_milli)}</b>"
+
+    return (
+        f"🏀 <b>Баскетбол</b>\n"
+        f"👤 Игрок: {mention(user)}\n"
+        f"💵 Ставка: <b>{money(bet_milli)}</b>\n"
+        f"{result_line}\n"
+        f"💰 Баланс: <b>{money(balance_after)}</b>"
+    )
+
+
+async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+
+    register_user(user)
+    remember_group(chat)
+
+    if is_banned_user(user.id):
+        await send_result(update, context, "⛔ Вы забанены у бота.")
+        return
+
+    if not context.args:
+        await send_result(
+            update,
+            context,
+            "🏀 <b>Баскетбол</b>\n"
+            "Команда: <code>/ball сумма</code>\n"
+            "Пример: <code>/ball 1</code>\n"
+            f"Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>\n"
+            f"Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>"
+        )
+        return
+
+    bet_milli = parse_money(context.args[0])
+
+    if bet_milli is None or bet_milli <= 0:
+        await send_result(update, context, "Введите ставку числом. Например: <code>/ball 1</code>")
+        return
+
+    if bet_milli < MIN_BALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>")
+        return
+
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>")
+        return
+
+    row = get_user(user.id)
+
+    if not row:
+        await send_result(update, context, "Профиль не найден. Напиши /start.")
+        return
+
+    balance_milli = int(row[4])
+
+    if balance_milli < bet_milli:
+        await send_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
+        return
+
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+
+    if left > 0:
+        await send_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+
+    if not ok:
+        await send_result(update, context, f"❌ {html.escape(msg)}")
+        return
+
+    # Отправляем настоящую Telegram-анимацию баскетбольного мяча.
+    dice_msg = await context.bot.send_dice(
+        chat_id=chat.id,
+        emoji="🏀",
+        reply_to_message_id=update.message.message_id if update.message else None,
+    )
+
+    # Ждем, чтобы Telegram-анимация мяча успела проиграться.
+    await asyncio.sleep(BASKETBALL_ANIMATION_DELAY)
+
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    is_hit = dice_value >= 4
+    win_milli = bet_milli * 2 if is_hit else 0
+
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    set_casino_last_spin(user.id)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+
+    await context.bot.send_message(
+        chat_id=chat.id,
+        text=pe(ball_result_text(user, bet_milli, dice_value, win_milli, balance_after)),
+        parse_mode="HTML",
+        reply_to_message_id=dice_msg.message_id,
+    )
+
+
+
 async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
@@ -3189,6 +3295,8 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
 
 def main():
+    print('VERSION_BASKETBALL_DELAY_CASINO_TEXT')
+    print('VERSION_BASKETBALL_GAME')
     print('VERSION_CASINO_NO_BUTTONS')
     print('VERSION_GAME_RESULT_NO_BUTTONS')
     print('VERSION_PAY_TEXT_FIX')
@@ -3227,6 +3335,7 @@ def main():
     app.add_handler(CommandHandler('casino', casino_cmd))
     app.add_handler(CommandHandler('case', case_cmd))
     app.add_handler(CommandHandler('pay', pay_cmd))
+    app.add_handler(CommandHandler('ball', ball_cmd))
     app.add_handler(CommandHandler('slots', slots_cmd))
     app.add_handler(CommandHandler('coin', coin_cmd))
     app.add_handler(CommandHandler('search', search_cmd))
