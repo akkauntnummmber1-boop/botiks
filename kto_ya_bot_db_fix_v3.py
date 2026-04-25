@@ -220,6 +220,22 @@ def money(milli: int) -> str:
         return f'{whole} USDT'
     return f'{whole}.{frac:03d}'.rstrip('0') + ' USDT'
 
+
+def money_balance(milli: int) -> str:
+    """
+    Баланс показываем без центов.
+    Например 75.321 USDT -> 75 USDT.
+    Округление математическое до целого USDT.
+    """
+    try:
+        value = int(milli or 0) / 1000
+        rounded = int(round(value))
+        return f"{rounded} USDT"
+    except Exception:
+        return "0 USDT"
+
+
+
 def parse_money(text: str) -> int | None:
     try:
         value = float(text.strip().replace(',', '.'))
@@ -970,7 +986,7 @@ def search_user_text(user_id: int) -> str | None:
         "🔎 <b>Пользователь найден</b>\n\n"
         f"🆔 Telegram ID: <code>{user_id}</code>\n"
         f"🔖 UID: <code>{html.escape(str(uid))}</code>\n"
-        f"💰 Баланс: <b>{money(balance)}</b>\n"
+        f"💰 Баланс: <b>{money_balance(balance)}</b>\n"
         f"👁 Открытия: <b>{openings}</b>\n"
         f"📛 Username: {html.escape(username_text)}\n"
         f"👤 Имя: {html.escape(first_name_text)}\n"
@@ -1044,7 +1060,7 @@ def top_text() -> str:
     lines = ['🏆 <b>Топ 3 по USDT</b>\n']
     for i, (user_id, username, first_name, uid, balance) in enumerate(rows):
         name = f'@{username}' if username else first_name or f'ID {user_id}'
-        lines.append(f'{medals[i]} {html.escape(name)} | UID: <code>{html.escape(str(uid))}</code> | <b>{money(balance)}</b>')
+        lines.append(f'{medals[i]} {html.escape(name)} | UID: <code>{html.escape(str(uid))}</code> | <b>{money_balance(balance)}</b>')
     return '\n'.join(lines)
 
 def profile_text(user_id: int) -> str:
@@ -1088,7 +1104,7 @@ def profile_text(user_id: int) -> str:
         f"🆔 Telegram ID: <code>{user_id}</code>\n"
         f"🔖 UID: <code>{html.escape(str(uid))}</code>\n"
         f"👁 Открытия: <b>{openings}</b>\n"
-        f"💰 Баланс: <b>{money(balance)}</b>\n"
+        f"💰 Баланс: <b>{money_balance(balance)}</b>\n"
         f"📛 Username: {html.escape(uname)}"
         f"{hidden_line}"
         f"{prefix_line}"
@@ -1511,7 +1527,7 @@ def slot_result_text(user, bet_milli: int, symbols: list[str], multiplier: float
         f"{symbols_line}\n\n"
         f"✖️ Множитель: <b>x{multiplier}</b>\n"
         f"{result_line}\n"
-        f"💰 Баланс: <b>{money(balance_after)}</b>"
+        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
     )
 
 
@@ -1706,7 +1722,7 @@ def coin_result_text(user, bet_milli: int, choice: str, result: str, win_milli: 
         f"✍️ Выбор: <b>{coin_side_label(choice)}</b>\n"
         f"🪙 Выпало: <b>{coin_side_label(result)}</b>\n\n"
         f"{result_line}\n"
-        f"💰 Баланс: <b>{money(balance_after)}</b>"
+        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
     )
 
 
@@ -2606,7 +2622,7 @@ def open_case(user_id: int) -> tuple[bool, str]:
             "Недостаточно средств для открытия кейса.\n"
             f"Цена кейса: <b>{money(price)}</b>\n"
             f"Ваша скидка: <b>{money(discount)}</b>\n"
-            f"Ваш баланс: <b>{money(balance)}</b>"
+            f"Ваш баланс: <b>{money_balance(balance)}</b>"
         )
 
     if price > 0:
@@ -2752,7 +2768,7 @@ def ball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, bala
         f"👤 Игрок: {mention(user)}\n"
         f"💵 Ставка: <b>{money(bet_milli)}</b>\n"
         f"{result_line}\n"
-        f"💰 Баланс: <b>{money(balance_after)}</b>"
+        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
     )
 
 
@@ -2834,7 +2850,7 @@ def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, 
         f"👤 Игрок: {mention(user)}\n"
         f"💵 Ставка: <b>{money(bet_milli)}</b>\n"
         f"{result_line}\n"
-        f"💰 Баланс: <b>{money(balance_after)}</b>"
+        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
     )
 
 
@@ -3123,49 +3139,29 @@ async def admin_stats_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def withdraw_start_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
 
-    if await handle_banned_action(update, context):
-        return
+    await send_result(
+        update,
+        context,
+        "❗️ <b>Функция временно недоступна.</b>\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+    )
 
-    if update.effective_chat.type != 'private':
-        await update.message.reply_text(pe('Вывод доступен только в личке с ботом.'), parse_mode='HTML')
-        return ConversationHandler.END
+    return ConversationHandler.END
 
-    row = get_user(update.effective_user.id)
-
-    if not row:
-        await update.message.reply_text(pe('Профиль не найден. Напиши /start.'), parse_mode='HTML')
-        return ConversationHandler.END
-
-    balance_milli = row[4]
-
-    if balance_milli < MIN_WITHDRAW_MILLI:
-        await send_result(
-            update,
-            context,
-            '❌ Недостаточно средств для вывода.\n'
-            f'Минимальная сумма вывода: <b>{money(MIN_WITHDRAW_MILLI)}</b>\n'
-            f'Ваш баланс: <b>{money(balance_milli)}</b>'
-        )
-        return ConversationHandler.END
-
-    await send_result(update, context, '💸 Введите адрес кошелька USDT в сети TON:')
-    return WAIT_WALLET
 
 
 async def withdraw_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
-    if q.message.chat.type != 'private':
-        await q.answer('Вывод доступен только в личке с ботом.', show_alert=True)
-        return ConversationHandler.END
     await q.answer()
-    register_user(q.from_user)
-    row = get_user(q.from_user.id)
-    bal = row[4]
-    if bal < MIN_WITHDRAW_MILLI:
-        await send_result(update, context, f'❌ Недостаточно средств для вывода.\nМинимальная сумма вывода: <b>{money(MIN_WITHDRAW_MILLI)}</b>\nВаш баланс: <b>{money(bal)}</b>')
-        return ConversationHandler.END
-    await send_result(update, context, '💸 Введите адрес кошелька USDT в сети TON:')
-    return WAIT_WALLET
+
+    await send_result(
+        update,
+        context,
+        "❗️ <b>Функция временно недоступна.</b>\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+    )
+
+    return ConversationHandler.END
+
+
 
 async def withdraw_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     wallet = update.message.text.strip()
@@ -3630,6 +3626,8 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_WITHDRAW_TEXT_UPDATED')
+    print('VERSION_BALANCE_ROUND_WITHDRAW_SUPPORT')
     print('VERSION_FOOTBALL_GOAL_FIX')
     print('VERSION_FOOTBALL_15S_BANLIST_RANDOM_ROLES')
     print('VERSION_RE_IMPORT_FIX')
