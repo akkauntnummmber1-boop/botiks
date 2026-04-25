@@ -1605,14 +1605,6 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_clean_group_result(update, context, top_text())
         return
 
-    if lower_text in ('инвентарь', '🎭 инвентарь'):
-        if update.effective_chat.type != 'private':
-            await update.message.reply_text(pe('Инвентарь доступен только в личке с ботом.'), parse_mode='HTML')
-            return
-
-        await send_result(update, context, inventory_text(update.effective_user.id))
-        return
-
     if lower_text in ('промокод', '🎁 промокод'):
         if update.effective_chat.type != 'private':
             await update.message.reply_text(pe('Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
