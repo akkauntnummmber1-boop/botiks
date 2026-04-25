@@ -815,18 +815,6 @@ def groups_text() -> str:
     return '\n\n'.join(lines)
 
 
-def save_user_role(user_id: int, phrase: str, rarity: str) -> None:
-    with db() as conn:
-        conn.execute(
-            """
-            INSERT INTO user_roles (user_id, phrase, rarity, received_at)
-            VALUES (?, ?, ?, ?)
-            """,
-            (user_id, phrase, rarity, ts()),
-        )
-        conn.commit()
-
-
 def rarity_icon(rarity: str) -> str:
     return {
         "common": "🩶",
@@ -835,48 +823,6 @@ def rarity_icon(rarity: str) -> str:
         "legendary": "💛",
         "secret": "🖤",
     }.get(rarity, "🩶")
-
-
-def inventory_text(user_id: int) -> str:
-    with db() as conn:
-        counts = conn.execute(
-            "SELECT rarity, COUNT(*) FROM user_roles WHERE user_id=? GROUP BY rarity",
-            (user_id,),
-        ).fetchall()
-        latest = conn.execute(
-            """
-            SELECT phrase, rarity
-            FROM user_roles
-            WHERE user_id=?
-            ORDER BY id DESC
-            LIMIT 10
-            """,
-            (user_id,),
-        ).fetchall()
-
-    count_map = {rarity: count for rarity, count in counts}
-    total = sum(count_map.values())
-
-    lines = [
-        "🎭 <b>Инвентарь ролей</b>",
-        "",
-        f"Всего ролей: <b>{total}</b>",
-        "",
-        f"🩶 Обычные: <b>{count_map.get('common', 0)}</b>",
-        f"💚 Редкие: <b>{count_map.get('rare', 0)}</b>",
-        f"🩷 Эпические: <b>{count_map.get('epic', 0)}</b>",
-        f"💛 Легендарные: <b>{count_map.get('legendary', 0)}</b>",
-        f"🖤 Секретные: <b>{count_map.get('secret', 0)}</b>",
-    ]
-
-    if latest:
-        lines.append("")
-        lines.append("<b>Последние роли:</b>")
-        for phrase, rarity in latest:
-            label = RARITY_LABELS.get(rarity, rarity)
-            lines.append(f"{rarity_icon(rarity)} {html.escape(phrase)} — <b>{html.escape(label)}</b>")
-
-    return "\n".join(lines)
 
 
 def create_promo_code(code: str, amount_milli: int, max_uses: int, admin_id: int) -> tuple[bool, str]:
@@ -1067,12 +1013,6 @@ def admin_panel_text() -> str:
         "<code>/groups</code> — группы с ботом\n"
         "<code>/broadcast текст</code> — уведомление всем\n"
     )
-
-
-def profile_inventory_menu():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton('🎭 Инвентарь', callback_data='profile_inventory')]
-    ])
 
 
 def admin_menu():
@@ -1518,7 +1458,6 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     inc_opening(user.id)
     add_balance(user.id, reward_milli)
-    save_user_role(user.id, phrase, rarity)
 
     await send_result(
         update,
@@ -1603,7 +1542,7 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
             return
 
-        await send_result(update, context, profile_text(update.effective_user.id), reply_markup=profile_inventory_menu())
+        await send_result(update, context, profile_text(update.effective_user.id))
         return
 
     if lower_text in ('топ 3', '🏆 топ 3'):
@@ -1932,7 +1871,7 @@ async def delete_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def profile_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
-    await send_result(update, context, profile_text(update.effective_user.id), reply_markup=profile_inventory_menu())
+    await send_result(update, context, profile_text(update.effective_user.id))
 
 async def top_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -1971,11 +1910,6 @@ async def admin_stats_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     await send_long_message(context.bot, update.effective_chat.id, admin_stats_text(), reply_markup=admin_menu())
 
-
-
-async def inventory_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    register_user(update.effective_user)
-    await send_result(update, context, inventory_text(update.effective_user.id))
 
 
 async def promo_activate_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2524,32 +2458,17 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(q.from_user)
     if q.message:
         remember_group(q.message.chat)
-        await send_result(
-            update,
-            context,
-            profile_text(q.from_user.id),
-            reply_markup=profile_inventory_menu()
-        )
+        await send_result(update, context, profile_text(q.from_user.id))
         return
 
-        await send_result(
-            update,
-            context,
-            profile_text(q.from_user.id),
-            reply_markup=profile_inventory_menu()
-        )
+        await send_result(update, context, profile_text(q.from_user.id))
         return
 
     # PROFILE_FIX_FINAL_OK
         await send_result(update, context, inventory_text(q.from_user.id))
         return
 
-        await send_result(
-            update,
-            context,
-            profile_text(q.from_user.id),
-            reply_markup=profile_inventory_menu()
-        )
+        await send_result(update, context, profile_text(q.from_user.id))
         return
 
     if data == 'promo_list':
@@ -2559,15 +2478,6 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         await q.message.reply_text(pe(promo_codes_text()), parse_mode='HTML')
         return
-
-    # INVENTORY_PROFILE_CALLBACKS_FIXED
-    if data in ('profile_inventory', 'inventory'):
-        await q.answer()
-        register_user(q.from_user)
-
-        if q.message.chat.type != 'private':
-            await q.message.reply_text(pe('Инвентарь доступен только в личке с ботом.'), parse_mode='HTML')
-            return
 
         await send_result(update, context, inventory_text(q.from_user.id))
         return
@@ -2580,12 +2490,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await q.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
             return
 
-        await send_result(
-            update,
-            context,
-            profile_text(q.from_user.id),
-            reply_markup=profile_inventory_menu()
-        )
+        await send_result(update, context, profile_text(q.from_user.id))
         return
 
     if data == 'casino':
@@ -2662,7 +2567,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if q.message.chat.type != 'private':
             await q.answer('Профиль доступен только в личке.', show_alert=True)
         else:
-            await send_result(update, context, profile_text(q.from_user.id), reply_markup=profile_inventory_menu())
+            await send_result(update, context, profile_text(q.from_user.id))
     elif data == 'top3':
         await send_clean_group_result(update, context, top_text())
     elif data == 'daily_bonus':
@@ -2723,7 +2628,6 @@ def main():
     app.add_handler(CommandHandler('delete', delete_cmd))
     app.add_handler(CommandHandler('profile', profile_cmd))
     app.add_handler(CommandHandler('top', top_cmd))
-    app.add_handler(CommandHandler('inventory', inventory_cmd))
     app.add_handler(CommandHandler('promo', promo_cmd))
     app.add_handler(CommandHandler('casino', casino_cmd))
     app.add_handler(CommandHandler('slots', slots_cmd))
