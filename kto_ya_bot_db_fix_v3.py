@@ -5281,7 +5281,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
         return
 
-      await q.answer()
+    await q.answer()
 
 # ===== END FINAL TRIGGER BUTTONS FIX =====
 
