@@ -20,7 +20,7 @@ os.makedirs(DB_DIR, exist_ok=True)
 TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 10 * 60
 
-CASINO_COOLDOWN_SECONDS = 30
+CASINO_COOLDOWN_SECONDS = 15
 CASE_PRICE_MILLI = 5000  # 5 USDT
 CASE_COOLDOWN_SECONDS = 30
 LUCK_BOOSTER_SECONDS = 30 * 60
@@ -36,6 +36,9 @@ MAX_COIN_BET_MILLI = 10000     # 10 USDT
 MIN_BALL_BET_MILLI = 100       # 0.1 USDT
 MAX_BALL_BET_MILLI = 10000     # 10 USDT
 BASKETBALL_ANIMATION_DELAY = 4
+MIN_FOOTBALL_BET_MILLI = 100       # 0.1 USDT
+MAX_FOOTBALL_BET_MILLI = 10000     # 10 USDT
+FOOTBALL_ANIMATION_DELAY = 4
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
 SLOT_PAY_TABLE = {
@@ -46,7 +49,7 @@ SLOT_PAY_TABLE = {
 }
 
 BONUS_AMOUNT_MILLI = 100
-MIN_WITHDRAW_MILLI = 100000
+MIN_WITHDRAW_MILLI = 200000
 DAY_SECONDS = 24 * 60 * 60
 DAILY_ROLE_BONUS_LIMIT = 5
 RARITY_CHANCES = [
@@ -402,10 +405,34 @@ def get_user(user_id: int):
     with db() as conn:
         return conn.execute('\n            SELECT user_id, username, first_name, uid, balance_milli, openings, last_role_at, hidden, casino_last_spin_at\n            FROM users WHERE user_id=?\n            ', (user_id,)).fetchone()
 
+def random_admin_role_rarity() -> str:
+    chances = [
+        ("common", 70),
+        ("rare", 20),
+        ("epic", 8),
+        ("legendary", 2),
+    ]
+    total = sum(weight for _, weight in chances)
+    pick = random.randint(1, total)
+    current = 0
+    for rarity, weight in chances:
+        current += weight
+        if pick <= current:
+            return rarity
+    return "common"
+
+
 def add_phrase_db(text: str) -> bool:
     phrase, rarity = parse_phrase_input(text)
+
+    # Если админ просто написал текст или строка из .txt без "редкость | текст",
+    # редкость выбирается рандомно, но secret никогда не выбирается автоматически.
+    if "|" not in (text or ""):
+        rarity = random_admin_role_rarity()
+
     if not phrase:
         return False
+
     with db() as conn:
         try:
             conn.execute('INSERT INTO phrases (text, rarity, created_at) VALUES (?, ?, ?)', (phrase, rarity, ts()))
@@ -413,6 +440,8 @@ def add_phrase_db(text: str) -> bool:
             return True
         except sqlite3.IntegrityError:
             return False
+
+
 
 def has_luck_booster(user_id: int) -> bool:
     try:
@@ -710,6 +739,8 @@ def get_user_ban_status_direct(user_id: int) -> tuple[bool, str, int]:
     """
     try:
         with db() as conn:
+            ensure_ban_columns(conn)
+            conn.commit()
             user_cols = columns(conn, "users")
 
             if "banned" not in user_cols:
@@ -1271,7 +1302,7 @@ def admin_panel_text() -> str:
         "7️⃣ <code>/hide USER_ID</code> — скрыть пользователя\n"
         "8️⃣ <code>/unhide USER_ID</code> — раскрыть пользователя\n"
         "9️⃣ <code>/ban USER_ID TIME причина</code> — забанить пользователя\n"
-        "1️⃣0️⃣ <code>/unban USER_ID</code> — разбанить пользователя\n<code>/search USER_ID</code> — поиск пользователя по ID\n\n"
+        "1️⃣0️⃣ <code>/unban USER_ID</code> — разбанить пользователя\n<code>/banlist</code> — список забаненных\n<code>/search USER_ID</code> — поиск пользователя по ID\n\n"
         "<b>Дополнительно:</b>\n"
         "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
         "<code>/promos</code> — список промокодов\n"
@@ -1488,12 +1519,17 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
 
+    if await handle_banned_action(update, context):
+        return
+
     text = (
         "🎰 <b>Казино</b>\n"
         "🎰 <code>/slots 1</code> — слоты\n"
         "🪙 <code>/coin орел 1</code> — орел и решка\n"
         "🏀 <code>/ball 1</code> — баскетбол\n"
-        "🎁 <code>/case open</code> — открыть кейс"
+        "⚽️ <code>/football 1</code> — футбол\n"
+        "🎁 <code>/case open</code> — открыть кейс\n"
+        f"⏲ Кулдаун игр: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>"
     )
 
     await send_clean_group_result(update, context, text)
@@ -1769,6 +1805,94 @@ async def send_role_log(context: ContextTypes.DEFAULT_TYPE, user, phrase: str, r
         pass
 
 
+async def notify_ban_private(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+    banned, reason, banned_until = get_user_ban_status_direct(user_id)
+
+    if not banned:
+        return
+
+    try:
+        await context.bot.send_message(
+            chat_id=user_id,
+            text=pe(
+                "⛔ <b>Вы забанены у бота.</b>\n"
+                f"Причина: <b>{html.escape(reason or 'не указана')}</b>\n"
+                f"Осталось: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>"
+            ),
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
+
+
+async def handle_banned_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    user = update.effective_user
+    chat = update.effective_chat
+
+    if not user or not is_banned_user(user.id):
+        return False
+
+    banned, reason, banned_until = get_user_ban_status_direct(user.id)
+
+    if chat and is_group(chat):
+        await notify_ban_private(context, user.id)
+        return True
+
+    try:
+        await context.bot.send_message(
+            chat_id=chat.id if chat else user.id,
+            text=pe(
+                "⛔ <b>Вы забанены у бота.</b>\n"
+                f"Причина: <b>{html.escape(reason or 'не указана')}</b>\n"
+                f"Осталось: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>"
+            ),
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
+
+    return True
+
+
+def banlist_text() -> str:
+    with db() as conn:
+        ensure_ban_columns(conn)
+        rows = conn.execute(
+            """
+            SELECT user_id, username, first_name, ban_reason, banned_until
+            FROM users
+            WHERE banned=1
+            ORDER BY banned_at DESC
+            """
+        ).fetchall()
+
+    if not rows:
+        return "🚫 <b>Бан-лист пуст.</b>"
+
+    lines = [f"🚫 <b>В бане: {len(rows)}</b>\n"]
+
+    for user_id, username, first_name, reason, banned_until in rows[:50]:
+        name = f"@{username}" if username else (first_name or "нет username")
+        lines.append(
+            f"👤 {html.escape(str(name))} | <code>{user_id}</code>\n"
+            f"Причина: <b>{html.escape(reason or 'не указана')}</b>\n"
+            f"Осталось: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>"
+        )
+
+    if len(rows) > 50:
+        lines.append(f"\nПоказано 50 из {len(rows)}.")
+
+    return "\n\n".join(lines)
+
+
+async def banlist_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    await update.message.reply_text(pe(banlist_text()), parse_mode='HTML')
+
+
 async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat = update.effective_chat
@@ -1870,6 +1994,9 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
 
+    if await handle_banned_action(update, context):
+        return
+
     raw_text = update.message.text.strip()
     lower_text = raw_text.lower()
 
@@ -1890,21 +2017,11 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.effective_chat.type != 'private':
             await update.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
             return
-
         await send_result(update, context, profile_text(update.effective_user.id))
         return
 
     if lower_text in ('топ 3', '🏆 топ 3'):
         await send_clean_group_result(update, context, top_text())
-        return
-
-    if lower_text in ('промокод', '🎁 промокод'):
-        if update.effective_chat.type != 'private':
-            await update.message.reply_text(pe('Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
-            return
-
-        await update.message.reply_text(pe('🎁 Введите промокод одним сообщением:'), parse_mode='HTML')
-        context.user_data['waiting_promo_activate'] = True
         return
 
     if lower_text in ('казино', '🎰 казино'):
@@ -1913,6 +2030,14 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if lower_text in ('передача денег', '💵 передача денег'):
         await send_result(update, context, transfer_usage_text())
+        return
+
+    if lower_text in ('промокод', '🎁 промокод'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
+            return
+        await update.message.reply_text(pe('🎁 Введите промокод одним сообщением:'), parse_mode='HTML')
+        context.user_data['waiting_promo_activate'] = True
         return
 
     if lower_text in ('меню', '🏠 меню'):
@@ -1929,6 +2054,8 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
             )
         return
+
+
 
 async def admin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -1949,7 +2076,7 @@ async def add_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     text = ' '.join(context.args).strip()
     if not text:
-        await update.message.reply_text(pe('Напиши так:\n/add Шрек\n\nМожно указать редкость:\n/add rare | Шрек'), parse_mode='HTML')
+        await update.message.reply_text(pe('Напиши так:\n/add Шрек\n\nРедкость выберется рандомно. Секретная сама не выпадет.\nМожно указать вручную:\n/add secret | Секретная роль'), parse_mode='HTML')
         return
     if add_phrase_db(text):
         await update.message.reply_text(pe(f'✅ Фраза добавлена: <b>{html.escape(text)}</b>'), parse_mode='HTML')
@@ -2229,10 +2356,16 @@ async def delete_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def profile_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
+
+    if await handle_banned_action(update, context):
+        return
     await send_result(update, context, profile_text(update.effective_user.id))
 
 async def top_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
+
+    if await handle_banned_action(update, context):
+        return
     await send_clean_group_result(update, context, top_text())
 
 async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2310,6 +2443,9 @@ async def promo_activate_text_start(update: Update, context: ContextTypes.DEFAUL
 async def promo_activate_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
 
+    if await handle_banned_action(update, context):
+        return
+
     code = update.message.text.strip()
 
     ok, msg = activate_promo_code(update.effective_user.id, code)
@@ -2323,6 +2459,9 @@ async def promo_activate_finish(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def promo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
+
+    if await handle_banned_action(update, context):
+        return
 
     if not context.args:
         await send_result(update, context, "Напиши промокод:\n<code>/promo CODE</code>")
@@ -2541,6 +2680,9 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
 
+    if await handle_banned_action(update, context):
+        return
+
     if len(context.args) < 2:
         await send_result(update, context, transfer_usage_text())
         return
@@ -2586,6 +2728,16 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
 
+async def send_ball_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(BASKETBALL_ANIMATION_DELAY)
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=pe(ball_result_text(user, bet_milli, dice_value, win_milli, balance_after)),
+        parse_mode="HTML",
+        reply_to_message_id=message_id,
+    )
+
+
 def ball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
     # Для Telegram-баскетбола значения 4 и 5 считаем попаданием.
     is_hit = dice_value >= 4
@@ -2611,95 +2763,166 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(user)
     remember_group(chat)
 
-    if is_banned_user(user.id):
-        await send_result(update, context, "⛔ Вы забанены у бота.")
+    if await handle_banned_action(update, context):
         return
 
     if not context.args:
-        await send_result(
-            update,
-            context,
-            "🏀 <b>Баскетбол</b>\n"
-            "Команда: <code>/ball сумма</code>\n"
-            "Пример: <code>/ball 1</code>\n"
-            f"Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>\n"
-            f"Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>"
-        )
+        await send_result(update, context, "🏀 <b>Баскетбол</b>\nКоманда: <code>/ball сумма</code>\nПример: <code>/ball 1</code>\n"
+                          f"Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>\n"
+                          f"Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>")
         return
 
     bet_milli = parse_money(context.args[0])
-
     if bet_milli is None or bet_milli <= 0:
         await send_result(update, context, "Введите ставку числом. Например: <code>/ball 1</code>")
         return
-
     if bet_milli < MIN_BALL_BET_MILLI:
         await send_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>")
         return
-
     if bet_milli > MAX_BALL_BET_MILLI:
         await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>")
         return
 
     row = get_user(user.id)
-
     if not row:
         await send_result(update, context, "Профиль не найден. Напиши /start.")
         return
 
     balance_milli = int(row[4])
-
     if balance_milli < bet_milli:
         await send_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
         return
 
     last_spin = get_casino_last_spin(user.id)
     left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
-
     if left > 0:
         await send_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
         return
 
     ok, msg = take_balance(user.id, bet_milli)
-
     if not ok:
         await send_result(update, context, f"❌ {html.escape(msg)}")
         return
 
-    # Отправляем настоящую Telegram-анимацию баскетбольного мяча.
     dice_msg = await context.bot.send_dice(
         chat_id=chat.id,
         emoji="🏀",
         reply_to_message_id=update.message.message_id if update.message else None,
     )
 
-    # Ждем, чтобы Telegram-анимация мяча успела проиграться.
-    await asyncio.sleep(BASKETBALL_ANIMATION_DELAY)
-
     dice_value = dice_msg.dice.value if dice_msg.dice else 1
     is_hit = dice_value >= 4
     win_milli = bet_milli * 2 if is_hit else 0
-
     if win_milli > 0:
         add_balance(user.id, win_milli)
 
     set_casino_last_spin(user.id)
-
     updated = get_user(user.id)
     balance_after = int(updated[4]) if updated else 0
 
-    await context.bot.send_message(
-        chat_id=chat.id,
-        text=pe(ball_result_text(user, bet_milli, dice_value, win_milli, balance_after)),
-        parse_mode="HTML",
-        reply_to_message_id=dice_msg.message_id,
+    context.application.create_task(
+        send_ball_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, dice_value, win_milli, balance_after)
     )
 
+
+
+def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
+    is_goal = dice_value >= 4
+    result_line = f"✅ <b>ГОООЛ!</b> Выигрыш: <b>+{money(win_milli)}</b>" if is_goal else f"❌ <b>Мимо ворот!</b> Проигрыш: <b>-{money(bet_milli)}</b>"
+    return (
+        f"⚽️ <b>Футбол</b>\n"
+        f"👤 Игрок: {mention(user)}\n"
+        f"💵 Ставка: <b>{money(bet_milli)}</b>\n"
+        f"{result_line}\n"
+        f"💰 Баланс: <b>{money(balance_after)}</b>"
+    )
+
+
+async def send_football_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(FOOTBALL_ANIMATION_DELAY)
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=pe(football_result_text(user, bet_milli, dice_value, win_milli, balance_after)),
+        parse_mode="HTML",
+        reply_to_message_id=message_id,
+    )
+
+
+async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+
+    register_user(user)
+    remember_group(chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    if not context.args:
+        await send_result(update, context, "⚽️ <b>Футбол</b>\nКоманда: <code>/football сумма</code>\nПример: <code>/football 1</code>\n"
+                          f"Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>\n"
+                          f"Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>")
+        return
+
+    bet_milli = parse_money(context.args[0])
+    if bet_milli is None or bet_milli <= 0:
+        await send_result(update, context, "Введите ставку числом. Например: <code>/football 1</code>")
+        return
+    if bet_milli < MIN_FOOTBALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>")
+        return
+    if bet_milli > MAX_FOOTBALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>")
+        return
+
+    row = get_user(user.id)
+    if not row:
+        await send_result(update, context, "Профиль не найден. Напиши /start.")
+        return
+
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await send_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
+        return
+
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+    if left > 0:
+        await send_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await send_result(update, context, f"❌ {html.escape(msg)}")
+        return
+
+    dice_msg = await context.bot.send_dice(
+        chat_id=chat.id,
+        emoji="⚽",
+        reply_to_message_id=update.message.message_id if update.message else None,
+    )
+
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    is_goal = dice_value >= 4
+    win_milli = bet_milli * 2 if is_goal else 0
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    set_casino_last_spin(user.id)
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+
+    context.application.create_task(
+        send_football_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, dice_value, win_milli, balance_after)
+    )
 
 
 async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
 
     if is_banned_user(update.effective_user.id):
         await send_result(update, context, "⛔ Вы забанены у бота.")
@@ -2721,12 +2944,18 @@ async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def casino_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if await handle_banned_action(update, context):
+        return
     await show_casino(update, context)
 
 
 async def slots_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
 
     if not context.args:
         await send_clean_group_result(update, context, "Напиши ставку:\n<code>/slots 1</code>")
@@ -2745,6 +2974,9 @@ async def slots_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def coin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
 
     if len(context.args) < 2:
         await send_clean_group_result(
@@ -2781,7 +3013,7 @@ async def add_phrase_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(q.from_user.id):
         await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return ConversationHandler.END
-    await q.message.reply_text(pe('➕ Отправь новую фразу одним сообщением.\n\nМожно указать редкость так:\nrare | Шрек\nepic | Супергерой\nlegendary | Легенда\n\nМожно также отправить .txt файл: каждая непустая строка добавится как отдельная фраза. В .txt тоже можно использовать формат rare | фраза.\n\nДля отмены напиши /cancel'), parse_mode='HTML')
+    await q.message.reply_text(pe('➕ Отправь новую фразу одним сообщением. Редкость выберется рандомно.\n\nМожно указать редкость вручную так:\nrare | Шрек\nepic | Супергерой\nlegendary | Легенда\n\nМожно также отправить .txt файл: каждая непустая строка добавится как отдельная фраза. В .txt тоже можно использовать формат rare | фраза. Секретная редкость автоматически не выбирается — ее нужно указывать вручную: secret | фраза.\n\nДля отмены напиши /cancel'), parse_mode='HTML')
     return WAIT_PHRASE
 
 async def receive_phrase(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2890,6 +3122,9 @@ async def admin_stats_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def withdraw_start_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
+
+    if await handle_banned_action(update, context):
+        return
 
     if update.effective_chat.type != 'private':
         await update.message.reply_text(pe('Вывод доступен только в личке с ботом.'), parse_mode='HTML')
@@ -3395,6 +3630,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_FOOTBALL_15S_BANLIST_RANDOM_ROLES')
     print('VERSION_RE_IMPORT_FIX')
     print('VERSION_LOGS_WITHDRAW_BAN_FIX')
     print('VERSION_BASKETBALL_DELAY_CASINO_TEXT')
@@ -3418,6 +3654,7 @@ def main():
     app.add_handler(CommandHandler('menu', menu_cmd))
     app.add_handler(CommandHandler('whoami', whoami))
     app.add_handler(CommandHandler('ban', ban_cmd))
+    app.add_handler(CommandHandler('banlist', banlist_cmd))
     app.add_handler(CommandHandler('unban', unban_cmd))
     app.add_handler(CommandHandler('give', give_direct_cmd))
     app.add_handler(CommandHandler('take', take_direct_cmd))
@@ -3438,6 +3675,7 @@ def main():
     app.add_handler(CommandHandler('case', case_cmd))
     app.add_handler(CommandHandler('pay', pay_cmd))
     app.add_handler(CommandHandler('ball', ball_cmd))
+    app.add_handler(CommandHandler('football', football_cmd))
     app.add_handler(CommandHandler('slots', slots_cmd))
     app.add_handler(CommandHandler('coin', coin_cmd))
     app.add_handler(CommandHandler('search', search_cmd))
