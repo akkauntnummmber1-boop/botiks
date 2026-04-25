@@ -21,23 +21,23 @@ TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 10 * 60
 
 CASINO_COOLDOWN_SECONDS = 15
-CASE_PRICE_MILLI = 5000  # 5 USDT
+CASE_PRICE_MILLI = 5000  # 5 💸
 CASE_COOLDOWN_SECONDS = 30
 LUCK_BOOSTER_SECONDS = 30 * 60
 CASE_SECRET_REWARD_CHANCE = 1  # 1 из 1000
-CASE_DISCOUNT_MILLI = 2000  # скидка 2 USDT на следующий кейс
+CASE_DISCOUNT_MILLI = 2000  # скидка 2 💸 на следующий кейс
 CASE_PREFIXES = ["Любитель казика", "Подружка админа", "T1 WORKER"]
-MIN_SLOT_BET_MILLI = 100       # 0.1 USDT
-MAX_SLOT_BET_MILLI = 10000     # 10 USDT
+MIN_SLOT_BET_MILLI = 100       # 0.1 💸
+MAX_SLOT_BET_MILLI = 10000     # 10 💸
 SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–15%
 
-MIN_COIN_BET_MILLI = 100       # 0.1 USDT
-MAX_COIN_BET_MILLI = 10000     # 10 USDT
-MIN_BALL_BET_MILLI = 1000       # 1 USDT
-MAX_BALL_BET_MILLI = 10000     # 10 USDT
+MIN_COIN_BET_MILLI = 100       # 0.1 💸
+MAX_COIN_BET_MILLI = 10000     # 10 💸
+MIN_BALL_BET_MILLI = 1000       # 1 💸
+MAX_BALL_BET_MILLI = 10000     # 10 💸
 BASKETBALL_ANIMATION_DELAY = 4
-MIN_FOOTBALL_BET_MILLI = 1000       # 1 USDT
-MAX_FOOTBALL_BET_MILLI = 10000     # 10 USDT
+MIN_FOOTBALL_BET_MILLI = 1000       # 1 💸
+MAX_FOOTBALL_BET_MILLI = 10000     # 10 💸
 FOOTBALL_ANIMATION_DELAY = 4
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
@@ -69,11 +69,11 @@ RARITY_LABELS = {
 }
 
 ROLE_REWARDS_MILLI = {
-    'common': 500,       # 0.5 USDT
-    'rare': 600,         # 0.6 USDT
-    'epic': 1000,        # 1 USDT
-    'legendary': 1500,   # 1.5 USDT
-    'secret': 30000,     # 30 USDT
+    'common': 500,       # 0.5 💸
+    'rare': 600,         # 0.6 💸
+    'epic': 1000,        # 1 💸
+    'legendary': 1500,   # 1.5 💸
+    'secret': 30000,     # 30 💸
 }
 
 RARITY_ALIASES = {
@@ -95,11 +95,11 @@ RARITY_ALIASES = {
     'secret': 'secret',
 }
 DAILY_BONUS_CHANCES = [
-    (5000, 1),   # 5 USDT — 1%
-    (4000, 5),   # 4 USDT — 5%
-    (3000, 6),   # 3 USDT — 6%
-    (2000, 7),   # 2 USDT — 7%
-    (1000, 81),  # 1 USDT — 70% + оставшиеся 11%, чтобы бонус всегда выпадал
+    (5000, 1),   # 5 💸 — 1%
+    (4000, 5),   # 4 💸 — 5%
+    (3000, 6),   # 3 💸 — 6%
+    (2000, 7),   # 2 💸 — 7%
+    (1000, 81),  # 1 💸 — 70% + оставшиеся 11%, чтобы бонус всегда выпадал
 ]
 WAIT_PHRASE = 1
 WAIT_WALLET = 2
@@ -152,6 +152,9 @@ PE_X2 = '<tg-emoji emoji-id="5785038454828043276">✖️</tg-emoji>'
 PE_PLUS_ONE = '<tg-emoji emoji-id="5784967785436154901">➕</tg-emoji>'
 PE_LOADING = '<tg-emoji emoji-id="5787344001862471785">✍️</tg-emoji>'
 PE_FLYING_MONEY = '<tg-emoji emoji-id="5472030678633684592">💸</tg-emoji>'
+PE_USDT_SYMBOL = '<tg-emoji emoji-id="5373174941095050893">💸</tg-emoji>'
+PE_GAMEPAD = '<tg-emoji emoji-id="5467583879948803288">🎮</tg-emoji>'
+PE_CLOCK_NEW = '<tg-emoji emoji-id="5382194935057372936">⏱</tg-emoji>'
 PE_TRANSFER_USDT = '<tg-emoji emoji-id="5201692367437974073">💵</tg-emoji>'
 PE_TRANSFER_GIFT = '<tg-emoji emoji-id="5199749070830197566">🎁</tg-emoji>'
 PE_TRANSFER_CHAT = '<tg-emoji emoji-id="5895457880710058528">💬</tg-emoji>'
@@ -183,7 +186,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -218,22 +221,18 @@ def money(milli: int) -> str:
     whole = milli // 1000
     frac = milli % 1000
     if frac == 0:
-        return f'{whole} USDT'
-    return f'{whole}.{frac:03d}'.rstrip('0') + ' USDT'
+        return f'{whole} 💸'
+    return f'{whole}.{frac:03d}'.rstrip('0') + ' 💸'
+
 
 
 def money_balance(milli: int) -> str:
-    """
-    Баланс показываем без центов.
-    Например 75.321 USDT -> 75 USDT.
-    Округление математическое до целого USDT.
-    """
     try:
         value = int(milli or 0) / 1000
         rounded = int(round(value))
-        return f"{rounded} USDT"
+        return f"{rounded} 💸"
     except Exception:
-        return "0 USDT"
+        return "0 💸"
 
 
 
@@ -948,11 +947,12 @@ def transfer_money(sender_id: int, target: str, amount_milli: int, comment: str 
 
 def transfer_usage_text() -> str:
     return (
-        "💵 <b>Передача денег</b>\n\n"
-        "Перевод по ID или username.\n\n"
-        "<code>/pay USER_ID сумма комментарий</code>\n"
-        "<code>/pay @username сумма комментарий</code>\n\n"
-        "Пример: <code>/pay 123456789 1 подарок</code>"
+        '💸 <b>Передача денег</b>\n\n'
+        '👤 Получатель: ID или @username\n'
+        '💬 Комментарий можно оставить после суммы.\n\n'
+        '<code>/pay USER_ID сумма комментарий</code>\n'
+        '<code>/pay @username сумма комментарий</code>\n\n'
+        'Пример: <code>/pay 123456789 1 подарок</code>'
     )
 
 
@@ -1058,7 +1058,7 @@ def top_text() -> str:
     if not rows:
         return 'Топ пока пуст.'
     medals = ['🥇', '🥈', '🥉']
-    lines = ['🏆 <b>Топ 3 по USDT</b>\n']
+    lines = ['🏆 <b>Топ 3 по 💸</b>\n']
     for i, (user_id, username, first_name, uid, balance) in enumerate(rows):
         name = f'@{username}' if username else first_name or f'ID {user_id}'
         lines.append(f'{medals[i]} {html.escape(name)} | UID: <code>{html.escape(str(uid))}</code> | <b>{money_balance(balance)}</b>')
@@ -1266,7 +1266,7 @@ def main_menu(admin=False, group=False):
     if not group:
         buttons.append([
             InlineKeyboardButton('👤 Профиль', callback_data='profile'),
-            InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')
+            InlineKeyboardButton('💸 Вывод 💸', callback_data='withdraw')
         ])
         buttons.append([InlineKeyboardButton('💵 Передача денег', callback_data='transfer_money')])
         buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
@@ -1282,11 +1282,10 @@ def reply_main_menu(admin=False, group=False):
         rows = []
     else:
         rows = [
-            ['🎭 Кто я'],
-            ['👤 Профиль', '💸 Вывод USDT'],
-            ['💵 Передача денег', '🎰 Казино'],
-            ['🎁 Промокод'],
-            ['🏆 Топ 3'],
+            ['🎭 Кто я', '🎮 Играть'],
+            ['👤 Профиль', '🏆 Топ 3'],
+            ['💵 Передача денег', '🎁 Промокод'],
+            ['🏠 Главное меню'],
         ]
 
     return ReplyKeyboardMarkup(
@@ -1297,13 +1296,14 @@ def reply_main_menu(admin=False, group=False):
     )
 
 
+
 def role_menu(group=False):
     buttons = []
 
     if not group:
         buttons.append([
             InlineKeyboardButton('👤 Профиль', callback_data='profile'),
-            InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')
+            InlineKeyboardButton('💸 Вывод 💸', callback_data='withdraw')
         ])
         buttons.append([InlineKeyboardButton('💵 Передача денег', callback_data='transfer_money')])
         buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
@@ -1318,8 +1318,8 @@ def admin_panel_text() -> str:
         "1️⃣ <code>/add текст</code> — добавить фразу\n"
         "2️⃣ <code>/list</code> — последние фразы\n"
         "3️⃣ <code>/delete ID</code> — удалить фразу\n"
-        "4️⃣ <code>/give USER_ID SUM причина</code> — выдать USDT\n"
-        "5️⃣ <code>/take USER_ID SUM</code> — забрать USDT\n"
+        "4️⃣ <code>/give USER_ID SUM причина</code> — выдать 💸\n"
+        "5️⃣ <code>/take USER_ID SUM</code> — забрать 💸\n"
         "6️⃣ <code>/setuid USER_ID UID</code> — выдать кастом UID, только цифры\n"
         "7️⃣ <code>/hide USER_ID</code> — скрыть пользователя\n"
         "8️⃣ <code>/unhide USER_ID</code> — раскрыть пользователя\n"
@@ -1335,7 +1335,7 @@ def admin_panel_text() -> str:
 
 
 def admin_menu():
-    return InlineKeyboardMarkup([[InlineKeyboardButton('➕ Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('🗑 Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('📋 Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('🔢 Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('📣 Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('📊 Статистика', callback_data='admin_stats')], [InlineKeyboardButton('🎁 Создать промокод', callback_data='promo_create')], [InlineKeyboardButton('📋 Промокоды', callback_data='promo_list')], [InlineKeyboardButton('💰 Выдать USDT', callback_data='give_usdt')], [InlineKeyboardButton('➖ Забрать USDT', callback_data='take_usdt')], [InlineKeyboardButton('🆔 Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('🙈 Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('👁 Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('👥 Группы с ботом', callback_data='groups')], [InlineKeyboardButton('⬅️ Назад', callback_data='back')]])
+    return InlineKeyboardMarkup([[InlineKeyboardButton('➕ Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('🗑 Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('📋 Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('🔢 Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('📣 Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('📊 Статистика', callback_data='admin_stats')], [InlineKeyboardButton('🎁 Создать промокод', callback_data='promo_create')], [InlineKeyboardButton('📋 Промокоды', callback_data='promo_list')], [InlineKeyboardButton('💰 Выдать 💸', callback_data='give_usdt')], [InlineKeyboardButton('➖ Забрать 💸', callback_data='take_usdt')], [InlineKeyboardButton('🆔 Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('🙈 Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('👁 Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('👥 Группы с ботом', callback_data='groups')], [InlineKeyboardButton('⬅️ Назад', callback_data='back')]])
 
 def withdraw_admin_menu(wid: int):
     return InlineKeyboardMarkup([[InlineKeyboardButton('✅ Одобрить', callback_data=f'wd_ok:{wid}'), InlineKeyboardButton('❌ Отклонить', callback_data=f'wd_no:{wid}')]])
@@ -1411,12 +1411,12 @@ async def send_long_message(bot, chat_id: int, text: str, reply_markup=None):
 
 def casino_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton('🎰 Слоты 0.1 USDT', callback_data='slots_bet:0.1')],
-        [InlineKeyboardButton('🎰 Слоты 0.5 USDT', callback_data='slots_bet:0.5')],
-        [InlineKeyboardButton('🎰 Слоты 1 USDT', callback_data='slots_bet:1')],
-        [InlineKeyboardButton('🎰 Слоты 5 USDT', callback_data='slots_bet:5')],
-        [InlineKeyboardButton('🪙 Орел 1 USDT', callback_data='coin_bet:orel:1')],
-        [InlineKeyboardButton('🪙 Решка 1 USDT', callback_data='coin_bet:reshka:1')],
+        [InlineKeyboardButton('🎰 Слоты 0.1 💸', callback_data='slots_bet:0.1')],
+        [InlineKeyboardButton('🎰 Слоты 0.5 💸', callback_data='slots_bet:0.5')],
+        [InlineKeyboardButton('🎰 Слоты 1 💸', callback_data='slots_bet:1')],
+        [InlineKeyboardButton('🎰 Слоты 5 💸', callback_data='slots_bet:5')],
+        [InlineKeyboardButton('🪙 Орел 1 💸', callback_data='coin_bet:orel:1')],
+        [InlineKeyboardButton('🪙 Решка 1 💸', callback_data='coin_bet:reshka:1')],
     ])
 
 
@@ -1516,23 +1516,19 @@ def get_slot_multiplier(symbols: list[str]) -> float:
 
 
 def slot_result_text(user, bet_milli: int, symbols: list[str], multiplier: float, win_milli: int, balance_after: int) -> str:
-    combo = " ".join(symbols)
+    combo = ' '.join(symbols)
 
     if win_milli > 0:
-        status = "Выигрыш"
-        result = f"+{money(win_milli)}"
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🎰'
     else:
-        status = "Проигрыш"
-        result = f"-{money(bet_milli)}"
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🎰'
 
     return (
-        "🎰 <b>Слоты</b>\n\n"
-        f"{mention(user)}\n"
-        f"Комбо: <b>{combo}</b>\n"
-        f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Результат: <b>{status}</b>\n"
-        f"Итог: <b>{result}</b>\n\n"
-        f"Баланс: <b>{money_balance(balance_after)}</b>"
+        '<b>Spins</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n'
+        f'Комбинация: <b>{combo}</b>\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
     )
 
 
@@ -1715,24 +1711,20 @@ def roll_coin(user_id: int | None = None) -> str:
 
 
 def coin_result_text(user, bet_milli: int, choice: str, result: str, win_milli: int, balance_after: int) -> str:
-    win = choice == result
+    won = choice == result
 
-    if win:
-        status = "Угадал"
-        result_line = f"+{money(win_milli)}"
+    if won:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🪙'
     else:
-        status = "Не угадал"
-        result_line = f"-{money(bet_milli)}"
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🪙'
 
     return (
-        "🪙 <b>Орел / Решка</b>\n\n"
-        f"{mention(user)}\n"
-        f"Выбор: <b>{coin_side_label(choice)}</b>\n"
-        f"Выпало: <b>{coin_side_label(result)}</b>\n"
-        f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Результат: <b>{status}</b>\n"
-        f"Итог: <b>{result_line}</b>\n\n"
-        f"Баланс: <b>{money_balance(balance_after)}</b>"
+        '<b>Орел / Решка</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n'
+        f'Ваш выбор: <b>{coin_side_label(choice)}</b>\n'
+        f'Выпало: <b>{coin_side_label(result)}</b>\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
     )
 
 
@@ -1970,46 +1962,13 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_role_log(context, user, phrase, rarity_label, reward_milli)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    register_user(update.effective_user)
-    remember_group(update.effective_chat)
+    await open_main_screen(update, context)
 
-    if is_group(update.effective_chat):
-        await update.message.reply_text(
-            pe('🎭 Бот для игры «Кто я?»'),
-            parse_mode='HTML',
-            reply_markup=ReplyKeyboardRemove()
-        )
 
-        await update.message.reply_text(
-            pe('Главное меню:'),
-            parse_mode='HTML',
-            reply_markup=main_menu(is_admin(update.effective_user.id), group=True)
-        )
-        return
-
-    await update.message.reply_text(
-        pe('🎭 Бот для игры «Кто я?»\n\nГлавное меню открыто снизу.'),
-        parse_mode='HTML',
-        reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
-    )
 
 async def menu_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    register_user(update.effective_user)
-    remember_group(update.effective_chat)
+    await open_main_screen(update, context)
 
-    if is_group(update.effective_chat):
-        await update.message.reply_text(
-            pe('Главное меню:'),
-            parse_mode='HTML',
-            reply_markup=main_menu(is_admin(update.effective_user.id), group=True)
-        )
-        return
-
-    await update.message.reply_text(
-        pe('Главное меню открыто снизу.'),
-        parse_mode='HTML',
-        reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
-    )
 
 
 async def whoami(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2035,6 +1994,10 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pe(('✅ ' if ok else '❌ ') + msg),
             parse_mode='HTML'
         )
+        return
+
+    if lower_text in ('🏠 главное меню', 'главное меню'):
+        await open_main_screen(update, context)
         return
 
     if lower_text in TRIGGERS or lower_text in ('кто я?', '🎭 кто я'):
@@ -2077,7 +2040,7 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         else:
             await update.message.reply_text(
-                pe('Главное меню открыто снизу.'),
+                pe('Главное меню'),
                 parse_mode='HTML',
                 reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
             )
@@ -2671,7 +2634,7 @@ def open_case(user_id: int) -> tuple[bool, str]:
             "❌ Выпало: <b>Ничего</b>"
         )
 
-    # Рандомный префикс вместо бонуса USDT.
+    # Рандомный префикс вместо бонуса 💸.
     if roll <= 80:
         prefix = random.choice(CASE_PREFIXES)
         set_user_prefix(user_id, prefix)
@@ -2734,7 +2697,7 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_result(
         update,
         context,
-        "✅ <b>Перевод выполнен</b>\n\n"
+        "💸 <b>Перевод выполнен</b>\n\n"
         f"Сумма: <b>{money(amount)}</b>\n"
         f"Получатель: <code>{html.escape(str(target))}</code>\n"
         f"Комментарий: <b>{html.escape(comment)}</b>"
@@ -2746,9 +2709,9 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=recipient_id,
                 text=pe(
                     "🎁 <b>Новый перевод</b>\n\n"
-                    f"От кого: {sender_name}\n"
-                    f"Сумма: <b>{money(amount)}</b>\n"
-                    f"Сообщение: <b>{html.escape(comment)}</b>"
+                    f"👤 От кого: {sender_name}\n"
+                    f"💸 Сумма: <b>{money(amount)}</b>\n"
+                    f"💬 Сообщение: <b>{html.escape(comment)}</b>"
                 ),
                 parse_mode="HTML"
             )
@@ -2770,19 +2733,18 @@ def ball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, bala
     is_hit = dice_value >= 4
 
     if is_hit:
-        status = "Попадание"
-        result = f"+{money(win_milli)}"
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🏀'
+        detail = 'Мяч попал в корзину!'
     else:
-        status = "Мимо"
-        result = f"-{money(bet_milli)}"
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🏀'
+        detail = 'Мяч не попал в корзину :('
 
     return (
-        "🏀 <b>Баскетбол</b>\n\n"
-        f"{mention(user)}\n"
-        f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Результат: <b>{status}</b>\n"
-        f"Итог: <b>{result}</b>\n\n"
-        f"Баланс: <b>{money_balance(balance_after)}</b>"
+        '<b>Баскетбол</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n\n'
+        f'{detail}\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
     )
 
 
@@ -2861,19 +2823,18 @@ def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, 
     is_goal = dice_value >= 3
 
     if is_goal:
-        status = "Гол"
-        result = f"+{money(win_milli)}"
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре ⚽️'
+        detail = 'ГОООЛ! Мяч в воротах!'
     else:
-        status = "Мимо ворот"
-        result = f"-{money(bet_milli)}"
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре ⚽️'
+        detail = 'Мяч попал в штангу :(' if int(dice_value or 0) == 2 else 'Мяч не попал в ворота :('
 
     return (
-        "⚽️ <b>Футбол</b>\n\n"
-        f"{mention(user)}\n"
-        f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Результат: <b>{status}</b>\n"
-        f"Итог: <b>{result}</b>\n\n"
-        f"Баланс: <b>{money_balance(balance_after)}</b>"
+        '<b>Футбол</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n\n'
+        f'{detail}\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
     )
 
 
@@ -2980,7 +2941,12 @@ async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     ok, msg = open_case(update.effective_user.id)
-    await send_result(update, context, ("✅ " if ok else "❌ ") + msg)
+    prefix = "✅ " if ok else "❌ "
+    await send_result(
+        update,
+        context,
+        prefix + f"{mention(update.effective_user)}\n" + msg
+    )
 
 
 async def casino_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3044,7 +3010,7 @@ async def coin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(pe('Отменено.'), parse_mode='HTML')
+    await update.message.reply_text(pe('Действие закрыто.'), parse_mode='HTML')
     return ConversationHandler.END
 
 async def add_phrase_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3166,7 +3132,7 @@ async def withdraw_start_text(update: Update, context: ContextTypes.DEFAULT_TYPE
     await send_result(
         update,
         context,
-        "❗️ <b>Вывод USDT</b>\nФункция временно недоступна.\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+        "❗️ <b>Вывод 💸</b>\nФункция временно недоступна.\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
     )
 
     return ConversationHandler.END
@@ -3180,7 +3146,7 @@ async def withdraw_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_result(
         update,
         context,
-        "❗️ <b>Вывод USDT</b>\nФункция временно недоступна.\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+        "❗️ <b>Вывод 💸</b>\nФункция временно недоступна.\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
     )
 
     return ConversationHandler.END
@@ -3193,7 +3159,7 @@ async def withdraw_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(pe('Адрес слишком короткий. Отправь корректный адрес.'), parse_mode='HTML')
         return WAIT_WALLET
     context.user_data['wallet'] = wallet
-    await update.message.reply_text(pe('Теперь введи сумму вывода в USDT.\nНапример: 100 или 150.5'), parse_mode='HTML')
+    await update.message.reply_text(pe('Теперь введи сумму вывода в 💸.\nНапример: 100 или 150.5'), parse_mode='HTML')
     return WAIT_AMOUNT
 
 async def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3216,7 +3182,7 @@ async def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     wallet = context.user_data['wallet']
     wid = create_withdrawal(update.effective_user.id, wallet, amount)
     await update.message.reply_text(pe('✅ Заявка на вывод создана и отправлена админам на проверку.'), parse_mode='HTML')
-    text = f'💸 <b>Новая заявка на вывод</b>\n\nID заявки: <code>{wid}</code>\nПользователь: {mention(update.effective_user)}\nTelegram ID: <code>{update.effective_user.id}</code>\nСумма: <b>{money(amount)}</b>\nКошелек TON USDT:\n<code>{html.escape(wallet)}</code>'
+    text = f'💸 <b>Новая заявка на вывод</b>\n\nID заявки: <code>{wid}</code>\nПользователь: {mention(update.effective_user)}\nTelegram ID: <code>{update.effective_user.id}</code>\nСумма: <b>{money(amount)}</b>\nКошелек TON 💸:\n<code>{html.escape(wallet)}</code>'
     for admin_id in ADMIN_IDS:
         try:
             await context.bot.send_message(admin_id, pe(text), parse_mode='HTML', reply_markup=withdraw_admin_menu(wid))
@@ -3249,7 +3215,7 @@ async def promo_create_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return WAIT_PROMO_CODE
 
     context.user_data['promo_code'] = code
-    await update.message.reply_text(pe('Введите сумму USDT для промокода:'), parse_mode='HTML')
+    await update.message.reply_text(pe('Введите сумму 💸 для промокода:'), parse_mode='HTML')
     return WAIT_PROMO_AMOUNT
 
 
@@ -3295,7 +3261,7 @@ async def give_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(q.from_user.id):
         await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return ConversationHandler.END
-    await q.message.reply_text(pe('💰 Введите Telegram ID пользователя, которому нужно выдать USDT:'), parse_mode='HTML')
+    await q.message.reply_text(pe('💰 Введите Telegram ID пользователя, которому нужно выдать 💸:'), parse_mode='HTML')
     return WAIT_GIVE_USER
 
 async def give_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3307,7 +3273,7 @@ async def give_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(pe('Пользователь не найден. Он должен сначала вызвать бота или написать /start.'), parse_mode='HTML')
         return ConversationHandler.END
     context.user_data['give_user'] = uid
-    await update.message.reply_text(pe('Введите сумму USDT для выдачи:'), parse_mode='HTML')
+    await update.message.reply_text(pe('Введите сумму 💸 для выдачи:'), parse_mode='HTML')
     return WAIT_GIVE_AMOUNT
 
 async def give_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3330,7 +3296,7 @@ async def take_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(q.from_user.id):
         await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return ConversationHandler.END
-    await q.message.reply_text(pe('➖ Введите Telegram ID пользователя, у которого нужно забрать USDT:'), parse_mode='HTML')
+    await q.message.reply_text(pe('➖ Введите Telegram ID пользователя, у которого нужно забрать 💸:'), parse_mode='HTML')
     return WAIT_TAKE_USER
 
 async def take_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3342,7 +3308,7 @@ async def take_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(pe('Пользователь не найден.'), parse_mode='HTML')
         return ConversationHandler.END
     context.user_data['take_user'] = uid
-    await update.message.reply_text(pe('Введите сумму USDT, которую нужно забрать:'), parse_mode='HTML')
+    await update.message.reply_text(pe('Введите сумму 💸, которую нужно забрать:'), parse_mode='HTML')
     return WAIT_TAKE_AMOUNT
 
 async def take_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3615,7 +3581,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         else:
             await q.message.reply_text(
-                pe('Главное меню открыто снизу.'),
+                pe('Главное меню'),
                 parse_mode='HTML',
                 reply_markup=reply_main_menu(is_admin(q.from_user.id), group=False)
             )
@@ -3650,7 +3616,18 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    print('VERSION_MINIMAL_VISUAL')
+    print('VERSION_CASE_MENTION_COIN_VISUAL_FIX')
+    print('VERSION_START_HELLO_THEN_INLINE_MENU')
+    print('VERSION_NO_TECH_KEYBOARD_MESSAGE')
+    print('VERSION_HIDE_KEYBOARD_REFRESH_MESSAGE')
+    print('VERSION_RESTORE_BOTTOM_KEYBOARD')
+    print('VERSION_MAIN_MENU_KEYBOARD_FINAL_FIX')
+    print('VERSION_CANCEL_TO_MAIN_AND_FOOTBALL_TITLE_FIX')
+    print('VERSION_GAME_HEADERS_FINAL_FIX')
+    print('VERSION_MAIN_MENU_BUTTON_OPENS_SCREEN')
+    print('VERSION_USDT_EMOJI_MENU_VISUAL_V2')
+    print('VERSION_USDT_EMOJI_MENU_VISUAL')
+    print('VERSION_STYLE_LEVELS_REPEAT')
     print('VERSION_PREMIUM_VISUAL_REWORK')
     print('VERSION_WITHDRAW_TEXT_UPDATED')
     print('VERSION_BALANCE_ROUND_WITHDRAW_SUPPORT')
@@ -3706,8 +3683,8 @@ def main():
     app.add_handler(CommandHandler('search', search_cmd))
     app.add_handler(CommandHandler('dbpath', dbpath_cmd))
     app.add_handler(CommandHandler('adminstats', admin_stats_cmd))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(add_phrase_start, pattern='^add_phrase$')], states={WAIT_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phrase)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(withdraw_start, pattern='^withdraw$'), MessageHandler(filters.Regex('^(💸 )?Вывод USDT$'), withdraw_start_text)], states={WAIT_WALLET: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_wallet)], WAIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(add_phrase_start, pattern='^add_phrase$')], states={WAIT_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phrase)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(withdraw_start, pattern='^withdraw$'), MessageHandler(filters.Regex('^(💸 )?Вывод 💸$'), withdraw_start_text)], states={WAIT_WALLET: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_wallet)], WAIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
     app.add_handler(ConversationHandler(
         entry_points=[
             CallbackQueryHandler(promo_activate_start, pattern='^promo_activate$'),
@@ -3716,7 +3693,7 @@ def main():
         states={
             WAIT_PROMO_ACTIVATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, promo_activate_finish)],
         },
-        fallbacks=[CommandHandler('cancel', cancel)],
+        fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)],
     ))
 
     app.add_handler(ConversationHandler(
@@ -3726,22 +3703,659 @@ def main():
             WAIT_PROMO_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, promo_create_amount)],
             WAIT_PROMO_LIMIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, promo_create_limit)],
         },
-        fallbacks=[CommandHandler('cancel', cancel)],
+        fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)],
     ))
 
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(give_start, pattern='^give_usdt$')], states={WAIT_GIVE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_user)], WAIT_GIVE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(take_start, pattern='^take_usdt$')], states={WAIT_TAKE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_user)], WAIT_TAKE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(uid_start, pattern='^custom_uid$')], states={WAIT_UID_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_user)], WAIT_UID_VALUE: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_value)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(hide_start, pattern='^hide_user$')], states={WAIT_HIDE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, hide_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(unhide_start, pattern='^unhide_user$')], states={WAIT_UNHIDE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, unhide_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(search_user_start, pattern='^search_user$'), MessageHandler(filters.Regex('^(🔎 )?Поиск по ID$'), search_user_start_text)], states={WAIT_SEARCH_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_user_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(delete_phrase_start, pattern='^delete_phrase_btn$')], states={WAIT_DELETE_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, delete_phrase_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
-    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(broadcast_start, pattern='^broadcast$')], states={WAIT_BROADCAST_TEXT: [MessageHandler(filters.TEXT & ~filters.COMMAND, broadcast_finish)]}, fallbacks=[CommandHandler('cancel', cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(give_start, pattern='^give_usdt$')], states={WAIT_GIVE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_user)], WAIT_GIVE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_amount)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(take_start, pattern='^take_usdt$')], states={WAIT_TAKE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_user)], WAIT_TAKE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_amount)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(uid_start, pattern='^custom_uid$')], states={WAIT_UID_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_user)], WAIT_UID_VALUE: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_value)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(hide_start, pattern='^hide_user$')], states={WAIT_HIDE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, hide_finish)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(unhide_start, pattern='^unhide_user$')], states={WAIT_UNHIDE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, unhide_finish)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(search_user_start, pattern='^search_user$'), MessageHandler(filters.Regex('^(🔎 )?Поиск по ID$'), search_user_start_text)], states={WAIT_SEARCH_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_user_finish)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(delete_phrase_start, pattern='^delete_phrase_btn$')], states={WAIT_DELETE_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, delete_phrase_finish)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
+    app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(broadcast_start, pattern='^broadcast$')], states={WAIT_BROADCAST_TEXT: [MessageHandler(filters.TEXT & ~filters.COMMAND, broadcast_finish)]}, fallbacks=[CommandHandler('cancel', cancel), MessageHandler(filters.Regex('^(❌ )?Главное меню$'), cancel)]))
     app.add_handler(CallbackQueryHandler(admin_stats_button, pattern='^admin_stats$'))
     app.add_handler(MessageHandler(filters.Document.ALL, txt_phrases_handler))
     app.add_handler(CallbackQueryHandler(buttons))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, trigger))
     logger.info('Бот запущен')
     app.run_polling()
+
+
+# ===== STYLE UPDATE: dashboard, levels, repeat game =====
+BOT_PUBLIC_USERNAME = '@Ktoyaro_bot'
+BOT_GROUP_LINK = '@bezdnao'
+
+old_init_db_visual = init_db
+
+def init_db():
+    old_init_db_visual()
+    with db() as conn:
+        user_cols = columns(conn, 'users')
+        if 'games_played' not in user_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN games_played INTEGER NOT NULL DEFAULT 0")
+        if 'turnover_milli' not in user_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN turnover_milli INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
+
+
+def get_user_full(user_id: int):
+    with db() as conn:
+        return conn.execute(
+            """
+            SELECT user_id, username, first_name, uid, balance_milli, openings,
+                   last_role_at, hidden, casino_last_spin_at, created_at,
+                   COALESCE(games_played, 0), COALESCE(turnover_milli, 0),
+                   prefix
+            FROM users WHERE user_id=?
+            """,
+            (user_id,),
+        ).fetchone()
+
+
+def add_game_stats(user_id: int, bet_milli: int):
+    with db() as conn:
+        conn.execute(
+            "UPDATE users SET games_played=COALESCE(games_played,0)+1, turnover_milli=COALESCE(turnover_milli,0)+? WHERE user_id=?",
+            (int(bet_milli or 0), user_id),
+        )
+        conn.commit()
+
+
+def account_age_text(created_at: int) -> str:
+    if not created_at:
+        return 'меньше дня'
+    diff = max(0, ts() - int(created_at))
+    days = diff // 86400
+    if days <= 0:
+        return 'меньше дня'
+    if days == 1:
+        return '1 день'
+    if 2 <= days <= 4:
+        return f'{days} дня'
+    return f'{days} дней'
+
+
+def level_info_by_openings(openings: int) -> dict:
+    openings = int(openings or 0)
+    levels = [
+        {'level': 0, 'emoji': '0⃣', 'name': 'None', 'start': 0, 'end': 10},
+        {'level': 1, 'emoji': '1⃣', 'name': 'Bronze', 'start': 10, 'end': 35},
+        {'level': 2, 'emoji': '2⃣', 'name': 'Silver', 'start': 35, 'end': 80},
+        {'level': 3, 'emoji': '3⃣', 'name': 'Gold', 'start': 80, 'end': None},
+    ]
+    current = levels[0]
+    for item in levels:
+        if item['end'] is None:
+            if openings >= item['start']:
+                current = item
+        elif item['start'] <= openings < item['end']:
+            current = item
+            break
+    next_level = levels[min(current['level'] + 1, 3)]
+    if current['end'] is None:
+        percent = 100
+    else:
+        span = max(1, current['end'] - current['start'])
+        percent = int(max(0, min(100, ((openings - current['start']) / span) * 100)))
+    return {
+        'current': current,
+        'next': next_level,
+        'percent': percent,
+    }
+
+
+def get_withdrawn_total(user_id: int) -> int:
+    with db() as conn:
+        row = conn.execute("SELECT COALESCE(SUM(amount_milli),0) FROM withdrawals WHERE user_id=? AND status='approved'", (user_id,)).fetchone()
+        return int(row[0] or 0) if row else 0
+
+
+def hello_keyboard_text() -> str:
+    return "👤 <b>Привет!</b>"
+
+
+def main_dashboard_text() -> str:
+    return (
+        f"👋 <b>Добро пожаловать в {BOT_PUBLIC_USERNAME}</b>\n\n"
+        "🎮 Получай роли, играй и копи баланс.\n"
+        f"💬 Новости и конкурсы — {BOT_GROUP_LINK}"
+    )
+
+
+
+def dashboard_message_menu():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton('👤 Профиль', callback_data='profile'),
+            InlineKeyboardButton('📊 Статистика', callback_data='profile_stats'),
+        ],
+        [
+            InlineKeyboardButton('💸 Вывести', callback_data='withdraw'),
+            InlineKeyboardButton('👥 Группа', url='https://t.me/bezdnao'),
+        ],
+    ])
+
+
+def main_menu(admin=False, group=False):
+    if group:
+        return InlineKeyboardMarkup([
+            [InlineKeyboardButton('🎭 Кто я', callback_data='whoami'), InlineKeyboardButton('🎮 Играть', callback_data='casino')],
+            [InlineKeyboardButton('🏆 Топ 3', callback_data='top3')],
+        ])
+    return dashboard_message_menu()
+
+
+def reply_main_menu(admin=False, group=False):
+    if group:
+        rows = []
+    else:
+        rows = [
+            ['🎭 Кто я', '🎮 Играть'],
+            ['👤 Профиль', '🏆 Топ 3'],
+            ['💵 Передача денег', '🎁 Промокод'],
+            ['🏠 Главное меню'],
+        ]
+
+    return ReplyKeyboardMarkup(
+        rows,
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder='Выберите действие...'
+    )
+
+
+
+def profile_actions_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton('📊 Статистика', callback_data='profile_stats'), InlineKeyboardButton('💸 Вывести', callback_data='withdraw')],
+        [InlineKeyboardButton('⬅️ Назад', callback_data='back')],
+    ])
+
+
+def stats_actions_menu():
+    return InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ Назад', callback_data='profile')]])
+
+
+def withdraw_back_menu():
+    return InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ Назад', callback_data='profile')]])
+
+
+def repeat_game_menu(game: str, bet_milli: int, side: str | None = None):
+    if game == 'slots':
+        data = f'repeat:slots:{bet_milli}'
+    elif game == 'coin':
+        data = f'repeat:coin:{side}:{bet_milli}'
+    elif game == 'ball':
+        data = f'repeat:ball:{bet_milli}'
+    elif game == 'football':
+        data = f'repeat:football:{bet_milli}'
+    else:
+        return None
+    return InlineKeyboardMarkup([[InlineKeyboardButton('🔁 Повторить игру', callback_data=data)]])
+
+
+def profile_text(user_id: int) -> str:
+    row = get_user_full(user_id)
+    if not row:
+        return 'Профиль не найден. Напиши /start.'
+    _, username, first_name, uid, balance, openings, _, hidden, _, created_at, games_played, turnover_milli, prefix = row
+    level = level_info_by_openings(openings)
+    display_name = f'@{username}' if username else (first_name or f'Игрок #{uid}')
+    title = f'#{uid} {display_name}'
+    lines = [
+        f'<b>{html.escape(title)}</b>',
+        '',
+        f'💵 Баланс — <b>{money_balance(balance)}</b>',
+        '',
+        f'Ваш прогресс — <b>{level["percent"]}%</b>',
+        f'{level["current"]["emoji"]} {level["current"]["name"]} ➡️ {level["next"]["emoji"]} {level["next"]["name"]}',
+        '',
+        f'🎮 Открыто ролей — <b>{int(openings or 0)}</b>',
+        f'🎮 Сыграно — <b>{int(games_played or 0)} ставок</b>',
+        f'⏱ Аккаунту — <b>{account_age_text(int(created_at or 0))}</b>',
+    ]
+    if prefix:
+        lines.append(f'🏷 Префикс — <b>{html.escape(prefix)}</b>')
+    if hidden:
+        lines.append('🙈 Профиль скрыт')
+    return '\n'.join(lines)
+
+
+def profile_stats_text(user_id: int) -> str:
+    row = get_user_full(user_id)
+    if not row:
+        return 'Статистика недоступна.'
+    _, username, first_name, uid, _, _, _, _, _, created_at, games_played, turnover_milli, _ = row
+    name = f'@{username}' if username else (first_name or f'Игрок #{uid}')
+    withdrawn = get_withdrawn_total(user_id)
+    return (
+        f'📊 <b>Статистика</b> {html.escape(name)}\n\n'
+        f'🎮 Сыграно — <b>{int(games_played or 0)} ставок</b>\n'
+        f'💵 Оборот — <b>{money(int(turnover_milli or 0))}</b>\n'
+        f'⏱ Аккаунту — <b>{account_age_text(int(created_at or 0))}</b>\n\n'
+        f'⬇️ Пополнений — <b>0 💸</b>\n'
+        f'⬆️ Выводов — <b>{money(int(withdrawn or 0))}</b>'
+    )
+
+
+def transfer_usage_text() -> str:
+    return (
+        '💵 <b>Передача денег</b>\n\n'
+        'Команды:\n'
+        '<code>/pay USER_ID сумма комментарий</code>\n'
+        '<code>/pay @username сумма комментарий</code>\n\n'
+        'Пример:\n'
+        '<code>/pay 123456789 1 подарок</code>'
+    )
+
+
+async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+    if await handle_banned_action(update, context):
+        return
+    text = (
+        '🎮 <b>Играть</b>\n\n'
+        '🎰 <code>/slots 1</code> — слоты\n'
+        '🪙 <code>/coin орел 1</code> — орел / решка\n'
+        '🏀 <code>/ball 1</code> — баскетбол\n'
+        '⚽️ <code>/football 1</code> — футбол\n'
+        '🎁 <code>/case open</code> — кейс'
+    )
+    await send_clean_group_result(update, context, text)
+
+
+def slot_result_text(user, bet_milli: int, symbols: list[str], multiplier: float, win_milli: int, balance_after: int) -> str:
+    combo = ' '.join(symbols)
+
+    if win_milli > 0:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🎰'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🎰'
+
+    return (
+        '<b>Spins</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n'
+        f'Комбинация: <b>{combo}</b>\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+
+def coin_result_text(user, bet_milli: int, choice: str, result: str, win_milli: int, balance_after: int) -> str:
+    won = choice == result
+
+    if won:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🪙'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🪙'
+
+    return (
+        '<b>Орел / Решка</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n'
+        f'Ваш выбор: <b>{coin_side_label(choice)}</b>\n'
+        f'Выпало: <b>{coin_side_label(result)}</b>\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+
+def ball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
+    is_hit = dice_value >= 4
+
+    if is_hit:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🏀'
+        detail = 'Мяч попал в корзину!'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🏀'
+        detail = 'Мяч не попал в корзину :('
+
+    return (
+        '<b>Баскетбол</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n\n'
+        f'{detail}\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+
+async def send_ball_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(BASKETBALL_ANIMATION_DELAY)
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=pe(ball_result_text(user, bet_milli, dice_value, win_milli, balance_after)),
+        parse_mode='HTML',
+        reply_to_message_id=message_id,
+        reply_markup=repeat_game_menu('ball', bet_milli),
+    )
+
+
+def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
+    is_goal = dice_value >= 3
+
+    if is_goal:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре ⚽️'
+        detail = 'ГОООЛ! Мяч в воротах!'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре ⚽️'
+        detail = 'Мяч попал в штангу :(' if int(dice_value or 0) == 2 else 'Мяч не попал в ворота :('
+
+    return (
+        '<b>Футбол</b>\n'
+        f'{mention(user)}\n'
+        f'{headline}\n\n'
+        f'{detail}\n\n'
+        f'💸 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+
+async def send_football_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(FOOTBALL_ANIMATION_DELAY)
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=pe(football_result_text(user, bet_milli, dice_value, win_milli, balance_after)),
+        parse_mode='HTML',
+        reply_to_message_id=message_id,
+        reply_markup=repeat_game_menu('football', bet_milli),
+    )
+
+
+old_start_visual = start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await open_main_screen(update, context)
+
+
+
+async def menu_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await open_main_screen(update, context)
+
+
+
+async def refresh_private_keyboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return
+
+
+
+async def open_main_screen(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if is_group(update.effective_chat):
+        await update.message.reply_text(
+            pe('Главное меню:'),
+            parse_mode='HTML',
+            reply_markup=main_menu(is_admin(update.effective_user.id), group=True)
+        )
+        return
+
+    await update.message.reply_text(
+        pe(hello_keyboard_text()),
+        parse_mode='HTML',
+        reply_markup=reply_main_menu(is_admin(update.effective_user.id), group=False)
+    )
+
+    await update.message.reply_text(
+        pe(main_dashboard_text()),
+        parse_mode='HTML',
+        reply_markup=dashboard_message_menu()
+    )
+
+
+
+async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+    txt = update.message.text.strip().lower()
+    if txt in ('🏠 главное меню', 'главное меню'):
+        await open_main_screen(update, context)
+        return
+    if txt in ('играть', '🎮 играть'):
+        await show_casino(update, context)
+        return
+    if txt in ('профиль', '👤 профиль') and update.effective_chat.type == 'private':
+        await send_result(update, context, profile_text(update.effective_user.id), reply_markup=profile_actions_menu())
+        return
+    return await old_trigger_visual(update, context)
+
+
+old_buttons_visual = buttons
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    data = q.data or ''
+    if data == 'profile':
+        await q.answer()
+        if q.message.chat.type != 'private':
+            await q.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+        await q.edit_message_text(pe(profile_text(q.from_user.id)), parse_mode='HTML', reply_markup=profile_actions_menu())
+        return
+    if data == 'profile_stats':
+        await q.answer()
+        if q.message.chat.type != 'private':
+            await q.message.reply_text(pe('Статистика доступна только в личке с ботом.'), parse_mode='HTML')
+            return
+        await q.edit_message_text(pe(profile_stats_text(q.from_user.id)), parse_mode='HTML', reply_markup=stats_actions_menu())
+        return
+    if data == 'back':
+        await q.answer()
+        if is_group(q.message.chat):
+            await q.edit_message_text(pe('Главное меню:'), parse_mode='HTML', reply_markup=main_menu(is_admin(q.from_user.id), group=True))
+        else:
+            await q.edit_message_text(pe(main_dashboard_text()), parse_mode='HTML', reply_markup=dashboard_message_menu())
+        return
+    if data.startswith('repeat:'):
+        await q.answer()
+        parts = data.split(':')
+        game = parts[1] if len(parts) > 1 else ''
+        try:
+            if game == 'slots' and len(parts) == 3:
+                return await play_slots(update, context, int(parts[2]))
+            if game == 'coin' and len(parts) == 4:
+                return await play_coin(update, context, parts[2], int(parts[3]))
+            if game == 'ball' and len(parts) == 3:
+                context.args = [str(int(parts[2]) / 1000)]
+                return await ball_cmd(update, context)
+            if game == 'football' and len(parts) == 3:
+                context.args = [str(int(parts[2]) / 1000)]
+                return await football_cmd(update, context)
+        except Exception:
+            await q.message.reply_text(pe('❌ Не удалось повторить игру.'), parse_mode='HTML')
+            return
+    return await old_buttons_visual(update, context)
+
+
+async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_milli: int):
+    user = update.effective_user
+    register_user(user)
+    remember_group(update.effective_chat)
+    banned, reason, banned_until = get_user_ban_status_direct(user.id)
+    if banned:
+        await send_clean_group_result(update, context, '⛔ Вы забанены у бота.\n' f'Причина: <b>{html.escape(reason or "не указана")}</b>\n' f'Осталось: <b>{html.escape(ban_time_text(banned_until))}</b>')
+        return
+    row = get_user(user.id)
+    if not row:
+        await send_clean_group_result(update, context, '❌ Профиль не найден. Напиши /start.')
+        return
+    balance_milli = int(row[4])
+    if bet_milli < MIN_SLOT_BET_MILLI:
+        await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>')
+        return
+    if bet_milli > MAX_SLOT_BET_MILLI:
+        await send_clean_group_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>')
+        return
+    if balance_milli < bet_milli:
+        await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_clean_group_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующим спином.')
+        return
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await send_clean_group_result(update, context, f'❌ {html.escape(msg)}')
+        return
+    add_game_stats(user.id, bet_milli)
+    symbols = roll_slots()
+    multiplier = get_slot_multiplier(symbols)
+    win_milli = int(round(bet_milli * multiplier))
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+    set_casino_last_spin(user.id)
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+    await send_clean_group_result(update, context, slot_result_text(user, bet_milli, symbols, multiplier, win_milli, balance_after), reply_markup=repeat_game_menu('slots', bet_milli))
+
+
+async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: str, bet_milli: int):
+    user = update.effective_user
+    register_user(user)
+    remember_group(update.effective_chat)
+    banned, reason, banned_until = get_user_ban_status_direct(user.id)
+    if banned:
+        await send_clean_group_result(update, context, '⛔ Вы забанены у бота.\n' f'Причина: <b>{html.escape(reason or "не указана")}</b>\n' f'Осталось: <b>{html.escape(ban_time_text(banned_until))}</b>')
+        return
+    row = get_user(user.id)
+    if not row:
+        await send_clean_group_result(update, context, '❌ Профиль не найден. Напиши /start.')
+        return
+    balance_milli = int(row[4])
+    if bet_milli < MIN_COIN_BET_MILLI:
+        await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_COIN_BET_MILLI)}</b>')
+        return
+    if bet_milli > MAX_COIN_BET_MILLI:
+        await send_clean_group_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_COIN_BET_MILLI)}</b>')
+        return
+    if balance_milli < bet_milli:
+        await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_clean_group_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.')
+        return
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await send_clean_group_result(update, context, f'❌ {html.escape(msg)}')
+        return
+    add_game_stats(user.id, bet_milli)
+    result = roll_coin(user.id)
+    win_milli = bet_milli * 2 if side == result else 0
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+    set_casino_last_spin(user.id)
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+    await send_clean_group_result(update, context, coin_result_text(user, bet_milli, side, result, win_milli, balance_after), reply_markup=repeat_game_menu('coin', bet_milli, side))
+
+
+async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+    register_user(user)
+    remember_group(chat)
+    if await handle_banned_action(update, context):
+        return
+    if not context.args:
+        await send_result(update, context, '🏀 <b>Баскетбол</b>\n\nКоманда: <code>/ball сумма</code>\nПример: <code>/ball 1</code>')
+        return
+    bet_milli = parse_money(context.args[0])
+    if bet_milli is None or bet_milli <= 0:
+        await send_result(update, context, 'Введите ставку числом. Например: <code>/ball 1</code>')
+        return
+    if bet_milli < MIN_BALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
+        return
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>')
+        return
+    row = get_user(user.id)
+    if not row:
+        await send_result(update, context, 'Профиль не найден. Напиши /start.')
+        return
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.')
+        return
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await send_result(update, context, f'❌ {html.escape(msg)}')
+        return
+    add_game_stats(user.id, bet_milli)
+    dice_msg = await context.bot.send_dice(chat_id=chat.id, emoji='🏀', reply_to_message_id=update.message.message_id if update.message else None)
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    is_hit = dice_value >= 4
+    win_milli = bet_milli * 2 if is_hit else 0
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+    set_casino_last_spin(user.id)
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+    context.application.create_task(send_ball_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, dice_value, win_milli, balance_after))
+
+
+async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+    register_user(user)
+    remember_group(chat)
+    if await handle_banned_action(update, context):
+        return
+    if not context.args:
+        await send_result(update, context, '⚽️ <b>Футбол</b>\n\nКоманда: <code>/football сумма</code>\nПример: <code>/football 1</code>')
+        return
+    bet_milli = parse_money(context.args[0])
+    if bet_milli is None or bet_milli <= 0:
+        await send_result(update, context, 'Введите ставку числом. Например: <code>/football 1</code>')
+        return
+    if bet_milli < MIN_FOOTBALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>')
+        return
+    if bet_milli > MAX_FOOTBALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>')
+        return
+    row = get_user(user.id)
+    if not row:
+        await send_result(update, context, 'Профиль не найден. Напиши /start.')
+        return
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.')
+        return
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await send_result(update, context, f'❌ {html.escape(msg)}')
+        return
+    add_game_stats(user.id, bet_milli)
+    dice_msg = await context.bot.send_dice(chat_id=chat.id, emoji='⚽', reply_to_message_id=update.message.message_id if update.message else None)
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    is_goal = dice_value >= 3
+    win_milli = bet_milli * 2 if is_goal else 0
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+    set_casino_last_spin(user.id)
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+    context.application.create_task(send_football_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, dice_value, win_milli, balance_after))
+
+
+old_cancel_visual = cancel
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(pe('Действие закрыто.'), parse_mode='HTML')
+    if update.effective_chat.type == 'private':
+        return ConversationHandler.END
+
+
 if __name__ == '__main__':
     main()
