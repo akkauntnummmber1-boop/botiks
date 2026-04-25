@@ -1012,9 +1012,7 @@ def main_menu(admin=False, group=False):
     return InlineKeyboardMarkup(buttons)
 
 
-
 def reply_main_menu(admin=False, group=False):
-    # Нижняя клавиатура используется только в ЛС.
     if group:
         rows = []
     else:
@@ -1034,10 +1032,7 @@ def reply_main_menu(admin=False, group=False):
     )
 
 
-
 def role_menu(group=False):
-    # Меню под выдачей роли. В группах кнопок нет.
-    # В ЛС нет Инвентаря и Админ-панели.
     buttons = []
 
     if not group:
@@ -1051,6 +1046,11 @@ def role_menu(group=False):
 
     return InlineKeyboardMarkup(buttons) if buttons else None
 
+
+def profile_inventory_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory')]
+    ])
 
 
 def admin_menu():
@@ -2500,14 +2500,13 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(q.from_user)
     if q.message:
         remember_group(q.message.chat)
-    # PROFILE_FIX_MARKER_V2
-    if data == 'profile':
-        await q.answer()
-        register_user(q.from_user)
-
-        if q.message.chat.type != 'private':
-            await q.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
-            return
+        await send_result(
+            update,
+            context,
+            profile_text(q.from_user.id),
+            reply_markup=profile_inventory_menu()
+        )
+        return
 
         await send_result(
             update,
@@ -2517,7 +2516,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # PROFILE_FIX_FINAL_MARKER
+    # PROFILE_FIX_FINAL_OK
     if data == 'profile':
         await q.answer()
         register_user(q.from_user)
