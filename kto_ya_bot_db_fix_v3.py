@@ -146,13 +146,23 @@ PE_RARITY_RARE = '<tg-emoji emoji-id="5449380056201697322">💚</tg-emoji>'
 PE_RARITY_EPIC = '<tg-emoji emoji-id="5434031913260035048">🩷</tg-emoji>'
 PE_RARITY_LEGENDARY = '<tg-emoji emoji-id="5449366943666543715">💛</tg-emoji>'
 PE_RARITY_SECRET = '<tg-emoji emoji-id="5449692618151695997">🖤</tg-emoji>'
+PE_NUM_1 = '<tg-emoji emoji-id="5382322671679708881">1️⃣</tg-emoji>'
+PE_NUM_2 = '<tg-emoji emoji-id="5381990043642502553">2️⃣</tg-emoji>'
+PE_NUM_3 = '<tg-emoji emoji-id="5381879959335738545">3️⃣</tg-emoji>'
+PE_NUM_4 = '<tg-emoji emoji-id="5382054253403577563">4️⃣</tg-emoji>'
+PE_NUM_5 = '<tg-emoji emoji-id="5391197405553107640">5️⃣</tg-emoji>'
+PE_NUM_6 = '<tg-emoji emoji-id="5390966190283694453">6️⃣</tg-emoji>'
+PE_NUM_7 = '<tg-emoji emoji-id="5382132232829804982">7️⃣</tg-emoji>'
+PE_NUM_8 = '<tg-emoji emoji-id="5391038994274329680">8️⃣</tg-emoji>'
+PE_NUM_9 = '<tg-emoji emoji-id="5391234698754138414">9️⃣</tg-emoji>'
+PE_NUM_0 = '<tg-emoji emoji-id="5393480373944459905">0️⃣</tg-emoji>'
 
 def pe(text: str) -> str:
     """Заменяет обычные emoji на premium emoji в HTML-тексте сообщения."""
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('7️⃣', PE_SLOT_SEVEN), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -418,6 +428,165 @@ def set_uid(user_id: int, uid: str) -> tuple[bool, str]:
         except sqlite3.IntegrityError:
             return (False, 'Такой UID уже занят.')
 
+
+
+def parse_duration_to_until(value: str) -> tuple[bool, int, str]:
+    """
+    Возвращает: ok, banned_until, readable.
+    banned_until = 0 значит навсегда.
+    Форматы:
+    30m, 1h, 7d, 1w, perm, forever, навсегда
+    """
+    raw = (value or "").strip().lower()
+
+    if raw in ("perm", "permanent", "forever", "навсегда", "0"):
+        return True, 0, "навсегда"
+
+    match = re.fullmatch(r"(\d+)(m|h|d|w)", raw)
+
+    if not match:
+        return False, 0, ""
+
+    number = int(match.group(1))
+    unit = match.group(2)
+
+    if number <= 0:
+        return False, 0, ""
+
+    seconds_by_unit = {
+        "m": 60,
+        "h": 60 * 60,
+        "d": 24 * 60 * 60,
+        "w": 7 * 24 * 60 * 60,
+    }
+
+    labels = {
+        "m": "мин.",
+        "h": "ч.",
+        "d": "дн.",
+        "w": "нед.",
+    }
+
+    until = ts() + number * seconds_by_unit[unit]
+    return True, until, f"{number} {labels[unit]}"
+
+
+def ban_time_text(banned_until: int) -> str:
+    if not banned_until:
+        return "навсегда"
+
+    left = banned_until - ts()
+
+    if left <= 0:
+        return "истек"
+
+    days = left // 86400
+    hours = (left % 86400) // 3600
+    minutes = (left % 3600) // 60
+
+    if days > 0:
+        return f"{days} дн. {hours} ч."
+    if hours > 0:
+        return f"{hours} ч. {minutes} мин."
+
+    return f"{minutes} мин."
+
+
+def clear_expired_ban(user_id: int) -> bool:
+    row = get_user(user_id)
+
+    if not row or len(row) < 13:
+        return False
+
+    banned = int(row[8] or 0)
+    banned_until = int(row[10] or 0)
+
+    if banned and banned_until and banned_until <= ts():
+        with db() as conn:
+            conn.execute(
+                """
+                UPDATE users
+                SET banned=0, ban_reason=NULL, banned_until=0, banned_by=NULL, banned_at=0
+                WHERE user_id=?
+                """,
+                (user_id,),
+            )
+            conn.commit()
+        return True
+
+    return False
+
+
+def is_banned_user(user_id: int) -> bool:
+    clear_expired_ban(user_id)
+    row = get_user(user_id)
+
+    if not row:
+        return False
+
+    if len(row) >= 9:
+        return bool(row[8])
+
+    return False
+
+
+def get_ban_info(user_id: int) -> tuple[bool, str, int]:
+    clear_expired_ban(user_id)
+    row = get_user(user_id)
+
+    if not row or len(row) < 13:
+        return False, "", 0
+
+    banned = bool(row[8])
+    reason = row[9] or "не указана"
+    banned_until = int(row[10] or 0)
+
+    return banned, reason, banned_until
+
+
+def set_ban_user(
+    user_id: int,
+    banned: int,
+    reason: str | None = None,
+    banned_until: int = 0,
+    admin_id: int | None = None
+) -> tuple[bool, str]:
+    with db() as conn:
+        row = conn.execute("SELECT user_id FROM users WHERE user_id=?", (user_id,)).fetchone()
+
+        if not row:
+            return False, "Пользователь не найден."
+
+        if banned:
+            conn.execute(
+                """
+                UPDATE users
+                SET banned=1, ban_reason=?, banned_until=?, banned_by=?, banned_at=?
+                WHERE user_id=?
+                """,
+                (reason or "не указана", banned_until, admin_id, ts(), user_id),
+            )
+            conn.commit()
+
+            return True, (
+                "Пользователь забанен.\n"
+                f"Время: <b>{html.escape(ban_time_text(banned_until))}</b>\n"
+                f"Причина: <b>{html.escape(reason or 'не указана')}</b>"
+            )
+
+        conn.execute(
+            """
+            UPDATE users
+            SET banned=0, ban_reason=NULL, banned_until=0, banned_by=NULL, banned_at=0
+            WHERE user_id=?
+            """,
+            (user_id,),
+        )
+        conn.commit()
+
+    return True, "Пользователь разбанен."
+
+
 def hide_user(user_id: int) -> tuple[bool, str]:
     with db() as conn:
         if not conn.execute('SELECT user_id FROM users WHERE user_id=?', (user_id,)).fetchone():
@@ -438,12 +607,12 @@ def search_user_text(user_id: int) -> str | None:
     row = get_user(user_id)
     if not row:
         return None
-    user_id, username, first_name, uid, balance, openings, last_role, hidden, *_ = row
+    user_id, username, first_name, uid, balance, openings, last_role, hidden, banned, ban_reason, banned_until, banned_by, banned_at, *_ = row
     if hidden:
         return None
     username_text = f'@{username}' if username else 'нет'
     first_name_text = first_name or 'нет'
-    return f'🔎 <b>Пользователь найден</b>\n\n🆔 Telegram ID: <code>{user_id}</code>\n🔖 UID: <code>{html.escape(str(uid))}</code>\n💰 Баланс: <b>{money(balance)}</b>\n👁 Открытия: <b>{openings}</b>\n📛 Username: {html.escape(username_text)}\n👤 Имя: {html.escape(first_name_text)}\n🚫 Статус бана: <b>не забанен</b>'
+    return f'🔎 <b>Пользователь найден</b>\n\n🆔 Telegram ID: <code>{user_id}</code>\n🔖 UID: <code>{html.escape(str(uid))}</code>\n💰 Баланс: <b>{money(balance)}</b>\n👁 Открытия: <b>{openings}</b>\n📛 Username: {html.escape(username_text)}\n👤 Имя: {html.escape(first_name_text)}\n🚫 Статус бана: <b>{'забанен' if banned else 'не забанен'}</b>'
 
 def inc_opening(user_id: int):
     with db() as conn:
@@ -509,7 +678,7 @@ def profile_text(user_id: int) -> str:
     row = get_user(user_id)
     if not row:
         return 'Профиль не найден. Напиши /start.'
-    user_id, username, first_name, uid, balance, openings, last_role, hidden, *_ = row
+    user_id, username, first_name, uid, balance, openings, last_role, hidden, banned, ban_reason, banned_until, banned_by, banned_at, *_ = row
     uname = f'@{username}' if username else 'нет'
     hidden_line = '\n🙈 Статус: <b>скрыт</b>' if hidden else ''
     return f'👤 <b>Профиль</b>\n\n🆔 Telegram ID: <code>{user_id}</code>\n🔖 UID: <code>{html.escape(str(uid))}</code>\n👁 Открытия: <b>{openings}</b>\n💰 Баланс: <b>{money(balance)}</b>\n📛 Username: {html.escape(uname)}{hidden_line}'
@@ -618,6 +787,9 @@ def create_promo_code(code: str, amount_milli: int, max_uses: int, admin_id: int
 
 
 def activate_promo_code(user_id: int, code: str) -> tuple[bool, str]:
+    if is_banned_user(user_id):
+        return False, 'Вы забанены у бота.'
+
     code = (code or "").strip().upper()
 
     if not code:
@@ -711,13 +883,10 @@ def main_menu(admin=False, group=False):
     if not group:
         buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
         buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
-        buttons.append([InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory'), InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
+        buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
 
     buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
     buttons.append([InlineKeyboardButton('🏆 Топ 3', callback_data='top3')])
-
-    if admin:
-        buttons.append([InlineKeyboardButton('⚙️ Админ-меню', callback_data='admin_menu')])
 
     return InlineKeyboardMarkup(buttons)
 
@@ -731,12 +900,9 @@ def reply_main_menu(admin=False, group=False):
             ['🎭 Кто я'],
             ['👤 Профиль', '💸 Вывод USDT'],
             ['🔎 Поиск по ID', '🎰 Казино'],
-            ['🎭 Инвентарь', '🎁 Промокод'],
+            ['🎁 Промокод'],
             ['🏆 Топ 3'],
         ]
-
-    if admin:
-        rows.append(['⚙️ Админ-меню'])
 
     return ReplyKeyboardMarkup(
         rows,
@@ -751,10 +917,39 @@ def role_menu(group=False):
     if not group:
         buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
         buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
-        buttons.append([InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory'), InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
+        buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
         buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
 
     return InlineKeyboardMarkup(buttons) if buttons else None
+
+def admin_panel_text() -> str:
+    return (
+        "<b>Админ-панель</b>\n\n"
+        f"{PE_NUM_1} <code>/add текст</code> — добавить фразу\n"
+        f"{PE_NUM_2} <code>/list</code> — последние фразы\n"
+        f"{PE_NUM_3} <code>/delete ID</code> — удалить фразу\n"
+        f"{PE_NUM_4} <code>/give USER_ID SUM причина</code> — выдать USDT\n"
+        f"{PE_NUM_5} <code>/take USER_ID SUM</code> — забрать USDT\n"
+        f"{PE_NUM_6} <code>/setuid USER_ID UID</code> — выдать кастом UID\n"
+        f"{PE_NUM_7} <code>/hide USER_ID</code> — скрыть пользователя\n"
+        f"{PE_NUM_8} <code>/unhide USER_ID</code> — раскрыть пользователя\n"
+        f"{PE_NUM_9} <code>/ban USER_ID TIME причина</code> — забанить пользователя\n"
+        f"{PE_NUM_1}{PE_NUM_0} <code>/unban USER_ID</code> — разбанить пользователя\n"
+        "\n"
+        "<b>Дополнительно:</b>\n"
+        "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
+        "<code>/promos</code> — список промокодов\n"
+        "<code>/adminstats</code> — статистика\n"
+        "<code>/groups</code> — группы с ботом\n"
+        "<code>/broadcast текст</code> — уведомление всем\n"
+    )
+
+
+def profile_inventory_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory')]
+    ])
+
 
 def admin_menu():
     return InlineKeyboardMarkup([[InlineKeyboardButton('➕ Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('🗑 Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('📋 Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('🔢 Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('📣 Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('📊 Статистика', callback_data='admin_stats')], [InlineKeyboardButton('🎁 Создать промокод', callback_data='promo_create')], [InlineKeyboardButton('📋 Промокоды', callback_data='promo_list')], [InlineKeyboardButton('💰 Выдать USDT', callback_data='give_usdt')], [InlineKeyboardButton('➖ Забрать USDT', callback_data='take_usdt')], [InlineKeyboardButton('🆔 Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('🙈 Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('👁 Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('👥 Группы с ботом', callback_data='groups')], [InlineKeyboardButton('⬅️ Назад', callback_data='back')]])
@@ -983,6 +1178,10 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
     register_user(user)
     remember_group(update.effective_chat)
 
+    if is_banned_user(user.id):
+        await send_clean_group_result(update, context, '⛔ Вы забанены у бота.')
+        return
+
     row = get_user(user.id)
 
     if not row:
@@ -1082,6 +1281,10 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
     register_user(user)
     remember_group(update.effective_chat)
 
+    if is_banned_user(user.id):
+        await send_clean_group_result(update, context, '⛔ Вы забанены у бота.')
+        return
+
     row = get_user(user.id)
 
     if not row:
@@ -1140,6 +1343,11 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     register_user(user)
     remember_group(chat)
+
+    if is_banned_user(user.id):
+        await send_result(update, context, '⛔ Вы забанены у бота.')
+        return
+
     row = get_user(user.id)
     if not row:
         await send_result(update, context, 'Ошибка профиля. Напиши /start.')
@@ -1244,7 +1452,7 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
             return
 
-        await send_result(update, context, profile_text(update.effective_user.id))
+        await send_result(update, context, profile_text(update.effective_user.id), reply_markup=profile_inventory_menu())
         return
 
     if lower_text in ('топ 3', '🏆 топ 3'):
@@ -1272,14 +1480,6 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_casino(update, context)
         return
 
-    if lower_text in ('админ-меню', '⚙️ админ-меню', '⚙ админ-меню'):
-        if not is_admin(update.effective_user.id):
-            await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
-            return
-
-        await update.message.reply_text(pe('⚙️ Админ-меню:'), parse_mode='HTML', reply_markup=admin_menu())
-        return
-
     if lower_text in ('меню', '🏠 меню'):
         if is_group(update.effective_chat):
             await update.message.reply_text(
@@ -1298,10 +1498,12 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def admin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
     remember_group(update.effective_chat)
+
     if not is_admin(update.effective_user.id):
         await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return
-    await update.message.reply_text(pe('⚙️ Админ-меню:'), reply_markup=admin_menu(), parse_mode='HTML')
+
+    await update.message.reply_text(pe(admin_panel_text()), parse_mode='HTML')
 
 async def add_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -1316,6 +1518,251 @@ async def add_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(pe(f'✅ Фраза добавлена: <b>{html.escape(text)}</b>'), parse_mode='HTML')
     else:
         await update.message.reply_text(pe('⚠️ Такая фраза уже есть или текст пустой.'), parse_mode='HTML')
+
+
+async def ban_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if len(context.args) < 2 or not context.args[0].isdigit():
+        await update.message.reply_text(
+            pe(
+                'Напиши так:\n'
+                '<code>/ban 123456789 1d спам</code>\n\n'
+                'Время: <code>30m</code>, <code>1h</code>, <code>7d</code>, <code>1w</code>, <code>perm</code>'
+            ),
+            parse_mode='HTML'
+        )
+        return
+
+    target = int(context.args[0])
+    ok_time, banned_until, readable = parse_duration_to_until(context.args[1])
+
+    if not ok_time:
+        await update.message.reply_text(
+            pe('Неверное время. Пример: <code>30m</code>, <code>1h</code>, <code>7d</code>, <code>1w</code>, <code>perm</code>'),
+            parse_mode='HTML'
+        )
+        return
+
+    reason = " ".join(context.args[2:]).strip() or "не указана"
+
+    ok, msg = set_ban_user(target, 1, reason=reason, banned_until=banned_until, admin_id=update.effective_user.id)
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+
+    if ok:
+        try:
+            await context.bot.send_message(
+                chat_id=target,
+                text=pe(
+                    '⛔ Вы были забанены у бота.\n'
+                    f'Время: <b>{html.escape(ban_time_text(banned_until))}</b>\n'
+                    f'Причина: <b>{html.escape(reason)}</b>'
+                ),
+                parse_mode='HTML'
+            )
+        except Exception:
+            pass
+
+
+
+async def unban_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text(pe('Напиши так:\n<code>/unban 123456789</code>'), parse_mode='HTML')
+        return
+
+    target = int(context.args[0])
+    ok, msg = set_ban_user(target, 0)
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+
+    if ok:
+        try:
+            await context.bot.send_message(
+                chat_id=target,
+                text=pe('✅ Вы были разбанены у бота.'),
+                parse_mode='HTML'
+            )
+        except Exception:
+            pass
+
+
+
+async def give_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if len(context.args) < 2 or not context.args[0].isdigit():
+        await update.message.reply_text(pe('Напиши так:\n<code>/give 123456789 10 причина</code>'), parse_mode='HTML')
+        return
+
+    target = int(context.args[0])
+    amount = parse_money(context.args[1])
+    reason = " ".join(context.args[2:]).strip() or "не указана"
+
+    if amount is None or amount <= 0:
+        await update.message.reply_text(pe('Сумма должна быть больше 0.'), parse_mode='HTML')
+        return
+
+    if not get_user(target):
+        await update.message.reply_text(pe('❌ Пользователь не найден.'), parse_mode='HTML')
+        return
+
+    add_balance(target, amount)
+    await update.message.reply_text(
+        pe(
+            f'✅ Выдано <b>{money(amount)}</b> пользователю <code>{target}</code>.\n'
+            f'Причина: <b>{html.escape(reason)}</b>'
+        ),
+        parse_mode='HTML'
+    )
+
+    try:
+        await context.bot.send_message(
+            chat_id=target,
+            text=pe(
+                f'💰 Вам начислено <b>{money(amount)}</b>.\n'
+                f'Причина: <b>{html.escape(reason)}</b>'
+            ),
+            parse_mode='HTML'
+        )
+    except Exception:
+        pass
+
+
+
+async def take_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if len(context.args) < 2 or not context.args[0].isdigit():
+        await update.message.reply_text(pe('Напиши так:\n<code>/take 123456789 10</code>'), parse_mode='HTML')
+        return
+
+    target = int(context.args[0])
+    amount = parse_money(context.args[1])
+
+    if amount is None or amount <= 0:
+        await update.message.reply_text(pe('Сумма должна быть больше 0.'), parse_mode='HTML')
+        return
+
+    ok, msg = take_balance(target, amount)
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+
+
+async def setuid_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if len(context.args) < 2 or not context.args[0].isdigit():
+        await update.message.reply_text(pe('Напиши так:\n<code>/setuid 123456789 VIP1</code>'), parse_mode='HTML')
+        return
+
+    target = int(context.args[0])
+    uid = context.args[1]
+    ok, msg = set_uid(target, uid)
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+
+
+async def hide_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text(pe('Напиши так:\n<code>/hide 123456789</code>'), parse_mode='HTML')
+        return
+
+    ok, msg = hide_user(int(context.args[0]))
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+
+
+async def unhide_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text(pe('Напиши так:\n<code>/unhide 123456789</code>'), parse_mode='HTML')
+        return
+
+    ok, msg = unhide_user(int(context.args[0]))
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+
+
+async def promo_create_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if len(context.args) < 3:
+        await update.message.reply_text(pe('Напиши так:\n<code>/promo_create CODE 5 10</code>'), parse_mode='HTML')
+        return
+
+    code = context.args[0]
+    amount = parse_money(context.args[1])
+
+    if amount is None or amount <= 0:
+        await update.message.reply_text(pe('Сумма должна быть больше 0.'), parse_mode='HTML')
+        return
+
+    if not context.args[2].isdigit() or int(context.args[2]) <= 0:
+        await update.message.reply_text(pe('Лимит должен быть числом больше 0.'), parse_mode='HTML')
+        return
+
+    ok, msg = create_promo_code(code, amount, int(context.args[2]), update.effective_user.id)
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+
+
+async def promos_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    await update.message.reply_text(pe(promo_codes_text()), parse_mode='HTML')
+
+
+async def groups_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    await update.message.reply_text(pe(groups_text()), parse_mode='HTML')
+
+
+async def broadcast_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    message = " ".join(context.args).strip()
+
+    if not message:
+        await update.message.reply_text(pe('Напиши так:\n<code>/broadcast текст уведомления</code>'), parse_mode='HTML')
+        return
+
+    with db() as conn:
+        users = conn.execute("SELECT user_id FROM users WHERE hidden=0 AND banned=0").fetchall()
+
+    sent = 0
+    failed = 0
+
+    for (user_id,) in users:
+        try:
+            await context.bot.send_message(chat_id=user_id, text=pe(message), parse_mode='HTML')
+            sent += 1
+        except Exception:
+            failed += 1
+
+    await update.message.reply_text(pe(f'📣 Рассылка завершена.\nОтправлено: <b>{sent}</b>\nОшибок: <b>{failed}</b>'), parse_mode='HTML')
+
 
 async def list_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
@@ -1340,7 +1787,7 @@ async def delete_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def profile_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
-    await send_result(update, context, profile_text(update.effective_user.id))
+    await send_result(update, context, profile_text(update.effective_user.id), reply_markup=profile_inventory_menu())
 
 async def top_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -2020,14 +2467,14 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if q.message.chat.type != 'private':
             await q.answer('Профиль доступен только в личке.', show_alert=True)
         else:
-            await send_result(update, context, profile_text(q.from_user.id))
+            await send_result(update, context, profile_text(q.from_user.id), reply_markup=profile_inventory_menu())
     elif data == 'top3':
         await send_clean_group_result(update, context, top_text())
     elif data == 'daily_bonus':
         await q.answer('Ежедневный бонус отключен.', show_alert=True)
     elif data == 'admin_menu':
         if is_admin(q.from_user.id):
-            await q.edit_message_text(pe('⚙️ Админ-меню:'), reply_markup=admin_menu(), parse_mode='HTML')
+            await q.edit_message_text(pe(admin_panel_text()), parse_mode='HTML')
         else:
             await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
     elif data == 'back':
@@ -2064,6 +2511,17 @@ def main():
     app.add_handler(CommandHandler('menu', menu_cmd))
     app.add_handler(CommandHandler('whoami', whoami))
     app.add_handler(CommandHandler('admin', admin_cmd))
+    app.add_handler(CommandHandler('ban', ban_cmd))
+    app.add_handler(CommandHandler('unban', unban_cmd))
+    app.add_handler(CommandHandler('give', give_direct_cmd))
+    app.add_handler(CommandHandler('take', take_direct_cmd))
+    app.add_handler(CommandHandler('setuid', setuid_direct_cmd))
+    app.add_handler(CommandHandler('hide', hide_direct_cmd))
+    app.add_handler(CommandHandler('unhide', unhide_direct_cmd))
+    app.add_handler(CommandHandler('promo_create', promo_create_direct_cmd))
+    app.add_handler(CommandHandler('promos', promos_cmd))
+    app.add_handler(CommandHandler('groups', groups_cmd))
+    app.add_handler(CommandHandler('broadcast', broadcast_direct_cmd))
     app.add_handler(CommandHandler('add', add_cmd))
     app.add_handler(CommandHandler('list', list_cmd))
     app.add_handler(CommandHandler('delete', delete_cmd))
