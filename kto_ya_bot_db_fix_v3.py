@@ -60,11 +60,11 @@ RARITY_LABELS = {
 }
 
 ROLE_REWARDS_MILLI = {
-    'common': 100,       # 0.1 USDT
-    'rare': 200,         # 0.2 USDT
-    'epic': 300,         # 0.3 USDT
-    'legendary': 500,    # 0.5 USDT
-    'secret': 40000,     # 40 USDT
+    'common': 500,       # 0.5 USDT
+    'rare': 600,         # 0.6 USDT
+    'epic': 1000,        # 1 USDT
+    'legendary': 1500,   # 1.5 USDT
+    'secret': 30000,     # 30 USDT
 }
 
 RARITY_ALIASES = {
@@ -143,6 +143,10 @@ PE_X2 = '<tg-emoji emoji-id="5785038454828043276">✖️</tg-emoji>'
 PE_PLUS_ONE = '<tg-emoji emoji-id="5784967785436154901">➕</tg-emoji>'
 PE_LOADING = '<tg-emoji emoji-id="5787344001862471785">✍️</tg-emoji>'
 PE_FLYING_MONEY = '<tg-emoji emoji-id="5472030678633684592">💸</tg-emoji>'
+PE_TRANSFER_USDT = '<tg-emoji emoji-id="5201692367437974073">💵</tg-emoji>'
+PE_TRANSFER_GIFT = '<tg-emoji emoji-id="5199749070830197566">🎁</tg-emoji>'
+PE_TRANSFER_CHAT = '<tg-emoji emoji-id="5895457880710058528">💬</tg-emoji>'
+PE_TRANSFER_USER = '<tg-emoji emoji-id="5373012449597335010">👤</tg-emoji>'
 PE_SLOT_CHERRY = '<tg-emoji emoji-id="5406759193052995173">🍒</tg-emoji>'
 PE_SLOT_STAR = '<tg-emoji emoji-id="5435957248314579621">⭐️</tg-emoji>'
 PE_SLOT_DIAMOND = '<tg-emoji emoji-id="5471952986970267163">💎</tg-emoji>'
@@ -168,7 +172,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -792,6 +796,78 @@ def unhide_user(user_id: int) -> tuple[bool, str]:
         conn.commit()
     return (True, 'Пользователь раскрыт.')
 
+def find_user_for_transfer(target: str):
+    target = (target or "").strip()
+
+    if not target:
+        return None
+
+    with db() as conn:
+        if target.isdigit():
+            return conn.execute(
+                "SELECT user_id, username, first_name, uid, balance_milli, hidden FROM users WHERE user_id=? OR uid=?",
+                (int(target), target),
+            ).fetchone()
+
+        username = target[1:] if target.startswith("@") else target
+
+        return conn.execute(
+            "SELECT user_id, username, first_name, uid, balance_milli, hidden FROM users WHERE lower(username)=lower(?)",
+            (username,),
+        ).fetchone()
+
+
+def transfer_money(sender_id: int, target: str, amount_milli: int, comment: str = "") -> tuple[bool, str, int | None]:
+    if amount_milli <= 0:
+        return False, "Сумма должна быть больше 0.", None
+
+    if sender_id and is_banned_user(sender_id):
+        return False, "Вы забанены у бота.", None
+
+    recipient = find_user_for_transfer(target)
+
+    if not recipient:
+        return False, "Получатель не найден. Он должен быть зарегистрирован в боте.", None
+
+    recipient_id, recipient_username, recipient_first_name, recipient_uid, recipient_balance, hidden = recipient
+
+    if hidden:
+        return False, "Получатель не найден.", None
+
+    if int(recipient_id) == int(sender_id):
+        return False, "Нельзя переводить самому себе.", None
+
+    sender = get_user(sender_id)
+
+    if not sender:
+        return False, "Профиль отправителя не найден. Напиши /start.", None
+
+    sender_balance = int(sender[4])
+
+    if sender_balance < amount_milli:
+        return False, f"Недостаточно средств. Ваш баланс: <b>{money(sender_balance)}</b>", None
+
+    ok, msg = take_balance(sender_id, amount_milli)
+
+    if not ok:
+        return False, msg, None
+
+    add_balance(recipient_id, amount_milli)
+
+    return True, "Перевод выполнен.", int(recipient_id)
+
+
+def transfer_usage_text() -> str:
+    return (
+        "💵 <b>Передача денег</b>\n"
+        "🎁 <b>Команды:</b>\n"
+        "👤 <code>/pay USER_ID сумма комментарий</code>\n"
+        "👤 <code>/pay @username сумма комментарий</code>\n"
+        "💬 <b>Пример:</b>\n"
+        "💵 <code>/pay 123456789 1 подарок</code>"
+    )
+
+
 def search_user_text(user_id: int) -> str | None:
     row = get_user(user_id)
 
@@ -1098,7 +1174,7 @@ def main_menu(admin=False, group=False):
             InlineKeyboardButton('👤 Профиль', callback_data='profile'),
             InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')
         ])
-        buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
+        buttons.append([InlineKeyboardButton('💵 Передача денег', callback_data='transfer_money')])
         buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
 
     buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
@@ -1114,7 +1190,7 @@ def reply_main_menu(admin=False, group=False):
         rows = [
             ['🎭 Кто я'],
             ['👤 Профиль', '💸 Вывод USDT'],
-            ['🔎 Поиск по ID', '🎰 Казино'],
+            ['💵 Передача денег', '🎰 Казино'],
             ['🎁 Промокод'],
             ['🏆 Топ 3'],
         ]
@@ -1135,7 +1211,7 @@ def role_menu(group=False):
             InlineKeyboardButton('👤 Профиль', callback_data='profile'),
             InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')
         ])
-        buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
+        buttons.append([InlineKeyboardButton('💵 Передача денег', callback_data='transfer_money')])
         buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
         buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
 
@@ -1154,7 +1230,7 @@ def admin_panel_text() -> str:
         "7️⃣ <code>/hide USER_ID</code> — скрыть пользователя\n"
         "8️⃣ <code>/unhide USER_ID</code> — раскрыть пользователя\n"
         "9️⃣ <code>/ban USER_ID TIME причина</code> — забанить пользователя\n"
-        "1️⃣0️⃣ <code>/unban USER_ID</code> — разбанить пользователя\n\n"
+        "1️⃣0️⃣ <code>/unban USER_ID</code> — разбанить пользователя\n<code>/search USER_ID</code> — поиск пользователя по ID\n\n"
         "<b>Дополнительно:</b>\n"
         "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
         "<code>/promos</code> — список промокодов\n"
@@ -1777,6 +1853,10 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_casino(update, context)
         return
 
+    if lower_text in ('передача денег', '💵 передача денег'):
+        await send_result(update, context, transfer_usage_text())
+        return
+
     if lower_text in ('меню', '🏠 меню'):
         if is_group(update.effective_chat):
             await update.message.reply_text(
@@ -2099,6 +2179,10 @@ async def top_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
+
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
     if not context.args or not context.args[0].isdigit():
         await update.message.reply_text(pe('Напиши так:\n/search 123456789'), parse_mode='HTML')
         return
@@ -2393,6 +2477,55 @@ def open_case(user_id: int) -> tuple[bool, str]:
         "⏲ Длительность: <b>30 минут</b>\n"
         "Шанс редкой, эпической, легендарной и секретной роли повышен x2."
     )
+
+
+async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if len(context.args) < 2:
+        await send_result(update, context, transfer_usage_text())
+        return
+
+    target = context.args[0]
+    amount = parse_money(context.args[1])
+
+    if amount is None or amount <= 0:
+        await send_result(update, context, "Введите сумму числом. Например: <code>/pay 123456789 1 подарок</code>")
+        return
+
+    comment = " ".join(context.args[2:]).strip() or "без комментария"
+
+    ok, msg, recipient_id = transfer_money(update.effective_user.id, target, amount, comment)
+
+    if not ok:
+        await send_result(update, context, "❌ " + msg)
+        return
+
+    sender_name = mention(update.effective_user)
+    await send_result(
+        update,
+        context,
+        "✅ <b>Перевод выполнен</b>\n"
+        f"💵 Сумма: <b>{money(amount)}</b>\n"
+        f"👤 Получатель: <code>{html.escape(str(target))}</code>\n"
+        f"💬 Комментарий: <b>{html.escape(comment)}</b>"
+    )
+
+    if recipient_id:
+        try:
+            await context.bot.send_message(
+                chat_id=recipient_id,
+                text=pe(
+                    "🎁 <b>Вам пришел перевод</b>\n"
+                    f"👤 От кого: {sender_name}\n"
+                    f"💵 Сумма: <b>{money(amount)}</b>\n"
+                    f"💬 Сообщение: <b>{html.escape(comment)}</b>"
+                ),
+                parse_mode="HTML"
+            )
+        except Exception:
+            pass
 
 
 async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2941,6 +3074,11 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_result(update, context, profile_text(q.from_user.id))
         return
 
+    if data == 'transfer_money':
+        await q.answer()
+        await send_result(update, context, transfer_usage_text())
+        return
+
     if data == 'casino':
         await q.answer()
         await show_casino(update, context)
@@ -3053,6 +3191,8 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
 
 def main():
+    print('VERSION_PAY_TEXT_FIX')
+    print('VERSION_PAY_TRANSFER_REWARDS')
     print('VERSION_CASE_COOLDOWN_30')
     print('VERSION_SECRET_100X_RARER')
     print('VERSION_CASE_HIDE_CONTENT')
@@ -3086,6 +3226,7 @@ def main():
     app.add_handler(CommandHandler('promo', promo_cmd))
     app.add_handler(CommandHandler('casino', casino_cmd))
     app.add_handler(CommandHandler('case', case_cmd))
+    app.add_handler(CommandHandler('pay', pay_cmd))
     app.add_handler(CommandHandler('slots', slots_cmd))
     app.add_handler(CommandHandler('coin', coin_cmd))
     app.add_handler(CommandHandler('search', search_cmd))
