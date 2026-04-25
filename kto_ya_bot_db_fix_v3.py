@@ -18,6 +18,12 @@ TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 10 * 60
 
 CASINO_COOLDOWN_SECONDS = 30
+CASE_PRICE_MILLI = 5000  # 5 USDT
+CASE_COOLDOWN_SECONDS = 30
+LUCK_BOOSTER_SECONDS = 30 * 60
+CASE_SECRET_REWARD_CHANCE = 1  # 1 из 1000
+CASE_DISCOUNT_MILLI = 2000  # скидка 2 USDT на следующий кейс
+CASE_PREFIXES = ["Любитель казика", "Подружка админа", "T1 WORKER"]
 MIN_SLOT_BET_MILLI = 100       # 0.1 USDT
 MAX_SLOT_BET_MILLI = 10000     # 10 USDT
 SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–15%
@@ -38,11 +44,11 @@ MIN_WITHDRAW_MILLI = 100000
 DAY_SECONDS = 24 * 60 * 60
 DAILY_ROLE_BONUS_LIMIT = 5
 RARITY_CHANCES = [
-    ('common', 69),
-    ('rare', 20),
-    ('epic', 8),
-    ('legendary', 2),
-    ('secret', 1),
+    ('common', 6900),
+    ('rare', 2000),
+    ('epic', 800),
+    ('legendary', 200),
+    ('secret', 1),  # секретная роль стала примерно в 100 раз реже
 ]
 
 RARITY_LABELS = {
@@ -232,7 +238,18 @@ def roll_weighted(items):
     return items[-1][0]
 
 def roll_role_rarity() -> str:
-    return roll_weighted(RARITY_CHANCES)
+    total = sum(weight for _, weight in RARITY_CHANCES)
+    pick = random.randint(1, total)
+    current = 0
+
+    for rarity, weight in RARITY_CHANCES:
+        current += weight
+        if pick <= current:
+            return rarity
+
+    return 'common'
+
+
 
 def roll_daily_bonus_amount() -> int:
     return roll_weighted(DAILY_BONUS_CHANCES)
@@ -307,6 +324,21 @@ def init_db():
     if 'coin_streak' not in user_cols:
         cur.execute("ALTER TABLE users ADD COLUMN coin_streak INTEGER NOT NULL DEFAULT 0")
 
+    if 'luck_booster_until' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN luck_booster_until INTEGER NOT NULL DEFAULT 0")
+
+    if 'secret_case_rewards' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN secret_case_rewards INTEGER NOT NULL DEFAULT 0")
+
+    if 'last_case_open_at' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN last_case_open_at INTEGER NOT NULL DEFAULT 0")
+
+    if 'case_discount_milli' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN case_discount_milli INTEGER NOT NULL DEFAULT 0")
+
+    if 'prefix' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN prefix TEXT")
+
     cur.execute("INSERT OR IGNORE INTO meta (key, value) VALUES ('next_uid', '1')")
     conn.commit()
     conn.close()
@@ -356,7 +388,101 @@ def add_phrase_db(text: str) -> bool:
         except sqlite3.IntegrityError:
             return False
 
-def random_phrase() -> tuple[str, str] | None:
+def has_luck_booster(user_id: int) -> bool:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+            if "luck_booster_until" not in user_cols:
+                return False
+            row = conn.execute("SELECT luck_booster_until FROM users WHERE user_id=?", (user_id,)).fetchone()
+            return bool(row and int(row[0] or 0) > ts())
+    except Exception:
+        return False
+
+
+def luck_booster_left(user_id: int) -> int:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+            if "luck_booster_until" not in user_cols:
+                return 0
+            row = conn.execute("SELECT luck_booster_until FROM users WHERE user_id=?", (user_id,)).fetchone()
+            if not row:
+                return 0
+            return max(0, int(row[0] or 0) - ts())
+    except Exception:
+        return 0
+
+
+def activate_luck_booster(user_id: int) -> None:
+    until = ts() + LUCK_BOOSTER_SECONDS
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+            if "luck_booster_until" not in user_cols:
+                return
+            conn.execute("UPDATE users SET luck_booster_until=? WHERE user_id=?", (until, user_id))
+            conn.commit()
+    except Exception:
+        pass
+
+
+def add_secret_case_reward(user_id: int) -> None:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+            if "secret_case_rewards" not in user_cols:
+                return
+            conn.execute("UPDATE users SET secret_case_rewards=secret_case_rewards+1 WHERE user_id=?", (user_id,))
+            conn.commit()
+    except Exception:
+        pass
+
+
+def booster_time_text(seconds: int) -> str:
+    minutes = max(0, seconds) // 60
+    secs = max(0, seconds) % 60
+    return f"{minutes} мин. {secs} сек."
+
+
+def random_phrase(user_id: int | None = None) -> tuple[str, str] | None:
+    # Бустер удачи: шанс редкой и выше x2 на 30 минут.
+    if user_id and has_luck_booster(user_id):
+        chances = {
+            "common": 6900,
+            "rare": 4000,
+            "epic": 1600,
+            "legendary": 400,
+            "secret": 2,  # бустер x2, но секретная все равно очень редкая
+        }
+        with db() as conn:
+            available = conn.execute("SELECT rarity, COUNT(*) FROM phrases GROUP BY rarity").fetchall()
+            available_map = {rarity: count for rarity, count in available if count}
+
+            weighted = [(rarity, weight) for rarity, weight in chances.items() if available_map.get(rarity, 0) > 0]
+
+            if weighted:
+                total = sum(weight for _, weight in weighted)
+                pick = random.randint(1, total)
+                current = 0
+                selected = weighted[-1][0]
+
+                for rarity, weight in weighted:
+                    current += weight
+                    if pick <= current:
+                        selected = rarity
+                        break
+
+                rows = conn.execute("SELECT text, rarity FROM phrases WHERE rarity=?", (selected,)).fetchall()
+            else:
+                rows = conn.execute("SELECT text, rarity FROM phrases").fetchall()
+
+        if not rows:
+            return None
+
+        phrase_text, rarity = random.choice(rows)
+        return phrase_text, rarity or "common"
+
     rarity = roll_role_rarity()
     with db() as conn:
         rows = conn.execute('SELECT text, rarity FROM phrases WHERE rarity=?', (rarity,)).fetchall()
@@ -366,6 +492,8 @@ def random_phrase() -> tuple[str, str] | None:
         return None
     phrase_text, rarity = random.choice(rows)
     return phrase_text, rarity or 'common'
+
+
 
 def last_phrases(limit=10):
     with db() as conn:
@@ -420,20 +548,26 @@ def take_balance(user_id: int, amount: int) -> tuple[bool, str]:
         conn.commit()
     return (True, 'Готово.')
 
-def set_uid(user_id: int, uid: str) -> tuple[bool, str]:
-    uid = uid.strip()
-    if not uid:
-        return (False, 'UID пустой.')
-    with db() as conn:
-        if not conn.execute('SELECT user_id FROM users WHERE user_id=?', (user_id,)).fetchone():
-            return (False, 'Пользователь не найден. Он должен сначала вызвать бота или написать /start.')
-        try:
-            conn.execute('UPDATE users SET uid=? WHERE user_id=?', (uid, user_id))
-            conn.commit()
-            return (True, 'UID изменен.')
-        except sqlite3.IntegrityError:
-            return (False, 'Такой UID уже занят.')
+def set_uid(user_id: int, new_uid: str) -> tuple[bool, str]:
+    new_uid = str(new_uid).strip()
 
+    if not new_uid:
+        return False, "UID не может быть пустым."
+
+    if not new_uid.isdigit():
+        return False, "UID может состоять только из цифр."
+
+    with db() as conn:
+        if not conn.execute("SELECT user_id FROM users WHERE user_id=?", (user_id,)).fetchone():
+            return False, "Пользователь не найден."
+
+        try:
+            conn.execute("UPDATE users SET uid=? WHERE user_id=?", (new_uid, user_id))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            return False, "Такой UID уже занят."
+
+    return True, f"UID изменен на <code>{html.escape(new_uid)}</code>."
 
 
 def parse_duration_to_until(value: str) -> tuple[bool, int, str]:
@@ -786,6 +920,12 @@ def profile_text(user_id: int) -> str:
 
     uname = f"@{username}" if username else "нет"
     hidden_line = "\n🙈 Статус: <b>скрыт</b>" if hidden else ""
+    prefix = get_user_prefix(user_id)
+    prefix_line = f"\n🔖 Префикс: <b>{html.escape(prefix)}</b>" if prefix else ""
+    case_discount = get_case_discount(user_id)
+    discount_line = f"\n🏷 Скидка на кейс: <b>{money(case_discount)}</b>" if case_discount > 0 else ""
+    booster_left = luck_booster_left(user_id)
+    booster_line = f"\n📈 Бустер удачи: <b>{booster_time_text(booster_left)}</b>" if booster_left > 0 else ""
 
     ban_line = ""
     if banned:
@@ -803,6 +943,9 @@ def profile_text(user_id: int) -> str:
         f"💰 Баланс: <b>{money(balance)}</b>\n"
         f"📛 Username: {html.escape(uname)}"
         f"{hidden_line}"
+        f"{prefix_line}"
+        f"{discount_line}"
+        f"{booster_line}"
         f"{ban_line}"
     )
 
@@ -1007,7 +1150,7 @@ def admin_panel_text() -> str:
         "3️⃣ <code>/delete ID</code> — удалить фразу\n"
         "4️⃣ <code>/give USER_ID SUM причина</code> — выдать USDT\n"
         "5️⃣ <code>/take USER_ID SUM</code> — забрать USDT\n"
-        "6️⃣ <code>/setuid USER_ID UID</code> — выдать кастом UID\n"
+        "6️⃣ <code>/setuid USER_ID UID</code> — выдать кастом UID, только цифры\n"
         "7️⃣ <code>/hide USER_ID</code> — скрыть пользователя\n"
         "8️⃣ <code>/unhide USER_ID</code> — раскрыть пользователя\n"
         "9️⃣ <code>/ban USER_ID TIME причина</code> — забанить пользователя\n"
@@ -1234,7 +1377,8 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Команды:\n"
         "<code>/slots 1</code>\n"
         "<code>/coin орел 1</code>\n"
-        "<code>/coin решка 1</code>\n\n"
+        "<code>/coin решка 1</code>\n"
+        "<code>/case open</code>\n\n"
         f"⏲ Кулдаун между играми: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>\n"
         f"💲 Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>\n"
         f"💲 Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>\n"
@@ -1519,7 +1663,7 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if left > 0:
         await send_result(update, context, f'⏳ {mention(user)}, подожди еще {left // 60} мин. {left % 60} сек.')
         return
-    phrase_data = random_phrase()
+    phrase_data = random_phrase(user.id)
     if not phrase_data:
         await send_result(update, context, 'В базе пока нет фраз.')
         return
@@ -1821,7 +1965,12 @@ async def setuid_direct_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     target = int(context.args[0])
-    uid = context.args[1]
+    uid = context.args[1].strip()
+
+    if not uid.isdigit():
+        await update.message.reply_text(pe('UID должен состоять только из цифр.'), parse_mode='HTML')
+        return
+
     ok, msg = set_uid(target, uid)
     await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
 
@@ -2038,6 +2187,234 @@ async def promo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     ok, msg = activate_promo_code(update.effective_user.id, context.args[0])
+    await send_result(update, context, ("✅ " if ok else "❌ ") + msg)
+
+
+def get_case_discount(user_id: int) -> int:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "case_discount_milli" not in user_cols:
+                return 0
+
+            row = conn.execute(
+                "SELECT case_discount_milli FROM users WHERE user_id=?",
+                (user_id,),
+            ).fetchone()
+
+            if not row:
+                return 0
+
+            return max(0, int(row[0] or 0))
+    except Exception:
+        return 0
+
+
+def set_case_discount(user_id: int, amount_milli: int) -> None:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "case_discount_milli" not in user_cols:
+                return
+
+            conn.execute(
+                "UPDATE users SET case_discount_milli=? WHERE user_id=?",
+                (max(0, int(amount_milli)), user_id),
+            )
+            conn.commit()
+    except Exception:
+        pass
+
+
+def set_user_prefix(user_id: int, prefix: str) -> None:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "prefix" not in user_cols:
+                return
+
+            conn.execute(
+                "UPDATE users SET prefix=? WHERE user_id=?",
+                (prefix, user_id),
+            )
+            conn.commit()
+    except Exception:
+        pass
+
+
+def get_user_prefix(user_id: int) -> str | None:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "prefix" not in user_cols:
+                return None
+
+            row = conn.execute(
+                "SELECT prefix FROM users WHERE user_id=?",
+                (user_id,),
+            ).fetchone()
+
+            if not row:
+                return None
+
+            return row[0]
+    except Exception:
+        return None
+
+
+def get_last_case_open_at(user_id: int) -> int:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "last_case_open_at" not in user_cols:
+                return 0
+
+            row = conn.execute(
+                "SELECT last_case_open_at FROM users WHERE user_id=?",
+                (user_id,),
+            ).fetchone()
+
+            if not row:
+                return 0
+
+            return int(row[0] or 0)
+    except Exception:
+        return 0
+
+
+def set_last_case_open_at(user_id: int) -> None:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "last_case_open_at" not in user_cols:
+                return
+
+            conn.execute(
+                "UPDATE users SET last_case_open_at=? WHERE user_id=?",
+                (ts(), user_id),
+            )
+            conn.commit()
+    except Exception:
+        pass
+
+
+def open_case(user_id: int) -> tuple[bool, str]:
+    row = get_user(user_id)
+
+    if not row:
+        return False, "Профиль не найден. Напиши /start."
+
+    last_case = get_last_case_open_at(user_id)
+    cooldown_left = CASE_COOLDOWN_SECONDS - (ts() - last_case)
+
+    if cooldown_left > 0:
+        return False, f"Кейс можно открыть через <b>{cooldown_left} сек.</b>"
+
+    balance = int(row[4])
+    discount = min(get_case_discount(user_id), CASE_PRICE_MILLI)
+    price = max(0, CASE_PRICE_MILLI - discount)
+
+    if balance < price:
+        return False, (
+            "Недостаточно средств для открытия кейса.\n"
+            f"Цена кейса: <b>{money(price)}</b>\n"
+            f"Ваша скидка: <b>{money(discount)}</b>\n"
+            f"Ваш баланс: <b>{money(balance)}</b>"
+        )
+
+    if price > 0:
+        ok, msg = take_balance(user_id, price)
+
+        if not ok:
+            return False, msg
+
+    set_last_case_open_at(user_id)
+
+    # Скидка применяется только на один следующий кейс.
+    if discount > 0:
+        set_case_discount(user_id, 0)
+
+    # Секретная награда: очень маленький шанс 1 из 1000.
+    if random.randint(1, 1000) <= CASE_SECRET_REWARD_CHANCE:
+        secret_amount = 100000
+        add_balance(user_id, secret_amount)
+        add_secret_case_reward(user_id)
+        return True, (
+            "🎁 <b>Кейс открыт!</b>\n\n"
+            f"💸 Списано: <b>{money(price)}</b>\n"
+            "🖤 <b>СЕКРЕТНАЯ НАГРАДА!</b>\n"
+            f"💰 Получено: <b>+{money(secret_amount)}</b>"
+        )
+
+    roll = random.randint(1, 100)
+
+    # Самый высокий шанс — ничего.
+    if roll <= 55:
+        return True, (
+            "🎁 <b>Кейс открыт!</b>\n\n"
+            f"💸 Списано: <b>{money(price)}</b>\n"
+            "❌ Выпало: <b>Ничего</b>"
+        )
+
+    # Рандомный префикс вместо бонуса USDT.
+    if roll <= 80:
+        prefix = random.choice(CASE_PREFIXES)
+        set_user_prefix(user_id, prefix)
+        return True, (
+            "🎁 <b>Кейс открыт!</b>\n\n"
+            f"💸 Списано: <b>{money(price)}</b>\n"
+            "🔖 Награда: <b>Рандомный префикс</b>\n"
+            f"Префикс: <b>{html.escape(prefix)}</b>"
+        )
+
+    # Скидка на следующий кейс.
+    if roll <= 92:
+        set_case_discount(user_id, CASE_DISCOUNT_MILLI)
+        next_price = max(0, CASE_PRICE_MILLI - CASE_DISCOUNT_MILLI)
+        return True, (
+            "🎁 <b>Кейс открыт!</b>\n\n"
+            f"💸 Списано: <b>{money(price)}</b>\n"
+            "🏷 Награда: <b>Скидка на следующий кейс</b>\n"
+            f"Скидка: <b>{money(CASE_DISCOUNT_MILLI)}</b>\n"
+            f"Следующий кейс будет стоить: <b>{money(next_price)}</b>"
+        )
+
+    activate_luck_booster(user_id)
+    return True, (
+        "🎁 <b>Кейс открыт!</b>\n\n"
+        f"💸 Списано: <b>{money(price)}</b>\n"
+        "📈 Награда: <b>Бустер удачи</b>\n"
+        "⏲ Длительность: <b>30 минут</b>\n"
+        "Шанс редкой, эпической, легендарной и секретной роли повышен x2."
+    )
+
+
+async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if is_banned_user(update.effective_user.id):
+        await send_result(update, context, "⛔ Вы забанены у бота.")
+        return
+
+    if not context.args or context.args[0].lower() != "open":
+        await send_result(
+            update,
+            context,
+            "🎁 <b>Кейсы</b>\n\n"
+            f"Цена открытия: <b>{money(CASE_PRICE_MILLI)}</b>\n"
+            f"Кулдаун: <b>{CASE_COOLDOWN_SECONDS} сек.</b>\n"
+            "Открыть кейс: <code>/case open</code>"
+        )
+        return
+
+    ok, msg = open_case(update.effective_user.id)
     await send_result(update, context, ("✅ " if ok else "❌ ") + msg)
 
 
@@ -2676,6 +3053,12 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
 
 def main():
+    print('VERSION_CASE_COOLDOWN_30')
+    print('VERSION_SECRET_100X_RARER')
+    print('VERSION_CASE_HIDE_CONTENT')
+    print('VERSION_CASE_PREFIX_DISCOUNT')
+    print('VERSION_UID_DIGITS_ONLY')
+    print('VERSION_CASES_5USDT')
     print('VERSION_COIN_FIX_SAFE')
     print('VERSION_ADMIN_FIX')
     init_db()
@@ -2702,6 +3085,7 @@ def main():
     app.add_handler(CommandHandler('top', top_cmd))
     app.add_handler(CommandHandler('promo', promo_cmd))
     app.add_handler(CommandHandler('casino', casino_cmd))
+    app.add_handler(CommandHandler('case', case_cmd))
     app.add_handler(CommandHandler('slots', slots_cmd))
     app.add_handler(CommandHandler('coin', coin_cmd))
     app.add_handler(CommandHandler('search', search_cmd))
