@@ -996,11 +996,13 @@ def set_withdrawal(wid: int, status: str, admin_id: int) -> bool:
     return True
 
 def main_menu(admin=False, group=False):
-    # Inline-меню. В группах используется оно, чтобы не было нижней клавиатуры.
     buttons = [[InlineKeyboardButton('🎭 Кто я', callback_data='whoami')]]
 
     if not group:
-        buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
+        buttons.append([
+            InlineKeyboardButton('👤 Профиль', callback_data='profile'),
+            InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')
+        ])
         buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
         buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
 
@@ -1009,9 +1011,10 @@ def main_menu(admin=False, group=False):
 
     return InlineKeyboardMarkup(buttons)
 
+
+
 def reply_main_menu(admin=False, group=False):
     # Нижняя клавиатура используется только в ЛС.
-    # В группах меню показывается inline-кнопками под сообщением.
     if group:
         rows = []
     else:
@@ -1030,44 +1033,24 @@ def reply_main_menu(admin=False, group=False):
         input_field_placeholder='Выберите действие...'
     )
 
+
+
 def role_menu(group=False):
+    # Меню под выдачей роли. В группах кнопок нет.
+    # В ЛС нет Инвентаря и Админ-панели.
     buttons = []
 
     if not group:
-        buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
+        buttons.append([
+            InlineKeyboardButton('👤 Профиль', callback_data='profile'),
+            InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')
+        ])
         buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
         buttons.append([InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
         buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
 
     return InlineKeyboardMarkup(buttons) if buttons else None
 
-def admin_panel_text() -> str:
-    return (
-        "<b>Админ-панель</b>\n\n"
-        f"{PE_NUM_1} <code>/add текст</code> — добавить фразу\n"
-        f"{PE_NUM_2} <code>/list</code> — последние фразы\n"
-        f"{PE_NUM_3} <code>/delete ID</code> — удалить фразу\n"
-        f"{PE_NUM_4} <code>/give USER_ID SUM причина</code> — выдать USDT\n"
-        f"{PE_NUM_5} <code>/take USER_ID SUM</code> — забрать USDT\n"
-        f"{PE_NUM_6} <code>/setuid USER_ID UID</code> — выдать кастом UID\n"
-        f"{PE_NUM_7} <code>/hide USER_ID</code> — скрыть пользователя\n"
-        f"{PE_NUM_8} <code>/unhide USER_ID</code> — раскрыть пользователя\n"
-        f"{PE_NUM_9} <code>/ban USER_ID TIME причина</code> — забанить пользователя\n"
-        f"{PE_NUM_1}{PE_NUM_0} <code>/unban USER_ID</code> — разбанить пользователя\n"
-        "\n"
-        "<b>Дополнительно:</b>\n"
-        "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
-        "<code>/promos</code> — список промокодов\n"
-        "<code>/adminstats</code> — статистика\n"
-        "<code>/groups</code> — группы с ботом\n"
-        "<code>/broadcast текст</code> — уведомление всем\n"
-    )
-
-
-def profile_inventory_menu():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory')]
-    ])
 
 
 def admin_menu():
