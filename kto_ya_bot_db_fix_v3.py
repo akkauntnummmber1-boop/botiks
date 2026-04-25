@@ -18,7 +18,7 @@ DB_DIR = 'data'
 DB_PATH = os.path.join(DB_DIR, 'bot.db')
 os.makedirs(DB_DIR, exist_ok=True)
 TRIGGERS = {'кто я', 'кто', 'я'}
-ROLE_COOLDOWN_SECONDS = 10 * 60
+ROLE_COOLDOWN_SECONDS = 5 * 60
 
 CASINO_COOLDOWN_SECONDS = 15
 CASE_PRICE_MILLI = 5000  # 5 💵
@@ -75,6 +75,18 @@ ROLE_REWARDS_MILLI = {
     'legendary': 1500,   # 1.5 💵
     'secret': 30000,     # 30 💵
 }
+
+ROLE_EXP_REWARDS = {
+    'common': 1,
+    'rare': 3,
+    'epic': 7,
+    'legendary': 15,
+    'secret': 100,
+}
+
+GROUP_EVENT_DURATION_SECONDS = 60 * 60
+GROUP_EVENT_EXP_MULTIPLIER = 2
+RANDOM_GROUP_EVENT_CHANCE = 3  # 3% шанс при получении роли в группе
 
 RARITY_ALIASES = {
     'обычная': 'common',
@@ -162,6 +174,11 @@ PE_LVL_1 = '<tg-emoji emoji-id="5206421246689969742">1⃣</tg-emoji>'
 PE_LVL_2 = '<tg-emoji emoji-id="5206429518796981791">2⃣</tg-emoji>'
 PE_LVL_3 = '<tg-emoji emoji-id="5208507874946353980">3⃣</tg-emoji>'
 PE_LVL_RUBY = '<tg-emoji emoji-id="5321011803075923151">⭐</tg-emoji>'
+PE_LOCK_EVENT = '<tg-emoji emoji-id="5296369303661067030">🔒</tg-emoji>'
+PE_EXP_CLAP = '<tg-emoji emoji-id="5258501105293205250">👏</tg-emoji>'
+PE_PREFIX_TAG = '<tg-emoji emoji-id="5296348778012361146">🏷</tg-emoji>'
+PE_EVENT_ALERT = '<tg-emoji emoji-id="5467928559664242360">❗️</tg-emoji>'
+
 PE_ARROW_RIGHT = '<tg-emoji emoji-id="5193191330079062069">➡️</tg-emoji>'
 
 PE_TRANSFER_USDT = '<tg-emoji emoji-id="5201692367437974073">💵</tg-emoji>'
@@ -195,7 +212,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('🔒', PE_LOCK_EVENT), ('👏', PE_EXP_CLAP), ('🏷', PE_PREFIX_TAG), ('❗️', PE_EVENT_ALERT), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -391,6 +408,9 @@ def init_db():
 
     if 'prefix' not in user_cols:
         cur.execute("ALTER TABLE users ADD COLUMN prefix TEXT")
+
+    if 'exp' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN exp INTEGER NOT NULL DEFAULT 0")
 
     cur.execute("INSERT OR IGNORE INTO meta (key, value) VALUES ('next_uid', '1')")
     conn.commit()
@@ -1328,7 +1348,7 @@ def admin_panel_text() -> str:
         "<b>Дополнительно:</b>\n"
         "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
         "<code>/promos</code> — список промокодов\n"
-        "<code>/adminstats</code> — статистика\n<code>/clearmoney</code> — очистить деньги у всех игроков\n"
+        "<code>/adminstats</code> — статистика\n<code>/startchat</code> — запустить групповое событие на 1 час\n<code>/clearmoney</code> — очистить деньги у всех игроков\n<code>/clearmoney</code> — очистить деньги у всех игроков\n"
         "<code>/groups</code> — группы с ботом\n"
         "<code>/broadcast текст</code> — уведомление всем\n"
     )
@@ -3596,6 +3616,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_EXP_GROUP_EVENTS_REPLY')
     print('VERSION_RUBY_CASINO_LIMIT_CLEARMONEY')
     print('VERSION_CASINO_NO_MAX_BET')
     print('VERSION_TOKEN_USDT_VISUAL_GAME_TITLES_FIX')
@@ -3638,6 +3659,7 @@ def main():
     app = Application.builder().token(BOT_TOKEN).defaults(Defaults(parse_mode="HTML")).build()
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('admin', admin_cmd))
+    app.add_handler(CommandHandler('startchat', startchat_cmd))
     app.add_handler(CommandHandler('clearmoney', clear_money_cmd))
     app.add_handler(CommandHandler('menu', menu_cmd))
     app.add_handler(CommandHandler('whoami', whoami))
@@ -4599,6 +4621,350 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.type == 'private':
         return ConversationHandler.END
 
+
+
+# ===== FINAL EXP EVENTS OVERRIDE =====
+
+def get_user_full(user_id: int):
+    with db() as conn:
+        user_cols = columns(conn, 'users')
+        if 'exp' not in user_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN exp INTEGER NOT NULL DEFAULT 0")
+            conn.commit()
+        if 'games_played' not in user_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN games_played INTEGER NOT NULL DEFAULT 0")
+            conn.commit()
+        if 'turnover_milli' not in user_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN turnover_milli INTEGER NOT NULL DEFAULT 0")
+            conn.commit()
+
+        return conn.execute(
+            """
+            SELECT user_id, username, first_name, uid, balance_milli, openings,
+                   last_role_at, hidden, casino_last_spin_at, created_at,
+                   COALESCE(games_played, 0), COALESCE(turnover_milli, 0),
+                   prefix, COALESCE(exp, 0)
+            FROM users WHERE user_id=?
+            """,
+            (user_id,),
+        ).fetchone()
+
+
+def get_user_exp(user_id: int) -> int:
+    row = get_user_full(user_id)
+    return int(row[13] or 0) if row and len(row) > 13 else 0
+
+
+def add_user_exp(user_id: int, amount: int) -> int:
+    amount = int(amount or 0)
+
+    with db() as conn:
+        user_cols = columns(conn, 'users')
+        if 'exp' not in user_cols:
+            conn.execute("ALTER TABLE users ADD COLUMN exp INTEGER NOT NULL DEFAULT 0")
+
+        conn.execute("UPDATE users SET exp=COALESCE(exp,0)+? WHERE user_id=?", (amount, user_id))
+        conn.commit()
+
+        row = conn.execute("SELECT COALESCE(exp,0) FROM users WHERE user_id=?", (user_id,)).fetchone()
+        return int(row[0] or 0) if row else 0
+
+
+def level_info_by_exp(exp: int) -> dict:
+    exp = int(exp or 0)
+    levels = [
+        {'level': 0, 'emoji': '0⃣', 'name': 'None', 'start': 0, 'end': 50},
+        {'level': 1, 'emoji': '1⃣', 'name': 'Bronze', 'start': 50, 'end': 150},
+        {'level': 2, 'emoji': '2⃣', 'name': 'Silver', 'start': 150, 'end': 350},
+        {'level': 3, 'emoji': '3⃣', 'name': 'Gold', 'start': 350, 'end': 700},
+        {'level': 4, 'emoji': '⭐', 'name': 'Ruby', 'start': 700, 'end': None},
+    ]
+
+    current = levels[0]
+    for item in levels:
+        if item['end'] is None:
+            if exp >= item['start']:
+                current = item
+        elif item['start'] <= exp < item['end']:
+            current = item
+            break
+
+    next_level = levels[min(current['level'] + 1, len(levels) - 1)]
+
+    if current['end'] is None:
+        percent = 100
+        need = 0
+    else:
+        span = max(1, current['end'] - current['start'])
+        percent = int(max(0, min(100, ((exp - current['start']) / span) * 100)))
+        need = max(0, current['end'] - exp)
+
+    return {'current': current, 'next': next_level, 'percent': percent, 'need': need, 'exp': exp}
+
+
+def level_info_by_openings(openings: int) -> dict:
+    # Совместимость со старым кодом: теперь уровни считаются по EXP.
+    return level_info_by_exp(int(openings or 0))
+
+
+def user_has_ruby_level(user_id: int) -> bool:
+    return level_info_by_exp(get_user_exp(user_id))['current']['name'] == 'Ruby'
+
+
+def group_event_key(chat_id: int) -> str:
+    return f"group_event_until:{chat_id}"
+
+
+def get_group_event_until(chat_id: int) -> int:
+    with db() as conn:
+        row = conn.execute("SELECT value FROM meta WHERE key=?", (group_event_key(chat_id),)).fetchone()
+        return int(row[0]) if row and str(row[0]).isdigit() else 0
+
+
+def is_group_event_active(chat_id: int) -> bool:
+    return get_group_event_until(chat_id) > ts()
+
+
+def start_group_event(chat_id: int) -> int:
+    until = ts() + GROUP_EVENT_DURATION_SECONDS
+    with db() as conn:
+        conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)", (group_event_key(chat_id), str(until)))
+        conn.commit()
+    return until
+
+
+def event_time_left_text(chat_id: int) -> str:
+    left = max(0, get_group_event_until(chat_id) - ts())
+    mins = left // 60
+    secs = left % 60
+    return f"{mins} мин. {secs} сек."
+
+
+async def maybe_start_random_group_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    if not is_group(chat):
+        return
+
+    if is_group_event_active(chat.id):
+        return
+
+    if random.randint(1, 100) <= RANDOM_GROUP_EVENT_CHANCE:
+        start_group_event(chat.id)
+        await context.bot.send_message(
+            chat_id=chat.id,
+            text=pe(
+                "❗️ <b>Групповое событие началось!</b>\n\n"
+                "В течение <b>1 часа</b> опыт за роли умножается на <b>x2</b>."
+            ),
+            parse_mode='HTML',
+            reply_to_message_id=update.message.message_id if update.message else None
+        )
+
+
+async def startchat_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    if not is_group(update.effective_chat):
+        await update.message.reply_text(pe('❗️ Команду /startchat нужно использовать в группе.'), parse_mode='HTML')
+        return
+
+    start_group_event(update.effective_chat.id)
+    await update.message.reply_text(
+        pe(
+            "❗️ <b>Групповое событие запущено!</b>\n\n"
+            "Длительность: <b>1 час</b>\n"
+            "Бонус: <b>EXP x2 за получение ролей</b>"
+        ),
+        parse_mode='HTML'
+    )
+
+
+async def require_ruby_casino(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    if user_has_ruby_level(update.effective_user.id):
+        return True
+
+    level = level_info_by_exp(get_user_exp(update.effective_user.id))
+
+    await send_result(
+        update,
+        context,
+        "🔒 <b>Казино доступно только с уровня Ruby.</b>\n\n"
+        f"Ваш уровень: <b>{level['current']['emoji']} {level['current']['name']}</b>\n"
+        f"Ваш опыт: <b>{level['exp']} EXP</b>\n"
+        f"До Ruby: <b>{max(0, 700 - level['exp'])} EXP</b>"
+    )
+    return False
+
+
+def profile_text(user_id: int) -> str:
+    row = get_user_full(user_id)
+
+    if not row:
+        return 'Профиль не найден. Напиши /start.'
+
+    _, username, first_name, uid, balance, openings, _, hidden, _, created_at, games_played, turnover_milli, prefix, exp = row
+    level = level_info_by_exp(exp)
+    display_name = f'@{username}' if username else (first_name or f'Игрок #{uid}')
+
+    status = 'Активен'
+    banned, ban_reason, banned_until = get_user_ban_status_direct(user_id)
+    if hidden:
+        status = 'Скрыт'
+    if banned:
+        status = f'Бан: {ban_time_text(int(banned_until or 0))}'
+
+    extra = ''
+    if prefix:
+        extra += f'\n🏷 Префикс — <b>{html.escape(prefix)}</b>'
+
+    try:
+        discount = get_case_discount(user_id)
+        if discount > 0:
+            extra += f'\n💵 Скидка на кейс — <b>{money(discount)}</b>'
+    except Exception:
+        pass
+
+    try:
+        booster = luck_booster_left(user_id)
+        if booster > 0:
+            extra += f'\n⏱ Бустер удачи — <b>{booster_time_text(booster)}</b>'
+    except Exception:
+        pass
+
+    return (
+        f'<b>#{html.escape(str(uid))} {html.escape(display_name)}</b>\n\n'
+        f'💵 Баланс — <b>{money_balance(balance)}</b>\n\n'
+        f'Ваш опыт: <b>{level["exp"]} EXP</b>\n'
+        f'До следующего LvL: <b>{level["need"]} EXP</b>\n'
+        f'{level["current"]["emoji"]} {level["current"]["name"]} ➡️ {level["next"]["emoji"]} {level["next"]["name"]}\n\n'
+        f'📰 Открыто ролей — <b>{int(openings or 0)}</b>\n'
+        f'🎮 Сыграно — <b>{int(games_played or 0)} ставок</b>\n'
+        f'⏱ Аккаунту — <b>{account_age_text(int(created_at or 0))}</b>\n'
+        f'Статус — <b>{html.escape(status)}</b>'
+        f'{extra}'
+    )
+
+
+async def send_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+    chat = update.effective_chat
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+
+    msg = await context.bot.send_message(
+        chat.id,
+        pe(text),
+        parse_mode='HTML',
+        reply_markup=reply_markup,
+        reply_to_message_id=reply_to
+    )
+
+    return msg
+
+
+async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    if not await require_ruby_casino(update, context):
+        return
+
+    text = (
+        '🎮 <b>Играть</b>\n\n'
+        '🎰 <code>/slots 1</code> — слоты\n'
+        '🪙 <code>/coin орел 1</code> — орел / решка\n'
+        '🏀 <code>/ball 1</code> — баскетбол\n'
+        '⚽️ <code>/football 1</code> — футбол\n'
+        '🎁 <code>/case open</code> — кейс\n\n'
+        'Минимальная ставка: <b>1 💵</b>\n'
+        'Максимальная ставка: <b>10 💵</b>\n'
+        'Доступ: <b>только Ruby</b>'
+    )
+
+    await send_clean_group_result(update, context, text)
+
+
+async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+
+    register_user(user)
+    remember_group(chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    await maybe_start_random_group_event(update, context)
+
+    now = ts()
+    row = get_user(user.id)
+
+    if row and now - int(row[6]) < ROLE_COOLDOWN_SECONDS:
+        left = ROLE_COOLDOWN_SECONDS - (now - int(row[6]))
+        await send_result(update, context, f'⏲ Подождите еще <b>{format_time_left(left)}</b> перед получением новой роли.')
+        return
+
+    phrase, rarity = roll_phrase()
+    rarity_label = RARITY_LABELS.get(rarity, rarity)
+    reward_milli = ROLE_REWARDS_MILLI.get(rarity, 0)
+
+    base_exp = ROLE_EXP_REWARDS.get(rarity, 1)
+    multiplier = GROUP_EVENT_EXP_MULTIPLIER if is_group(chat) and is_group_event_active(chat.id) else 1
+    exp_added = base_exp * multiplier
+
+    with db() as conn:
+        conn.execute(
+            "UPDATE users SET balance_milli=balance_milli+?, openings=openings+1, last_role_at=? WHERE user_id=?",
+            (reward_milli, now, user.id),
+        )
+        conn.execute(
+            "INSERT INTO user_roles (user_id, phrase, rarity, received_at) VALUES (?, ?, ?, ?)",
+            (user.id, phrase, rarity, now),
+        )
+        conn.commit()
+
+    add_user_exp(user.id, exp_added)
+
+    event_line = ""
+    if multiplier > 1:
+        event_line = "\n❗️ Событие активно: <b>EXP x2</b>"
+
+    await send_result(
+        update,
+        context,
+        f"{mention(user)} — <b>{html.escape(phrase)}</b>\n"
+        f"Редкость: <b>{html.escape(rarity_label)}</b>\n"
+        f"Добавлено: <b>+{money(reward_milli)}</b>\n"
+        f"👏 Добавлено EXP: <b>+{exp_added}</b>"
+        f"{event_line}",
+        reply_markup=role_menu(group=is_group(chat))
+    )
+
+    await send_role_log(context, user, phrase, rarity_label, reward_milli)
+
+
+async def clear_money_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    with db() as conn:
+        cur = conn.execute("UPDATE users SET balance_milli=0")
+        conn.commit()
+        count = cur.rowcount if cur.rowcount is not None else 0
+
+    await update.message.reply_text(
+        pe(f'💵 <b>Баланс очищен у всех игроков.</b>\nИгроков обновлено: <b>{count}</b>'),
+        parse_mode='HTML'
+    )
+
+# ===== END FINAL EXP EVENTS OVERRIDE =====
 
 if __name__ == '__main__':
     main()
