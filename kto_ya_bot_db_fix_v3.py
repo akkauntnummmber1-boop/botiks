@@ -33,10 +33,10 @@ SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–
 
 MIN_COIN_BET_MILLI = 100       # 0.1 USDT
 MAX_COIN_BET_MILLI = 10000     # 10 USDT
-MIN_BALL_BET_MILLI = 100       # 0.1 USDT
+MIN_BALL_BET_MILLI = 1000       # 1 USDT
 MAX_BALL_BET_MILLI = 10000     # 10 USDT
 BASKETBALL_ANIMATION_DELAY = 4
-MIN_FOOTBALL_BET_MILLI = 100       # 0.1 USDT
+MIN_FOOTBALL_BET_MILLI = 1000       # 1 USDT
 MAX_FOOTBALL_BET_MILLI = 10000     # 10 USDT
 FOOTBALL_ANIMATION_DELAY = 4
 
@@ -157,6 +157,7 @@ PE_TRANSFER_GIFT = '<tg-emoji emoji-id="5199749070830197566">🎁</tg-emoji>'
 PE_TRANSFER_CHAT = '<tg-emoji emoji-id="5895457880710058528">💬</tg-emoji>'
 PE_TRANSFER_USER = '<tg-emoji emoji-id="5373012449597335010">👤</tg-emoji>'
 PE_BASKETBALL = '<tg-emoji emoji-id="5384088040677319401">🏀</tg-emoji>'
+PE_FOOTBALL = '<tg-emoji emoji-id="5258169263235013408">⚽️</tg-emoji>'
 PE_SLOT_CHERRY = '<tg-emoji emoji-id="5406759193052995173">🍒</tg-emoji>'
 PE_SLOT_STAR = '<tg-emoji emoji-id="5435957248314579621">⭐️</tg-emoji>'
 PE_SLOT_DIAMOND = '<tg-emoji emoji-id="5471952986970267163">💎</tg-emoji>'
@@ -182,7 +183,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -947,13 +948,14 @@ def transfer_money(sender_id: int, target: str, amount_milli: int, comment: str 
 
 def transfer_usage_text() -> str:
     return (
-        "💵 <b>Передача денег</b>\n"
-        "🎁 <b>Команды:</b>\n"
-        "👤 <code>/pay USER_ID сумма комментарий</code>\n"
-        "👤 <code>/pay @username сумма комментарий</code>\n"
-        "💬 <b>Пример:</b>\n"
-        "💵 <code>/pay 123456789 1 подарок</code>"
+        "╭─ 💵 <b>ПЕРЕДАЧА ДЕНЕГ</b> ─╮\n"
+        "│ перевод по ID или username\n"
+        "╰────────────────────╯\n\n"
+        "<code>/pay USER_ID сумма комментарий</code>\n"
+        "<code>/pay @username сумма комментарий</code>\n\n"
+        "Пример: <code>/pay 123456789 1 подарок</code>"
     )
+
 
 
 def search_user_text(user_id: int) -> str | None:
@@ -1071,46 +1073,50 @@ def profile_text(user_id: int) -> str:
 
     user_id = row[0]
     username = row[1]
-    first_name = row[2]
     uid = row[3]
     balance = row[4]
     openings = row[5]
     hidden = row[7] if len(row) > 7 else 0
 
-    # Новые ban-поля есть только если len(row) >= 14.
-    banned = int(row[8] or 0) if len(row) >= 14 else 0
-    ban_reason = row[9] if len(row) >= 14 else None
-    banned_until = int(row[10] or 0) if len(row) >= 14 else 0
+    banned, ban_reason, banned_until = get_user_ban_status_direct(user_id)
+    uname = f"@{username}" if username else "нет username"
 
-    uname = f"@{username}" if username else "нет"
-    hidden_line = "\n🙈 Статус: <b>скрыт</b>" if hidden else ""
-    prefix = get_user_prefix(user_id)
-    prefix_line = f"\n🔖 Префикс: <b>{html.escape(prefix)}</b>" if prefix else ""
-    case_discount = get_case_discount(user_id)
-    discount_line = f"\n🏷 Скидка на кейс: <b>{money(case_discount)}</b>" if case_discount > 0 else ""
-    booster_left = luck_booster_left(user_id)
-    booster_line = f"\n📈 Бустер удачи: <b>{booster_time_text(booster_left)}</b>" if booster_left > 0 else ""
-
-    ban_line = ""
+    status = "Активен"
+    if hidden:
+        status = "Скрыт"
     if banned:
-        ban_line = (
-            f"\n🚫 Бан: <b>да</b>"
-            f"\nПричина: <b>{html.escape(ban_reason or 'не указана')}</b>"
-            f"\nОсталось: <b>{html.escape(ban_time_text(banned_until))}</b>"
-        )
+        status = f"Бан: {ban_time_text(int(banned_until or 0))}"
+
+    extra = ""
+    try:
+        prefix = get_user_prefix(user_id)
+        if prefix:
+            extra += f"\nПрефикс: <b>{html.escape(prefix)}</b>"
+    except Exception:
+        pass
+    try:
+        discount = get_case_discount(user_id)
+        if discount > 0:
+            extra += f"\nСкидка на кейс: <b>{money(discount)}</b>"
+    except Exception:
+        pass
+    try:
+        booster = luck_booster_left(user_id)
+        if booster > 0:
+            extra += f"\nБустер удачи: <b>{booster_time_text(booster)}</b>"
+    except Exception:
+        pass
 
     return (
-        "👤 <b>Профиль</b>\n\n"
-        f"🆔 Telegram ID: <code>{user_id}</code>\n"
-        f"🔖 UID: <code>{html.escape(str(uid))}</code>\n"
-        f"👁 Открытия: <b>{openings}</b>\n"
-        f"💰 Баланс: <b>{money_balance(balance)}</b>\n"
-        f"📛 Username: {html.escape(uname)}"
-        f"{hidden_line}"
-        f"{prefix_line}"
-        f"{discount_line}"
-        f"{booster_line}"
-        f"{ban_line}"
+        "╭─ 👤 <b>ПРОФИЛЬ</b> ─╮\n"
+        f"│ {html.escape(uname)}\n"
+        "╰──────────────╯\n\n"
+        f"ID: <code>{user_id}</code>\n"
+        f"UID: <code>{html.escape(str(uid))}</code>\n"
+        f"Баланс: <b>{money_balance(balance)}</b>\n"
+        f"Открытия: <b>{openings}</b>\n"
+        f"Статус: <b>{html.escape(status)}</b>"
+        f"{extra}"
     )
 
 
@@ -1510,25 +1516,24 @@ def get_slot_multiplier(symbols: list[str]) -> float:
 
 
 def slot_result_text(user, bet_milli: int, symbols: list[str], multiplier: float, win_milli: int, balance_after: int) -> str:
-    symbols_line = " | ".join(symbols)
-
-    if multiplier > 0:
-        result_line = f"✅ Выигрыш: +{money(win_milli)}"
-
-        if multiplier == 20:
-            result_line = f"🎰 ДЖЕКПОТ: +{money(win_milli)}"
+    combo = " ".join(symbols)
+    if win_milli > 0:
+        status = "<b>Выигрыш</b>"
+        result = f"+{money(win_milli)}"
     else:
-        result_line = f"❌ Проигрыш: -{money(bet_milli)}"
-
+        status = "<b>Проигрыш</b>"
+        result = f"-{money(bet_milli)}"
     return (
-        f"🎰 <b>Слоты</b>\n\n"
-        f"👤 Игрок: {mention(user)}\n"
-        f"💲 Ставка: <b>{money(bet_milli)}</b>\n\n"
-        f"{symbols_line}\n\n"
-        f"✖️ Множитель: <b>x{multiplier}</b>\n"
-        f"{result_line}\n"
-        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
+        "╭─ 🎰 <b>СЛОТЫ</b> ─╮\n"
+        f"│ {mention(user)}\n"
+        "╰────────────╯\n\n"
+        f"<b>{combo}</b>\n"
+        f"Ставка: <b>{money(bet_milli)}</b>\n"
+        f"Статус: {status}\n"
+        f"Итог: <b>{result}</b>\n\n"
+        f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
+
 
 
 async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1539,13 +1544,15 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     text = (
-        "🎰 <b>Казино</b>\n"
+        "╭─ 🎰 <b>КАЗИНО</b> ─╮\n"
+        "│ Выбери игру и ставку\n"
+        "╰────────────────╯\n\n"
         "🎰 <code>/slots 1</code> — слоты\n"
-        "🪙 <code>/coin орел 1</code> — орел и решка\n"
+        "🪙 <code>/coin орел 1</code> — орел / решка\n"
         "🏀 <code>/ball 1</code> — баскетбол\n"
         "⚽️ <code>/football 1</code> — футбол\n"
-        "🎁 <code>/case open</code> — открыть кейс\n"
-        f"⏲ Кулдаун игр: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>"
+        "🎁 <code>/case open</code> — кейс\n\n"
+        f"⏲ <b>Кулдаун:</b> {CASINO_COOLDOWN_SECONDS} сек."
     )
 
     await send_clean_group_result(update, context, text)
@@ -1709,21 +1716,20 @@ def roll_coin(user_id: int | None = None) -> str:
 
 def coin_result_text(user, bet_milli: int, choice: str, result: str, win_milli: int, balance_after: int) -> str:
     win = choice == result
-
-    if win:
-        result_line = f"✅ Выигрыш: +{money(win_milli)}"
-    else:
-        result_line = f"❌ Проигрыш: -{money(bet_milli)}"
-
+    status = "<b>Угадал</b>" if win else "<b>Не угадал</b>"
+    result_line = f"+{money(win_milli)}" if win else f"-{money(bet_milli)}"
     return (
-        f"🪙 <b>Орел и решка</b>\n\n"
-        f"👤 Игрок: {mention(user)}\n"
-        f"💲 Ставка: <b>{money(bet_milli)}</b>\n"
-        f"✍️ Выбор: <b>{coin_side_label(choice)}</b>\n"
-        f"🪙 Выпало: <b>{coin_side_label(result)}</b>\n\n"
-        f"{result_line}\n"
-        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
+        "╭─ 🪙 <b>ОРЕЛ / РЕШКА</b> ─╮\n"
+        f"│ {mention(user)}\n"
+        "╰─────────────────╯\n\n"
+        f"Выбор: <b>{coin_side_label(choice)}</b>\n"
+        f"Выпало: <b>{coin_side_label(result)}</b>\n"
+        f"Ставка: <b>{money(bet_milli)}</b>\n"
+        f"Статус: {status}\n"
+        f"Итог: <b>{result_line}</b>\n\n"
+        f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
+
 
 
 async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: str, bet_milli: int):
@@ -2755,21 +2761,19 @@ async def send_ball_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: in
 
 
 def ball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
-    # Для Telegram-баскетбола значения 4 и 5 считаем попаданием.
     is_hit = dice_value >= 4
-
-    if is_hit:
-        result_line = f"✅ <b>Попадание!</b> Выигрыш: <b>+{money(win_milli)}</b>"
-    else:
-        result_line = f"❌ <b>Мимо!</b> Проигрыш: <b>-{money(bet_milli)}</b>"
-
+    status = "<b>Попадание</b>" if is_hit else "<b>Мимо</b>"
+    result = f"+{money(win_milli)}" if is_hit else f"-{money(bet_milli)}"
     return (
-        f"🏀 <b>Баскетбол</b>\n"
-        f"👤 Игрок: {mention(user)}\n"
-        f"💵 Ставка: <b>{money(bet_milli)}</b>\n"
-        f"{result_line}\n"
-        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
+        "╭─ 🏀 <b>БАСКЕТБОЛ</b> ─╮\n"
+        f"│ {mention(user)}\n"
+        "╰───────────────╯\n\n"
+        f"Ставка: <b>{money(bet_milli)}</b>\n"
+        f"Результат: {status}\n"
+        f"Итог: <b>{result}</b>\n\n"
+        f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
+
 
 
 async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2844,14 +2848,18 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
     is_goal = dice_value >= 3
-    result_line = f"✅ <b>ГОООЛ!</b> Выигрыш: <b>+{money(win_milli)}</b>" if is_goal else f"❌ <b>Мимо ворот!</b> Проигрыш: <b>-{money(bet_milli)}</b>"
+    status = "<b>ГОООЛ</b>" if is_goal else "<b>Мимо ворот</b>"
+    result = f"+{money(win_milli)}" if is_goal else f"-{money(bet_milli)}"
     return (
-        f"⚽️ <b>Футбол</b>\n"
-        f"👤 Игрок: {mention(user)}\n"
-        f"💵 Ставка: <b>{money(bet_milli)}</b>\n"
-        f"{result_line}\n"
-        f"💰 Баланс: <b>{money_balance(balance_after)}</b>"
+        "╭─ ⚽️ <b>ФУТБОЛ</b> ─╮\n"
+        f"│ {mention(user)}\n"
+        "╰────────────╯\n\n"
+        f"Ставка: <b>{money(bet_milli)}</b>\n"
+        f"Результат: {status}\n"
+        f"Итог: <b>{result}</b>\n\n"
+        f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
+
 
 
 async def send_football_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int):
@@ -2948,10 +2956,11 @@ async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_result(
             update,
             context,
-            "🎁 <b>Кейсы</b>\n\n"
-            f"Цена открытия: <b>{money(CASE_PRICE_MILLI)}</b>\n"
+            "╭─ 🎁 <b>КЕЙС</b> ─╮\n"
+            f"│ Цена: <b>{money(CASE_PRICE_MILLI)}</b>\n"
+            "╰───────────╯\n\n"
             f"Кулдаун: <b>{CASE_COOLDOWN_SECONDS} сек.</b>\n"
-            "Открыть кейс: <code>/case open</code>"
+            "Открыть: <code>/case open</code>"
         )
         return
 
@@ -3142,7 +3151,7 @@ async def withdraw_start_text(update: Update, context: ContextTypes.DEFAULT_TYPE
     await send_result(
         update,
         context,
-        "❗️ <b>Функция временно недоступна.</b>\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+        "╭─ ❗️ <b>ВЫВОД USDT</b> ─╮\n│ Функция временно недоступна\n╰──────────────╯\n\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
     )
 
     return ConversationHandler.END
@@ -3156,7 +3165,7 @@ async def withdraw_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_result(
         update,
         context,
-        "❗️ <b>Функция временно недоступна.</b>\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+        "╭─ ❗️ <b>ВЫВОД USDT</b> ─╮\n│ Функция временно недоступна\n╰──────────────╯\n\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
     )
 
     return ConversationHandler.END
@@ -3626,6 +3635,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_PREMIUM_VISUAL_REWORK')
     print('VERSION_WITHDRAW_TEXT_UPDATED')
     print('VERSION_BALANCE_ROUND_WITHDRAW_SUPPORT')
     print('VERSION_FOOTBALL_GOAL_FIX')
