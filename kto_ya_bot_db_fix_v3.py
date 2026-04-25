@@ -948,9 +948,8 @@ def transfer_money(sender_id: int, target: str, amount_milli: int, comment: str 
 
 def transfer_usage_text() -> str:
     return (
-        "╭─ 💵 <b>ПЕРЕДАЧА ДЕНЕГ</b> ─╮\n"
-        "│ перевод по ID или username\n"
-        "╰────────────────────╯\n\n"
+        "💵 <b>Передача денег</b>\n\n"
+        "Перевод по ID или username.\n\n"
         "<code>/pay USER_ID сумма комментарий</code>\n"
         "<code>/pay @username сумма комментарий</code>\n\n"
         "Пример: <code>/pay 123456789 1 подарок</code>"
@@ -1094,12 +1093,14 @@ def profile_text(user_id: int) -> str:
             extra += f"\nПрефикс: <b>{html.escape(prefix)}</b>"
     except Exception:
         pass
+
     try:
         discount = get_case_discount(user_id)
         if discount > 0:
             extra += f"\nСкидка на кейс: <b>{money(discount)}</b>"
     except Exception:
         pass
+
     try:
         booster = luck_booster_left(user_id)
         if booster > 0:
@@ -1108,9 +1109,8 @@ def profile_text(user_id: int) -> str:
         pass
 
     return (
-        "╭─ 👤 <b>ПРОФИЛЬ</b> ─╮\n"
-        f"│ {html.escape(uname)}\n"
-        "╰──────────────╯\n\n"
+        "👤 <b>Профиль</b>\n\n"
+        f"{html.escape(uname)}\n"
         f"ID: <code>{user_id}</code>\n"
         f"UID: <code>{html.escape(str(uid))}</code>\n"
         f"Баланс: <b>{money_balance(balance)}</b>\n"
@@ -1517,19 +1517,20 @@ def get_slot_multiplier(symbols: list[str]) -> float:
 
 def slot_result_text(user, bet_milli: int, symbols: list[str], multiplier: float, win_milli: int, balance_after: int) -> str:
     combo = " ".join(symbols)
+
     if win_milli > 0:
-        status = "<b>Выигрыш</b>"
+        status = "Выигрыш"
         result = f"+{money(win_milli)}"
     else:
-        status = "<b>Проигрыш</b>"
+        status = "Проигрыш"
         result = f"-{money(bet_milli)}"
+
     return (
-        "╭─ 🎰 <b>СЛОТЫ</b> ─╮\n"
-        f"│ {mention(user)}\n"
-        "╰────────────╯\n\n"
-        f"<b>{combo}</b>\n"
+        "🎰 <b>Слоты</b>\n\n"
+        f"{mention(user)}\n"
+        f"Комбо: <b>{combo}</b>\n"
         f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Статус: {status}\n"
+        f"Результат: <b>{status}</b>\n"
         f"Итог: <b>{result}</b>\n\n"
         f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
@@ -1544,15 +1545,14 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     text = (
-        "╭─ 🎰 <b>КАЗИНО</b> ─╮\n"
-        "│ Выбери игру и ставку\n"
-        "╰────────────────╯\n\n"
+        "🎰 <b>Казино</b>\n\n"
+        "<b>Команды</b>\n"
         "🎰 <code>/slots 1</code> — слоты\n"
         "🪙 <code>/coin орел 1</code> — орел / решка\n"
         "🏀 <code>/ball 1</code> — баскетбол\n"
         "⚽️ <code>/football 1</code> — футбол\n"
         "🎁 <code>/case open</code> — кейс\n\n"
-        f"⏲ <b>Кулдаун:</b> {CASINO_COOLDOWN_SECONDS} сек."
+        f"⏲ Кулдаун: <b>{CASINO_COOLDOWN_SECONDS} сек.</b>"
     )
 
     await send_clean_group_result(update, context, text)
@@ -1716,16 +1716,21 @@ def roll_coin(user_id: int | None = None) -> str:
 
 def coin_result_text(user, bet_milli: int, choice: str, result: str, win_milli: int, balance_after: int) -> str:
     win = choice == result
-    status = "<b>Угадал</b>" if win else "<b>Не угадал</b>"
-    result_line = f"+{money(win_milli)}" if win else f"-{money(bet_milli)}"
+
+    if win:
+        status = "Угадал"
+        result_line = f"+{money(win_milli)}"
+    else:
+        status = "Не угадал"
+        result_line = f"-{money(bet_milli)}"
+
     return (
-        "╭─ 🪙 <b>ОРЕЛ / РЕШКА</b> ─╮\n"
-        f"│ {mention(user)}\n"
-        "╰─────────────────╯\n\n"
+        "🪙 <b>Орел / Решка</b>\n\n"
+        f"{mention(user)}\n"
         f"Выбор: <b>{coin_side_label(choice)}</b>\n"
         f"Выпало: <b>{coin_side_label(result)}</b>\n"
         f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Статус: {status}\n"
+        f"Результат: <b>{status}</b>\n"
         f"Итог: <b>{result_line}</b>\n\n"
         f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
@@ -1955,9 +1960,10 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_result(
         update,
         context,
-        f'{mention(user)} — <b>{html.escape(phrase)}</b>\n'
-        f'⭐ Редкость: <b>{html.escape(rarity_label)}</b>\n'
-        f'💰 Добавлено: <b>+{money(reward_milli)}</b>',
+        "🎭 <b>Карточка получена</b>\n\n"
+        f"{mention(user)} — <b>{html.escape(phrase)}</b>\n"
+        f"Редкость: <b>{html.escape(rarity_label)}</b>\n"
+        f"Добавлено: <b>+{money(reward_milli)}</b>",
         reply_markup=role_menu(group=is_group(chat))
     )
 
@@ -2728,10 +2734,10 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_result(
         update,
         context,
-        "✅ <b>Перевод выполнен</b>\n"
-        f"💵 Сумма: <b>{money(amount)}</b>\n"
-        f"👤 Получатель: <code>{html.escape(str(target))}</code>\n"
-        f"💬 Комментарий: <b>{html.escape(comment)}</b>"
+        "✅ <b>Перевод выполнен</b>\n\n"
+        f"Сумма: <b>{money(amount)}</b>\n"
+        f"Получатель: <code>{html.escape(str(target))}</code>\n"
+        f"Комментарий: <b>{html.escape(comment)}</b>"
     )
 
     if recipient_id:
@@ -2739,10 +2745,10 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=recipient_id,
                 text=pe(
-                    "🎁 <b>Вам пришел перевод</b>\n"
-                    f"👤 От кого: {sender_name}\n"
-                    f"💵 Сумма: <b>{money(amount)}</b>\n"
-                    f"💬 Сообщение: <b>{html.escape(comment)}</b>"
+                    "🎁 <b>Новый перевод</b>\n\n"
+                    f"От кого: {sender_name}\n"
+                    f"Сумма: <b>{money(amount)}</b>\n"
+                    f"Сообщение: <b>{html.escape(comment)}</b>"
                 ),
                 parse_mode="HTML"
             )
@@ -2762,14 +2768,19 @@ async def send_ball_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: in
 
 def ball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
     is_hit = dice_value >= 4
-    status = "<b>Попадание</b>" if is_hit else "<b>Мимо</b>"
-    result = f"+{money(win_milli)}" if is_hit else f"-{money(bet_milli)}"
+
+    if is_hit:
+        status = "Попадание"
+        result = f"+{money(win_milli)}"
+    else:
+        status = "Мимо"
+        result = f"-{money(bet_milli)}"
+
     return (
-        "╭─ 🏀 <b>БАСКЕТБОЛ</b> ─╮\n"
-        f"│ {mention(user)}\n"
-        "╰───────────────╯\n\n"
+        "🏀 <b>Баскетбол</b>\n\n"
+        f"{mention(user)}\n"
         f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Результат: {status}\n"
+        f"Результат: <b>{status}</b>\n"
         f"Итог: <b>{result}</b>\n\n"
         f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
@@ -2848,14 +2859,19 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
     is_goal = dice_value >= 3
-    status = "<b>ГОООЛ</b>" if is_goal else "<b>Мимо ворот</b>"
-    result = f"+{money(win_milli)}" if is_goal else f"-{money(bet_milli)}"
+
+    if is_goal:
+        status = "Гол"
+        result = f"+{money(win_milli)}"
+    else:
+        status = "Мимо ворот"
+        result = f"-{money(bet_milli)}"
+
     return (
-        "╭─ ⚽️ <b>ФУТБОЛ</b> ─╮\n"
-        f"│ {mention(user)}\n"
-        "╰────────────╯\n\n"
+        "⚽️ <b>Футбол</b>\n\n"
+        f"{mention(user)}\n"
         f"Ставка: <b>{money(bet_milli)}</b>\n"
-        f"Результат: {status}\n"
+        f"Результат: <b>{status}</b>\n"
         f"Итог: <b>{result}</b>\n\n"
         f"Баланс: <b>{money_balance(balance_after)}</b>"
     )
@@ -2956,9 +2972,8 @@ async def case_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_result(
             update,
             context,
-            "╭─ 🎁 <b>КЕЙС</b> ─╮\n"
-            f"│ Цена: <b>{money(CASE_PRICE_MILLI)}</b>\n"
-            "╰───────────╯\n\n"
+            "🎁 <b>Кейс</b>\n\n"
+            f"Цена: <b>{money(CASE_PRICE_MILLI)}</b>\n"
             f"Кулдаун: <b>{CASE_COOLDOWN_SECONDS} сек.</b>\n"
             "Открыть: <code>/case open</code>"
         )
@@ -3151,7 +3166,7 @@ async def withdraw_start_text(update: Update, context: ContextTypes.DEFAULT_TYPE
     await send_result(
         update,
         context,
-        "╭─ ❗️ <b>ВЫВОД USDT</b> ─╮\n│ Функция временно недоступна\n╰──────────────╯\n\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+        "❗️ <b>Вывод USDT</b>\nФункция временно недоступна.\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
     )
 
     return ConversationHandler.END
@@ -3165,7 +3180,7 @@ async def withdraw_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_result(
         update,
         context,
-        "╭─ ❗️ <b>ВЫВОД USDT</b> ─╮\n│ Функция временно недоступна\n╰──────────────╯\n\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
+        "❗️ <b>Вывод USDT</b>\nФункция временно недоступна.\n<b>Пожалуйста, вернитесь через 48 часов.</b>"
     )
 
     return ConversationHandler.END
@@ -3635,6 +3650,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_MINIMAL_VISUAL')
     print('VERSION_PREMIUM_VISUAL_REWORK')
     print('VERSION_WITHDRAW_TEXT_UPDATED')
     print('VERSION_BALANCE_ROUND_WITHDRAW_SUPPORT')
