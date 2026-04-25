@@ -1049,7 +1049,7 @@ def role_menu(group=False):
 
 def profile_inventory_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory')]
+        [InlineKeyboardButton('🎭 Инвентарь', callback_data='profile_inventory')]
     ])
 
 
@@ -2517,6 +2517,18 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # PROFILE_FIX_FINAL_OK
+    # PROFILE_INVENTORY_FINAL_FIX
+    if data in ('profile_inventory', 'inventory'):
+        await q.answer()
+        register_user(q.from_user)
+
+        if q.message.chat.type != 'private':
+            await q.message.reply_text(pe('Инвентарь доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+
+        await send_result(update, context, inventory_text(q.from_user.id))
+        return
+
     if data == 'profile':
         await q.answer()
         register_user(q.from_user)
@@ -2531,12 +2543,6 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             profile_text(q.from_user.id),
             reply_markup=profile_inventory_menu()
         )
-        return
-
-    if data == 'inventory':
-        await q.answer()
-        register_user(q.from_user)
-        await send_result(update, context, inventory_text(q.from_user.id))
         return
 
     if data == 'promo_list':
