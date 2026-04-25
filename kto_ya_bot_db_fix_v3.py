@@ -3616,6 +3616,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_ROLL_PHRASE_COMPAT_FIX')
     print('VERSION_ROLE_TRIGGER_BUTTON_FIX')
     print('VERSION_EXP_GROUP_EVENTS_REPLY')
     print('VERSION_RUBY_CASINO_LIMIT_CLEARMONEY')
@@ -4624,6 +4625,43 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+
+def roll_phrase() -> tuple[str, str]:
+    """
+    Совместимость для новых override-блоков.
+    Берет случайную фразу из таблицы phrases.
+    Сначала выбирает редкость по шансам, потом ищет фразу этой редкости.
+    Если такой редкости нет — берет любую случайную фразу.
+    """
+    rarity = roll_role_rarity()
+
+    with db() as conn:
+        phrase_cols = columns(conn, 'phrases')
+
+        if 'rarity' in phrase_cols:
+            row = conn.execute(
+                "SELECT text, rarity FROM phrases WHERE rarity=? ORDER BY RANDOM() LIMIT 1",
+                (rarity,),
+            ).fetchone()
+
+            if not row:
+                row = conn.execute(
+                    "SELECT text, rarity FROM phrases ORDER BY RANDOM() LIMIT 1"
+                ).fetchone()
+
+            if row:
+                return row[0], row[1] or 'common'
+
+        row = conn.execute(
+            "SELECT text FROM phrases ORDER BY RANDOM() LIMIT 1"
+        ).fetchone()
+
+        if row:
+            return row[0], 'common'
+
+    return "Неизвестная роль", "common"
+
+
 # ===== FINAL EXP EVENTS OVERRIDE =====
 
 def get_user_full(user_id: int):
@@ -5243,7 +5281,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
         return
 
-    await q.answer()
+      await q.answer()
 
 # ===== END FINAL TRIGGER BUTTONS FIX =====
 
