@@ -605,14 +605,39 @@ def unhide_user(user_id: int) -> tuple[bool, str]:
 
 def search_user_text(user_id: int) -> str | None:
     row = get_user(user_id)
+
     if not row:
         return None
+
     user_id, username, first_name, uid, balance, openings, last_role, hidden, banned, ban_reason, banned_until, banned_by, banned_at, *_ = row
+
+    # Если человек скрыт, поиск делает вид, что его нет в боте.
     if hidden:
         return None
-    username_text = f'@{username}' if username else 'нет'
-    first_name_text = first_name or 'нет'
-    return f'🔎 <b>Пользователь найден</b>\n\n🆔 Telegram ID: <code>{user_id}</code>\n🔖 UID: <code>{html.escape(str(uid))}</code>\n💰 Баланс: <b>{money(balance)}</b>\n👁 Открытия: <b>{openings}</b>\n📛 Username: {html.escape(username_text)}\n👤 Имя: {html.escape(first_name_text)}\n🚫 Статус бана: <b>{'забанен' if banned else 'не забанен'}</b>'
+
+    username_text = f"@{username}" if username else "нет"
+    first_name_text = first_name or "нет"
+    ban_status = "забанен" if banned else "не забанен"
+
+    text = (
+        "🔎 <b>Пользователь найден</b>\n\n"
+        f"🆔 Telegram ID: <code>{user_id}</code>\n"
+        f"🔖 UID: <code>{html.escape(str(uid))}</code>\n"
+        f"💰 Баланс: <b>{money(balance)}</b>\n"
+        f"👁 Открытия: <b>{openings}</b>\n"
+        f"📛 Username: {html.escape(username_text)}\n"
+        f"👤 Имя: {html.escape(first_name_text)}\n"
+        f"🚫 Статус бана: <b>{ban_status}</b>"
+    )
+
+    if banned:
+        text += (
+            f"\nПричина бана: <b>{html.escape(ban_reason or 'не указана')}</b>"
+            f"\nОсталось: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>"
+        )
+
+    return text
+
 
 def inc_opening(user_id: int):
     with db() as conn:
