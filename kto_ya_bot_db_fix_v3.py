@@ -28,16 +28,16 @@ CASE_SECRET_REWARD_CHANCE = 1  # 1 из 1000
 CASE_DISCOUNT_MILLI = 2000  # скидка 2 💵 на следующий кейс
 CASE_PREFIXES = ["Любитель казика", "Подружка админа", "T1 WORKER"]
 MIN_SLOT_BET_MILLI = 1000       # 1 💵
-MAX_SLOT_BET_MILLI = 10**18     # без лимита, ограничение только балансом
+MAX_SLOT_BET_MILLI = 10000     # 10 💵
 SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–15%
 
 MIN_COIN_BET_MILLI = 1000       # 1 💵
-MAX_COIN_BET_MILLI = 10**18     # без лимита, ограничение только балансом
+MAX_COIN_BET_MILLI = 10000     # 10 💵
 MIN_BALL_BET_MILLI = 1000       # 1 💵
-MAX_BALL_BET_MILLI = 10**18     # без лимита, ограничение только балансом
+MAX_BALL_BET_MILLI = 10000     # 10 💵
 BASKETBALL_ANIMATION_DELAY = 4
 MIN_FOOTBALL_BET_MILLI = 1000       # 1 💵
-MAX_FOOTBALL_BET_MILLI = 10**18     # без лимита, ограничение только балансом
+MAX_FOOTBALL_BET_MILLI = 10000     # 10 💵
 FOOTBALL_ANIMATION_DELAY = 4
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
@@ -161,6 +161,7 @@ PE_LVL_0 = '<tg-emoji emoji-id="5206712720350545928">0⃣</tg-emoji>'
 PE_LVL_1 = '<tg-emoji emoji-id="5206421246689969742">1⃣</tg-emoji>'
 PE_LVL_2 = '<tg-emoji emoji-id="5206429518796981791">2⃣</tg-emoji>'
 PE_LVL_3 = '<tg-emoji emoji-id="5208507874946353980">3⃣</tg-emoji>'
+PE_LVL_RUBY = '<tg-emoji emoji-id="5321011803075923151">⭐</tg-emoji>'
 PE_ARROW_RIGHT = '<tg-emoji emoji-id="5193191330079062069">➡️</tg-emoji>'
 
 PE_TRANSFER_USDT = '<tg-emoji emoji-id="5201692367437974073">💵</tg-emoji>'
@@ -194,7 +195,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -1327,7 +1328,7 @@ def admin_panel_text() -> str:
         "<b>Дополнительно:</b>\n"
         "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
         "<code>/promos</code> — список промокодов\n"
-        "<code>/adminstats</code> — статистика\n"
+        "<code>/adminstats</code> — статистика\n<code>/clearmoney</code> — очистить деньги у всех игроков\n"
         "<code>/groups</code> — группы с ботом\n"
         "<code>/broadcast текст</code> — уведомление всем\n"
     )
@@ -2018,6 +2019,22 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['waiting_promo_activate'] = True
         return
 
+
+
+async def clear_money_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+
+    with db() as conn:
+        cur = conn.execute("UPDATE users SET balance_milli=0")
+        conn.commit()
+        count = cur.rowcount if cur.rowcount is not None else 0
+
+    await update.message.reply_text(
+        pe(f'💵 <b>Баланс очищен у всех игроков.</b>\nИгроков обновлено: <b>{count}</b>'),
+        parse_mode='HTML'
+    )
 
 
 async def admin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3579,6 +3596,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_RUBY_CASINO_LIMIT_CLEARMONEY')
     print('VERSION_CASINO_NO_MAX_BET')
     print('VERSION_TOKEN_USDT_VISUAL_GAME_TITLES_FIX')
     print('VERSION_BALANCE_FLOOR_FIX')
@@ -3620,6 +3638,7 @@ def main():
     app = Application.builder().token(BOT_TOKEN).defaults(Defaults(parse_mode="HTML")).build()
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('admin', admin_cmd))
+    app.add_handler(CommandHandler('clearmoney', clear_money_cmd))
     app.add_handler(CommandHandler('menu', menu_cmd))
     app.add_handler(CommandHandler('whoami', whoami))
     app.add_handler(CommandHandler('ban', ban_cmd))
@@ -3749,7 +3768,8 @@ def level_info_by_openings(openings: int) -> dict:
         {'level': 0, 'emoji': '0⃣', 'name': 'None', 'start': 0, 'end': 10},
         {'level': 1, 'emoji': '1⃣', 'name': 'Bronze', 'start': 10, 'end': 35},
         {'level': 2, 'emoji': '2⃣', 'name': 'Silver', 'start': 35, 'end': 80},
-        {'level': 3, 'emoji': '3⃣', 'name': 'Gold', 'start': 80, 'end': None},
+        {'level': 3, 'emoji': '3⃣', 'name': 'Gold', 'start': 80, 'end': 150},
+        {'level': 4, 'emoji': '⭐', 'name': 'Ruby', 'start': 150, 'end': None},
     ]
 
     current = levels[0]
@@ -3761,7 +3781,7 @@ def level_info_by_openings(openings: int) -> dict:
             current = item
             break
 
-    next_level = levels[min(current['level'] + 1, 3)]
+    next_level = levels[min(current['level'] + 1, len(levels) - 1)]
 
     if current['end'] is None:
         percent = 100
@@ -3770,6 +3790,36 @@ def level_info_by_openings(openings: int) -> dict:
         percent = int(max(0, min(100, ((openings - current['start']) / span) * 100)))
 
     return {'current': current, 'next': next_level, 'percent': percent}
+
+
+def user_has_ruby_level(user_id: int) -> bool:
+    row = get_user_full(user_id)
+
+    if not row:
+        return False
+
+    openings = int(row[5] or 0)
+    return level_info_by_openings(openings)['current']['name'] == 'Ruby'
+
+
+async def require_ruby_casino(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    if user_has_ruby_level(update.effective_user.id):
+        return True
+
+    row = get_user_full(update.effective_user.id)
+    openings = int(row[5] or 0) if row else 0
+    level = level_info_by_openings(openings)
+
+    await send_result(
+        update,
+        context,
+        "🔒 <b>Казино доступно только с уровня Ruby.</b>\n\n"
+        f"Ваш уровень: <b>{level['current']['emoji']} {level['current']['name']}</b>\n"
+        f"Прогресс: <b>{level['percent']}%</b>\n"
+        f"Нужно открыть ролей до Ruby: <b>{max(0, 150 - openings)}</b>"
+    )
+
+    return False
 
 
 
@@ -3945,13 +3995,16 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
     remember_group(update.effective_chat)
     if await handle_banned_action(update, context):
         return
+
+    if not await require_ruby_casino(update, context):
+        return
     text = (
         '🎮 <b>Играть</b>\n\n'
         '🎰 <code>/slots 1</code> — слоты\n'
         '🪙 <code>/coin орел 1</code> — орел / решка\n'
         '🏀 <code>/ball 1</code> — баскетбол\n'
         '⚽️ <code>/football 1</code> — футбол\n'
-        '🎁 <code>/case open</code> — кейс\n\nМинимальная ставка в играх: <b>1 💵</b>'
+        '🎁 <code>/case open</code> — кейс\n\nМинимальная ставка: <b>1 💵</b>\nМаксимальная ставка: <b>10 💵</b>\nДоступ: <b>только Ruby</b>'
     )
     await send_clean_group_result(update, context, text)
 
@@ -4347,6 +4400,9 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
     user = update.effective_user
     register_user(user)
     remember_group(update.effective_chat)
+
+    if not await require_ruby_casino(update, context):
+        return
     banned, reason, banned_until = get_user_ban_status_direct(user.id)
     if banned:
         await send_clean_group_result(update, context, '⛔ Вы забанены у бота.\n' f'Причина: <b>{html.escape(reason or "не указана")}</b>\n' f'Осталось: <b>{html.escape(ban_time_text(banned_until))}</b>')
@@ -4358,6 +4414,10 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
     balance_milli = int(row[4])
     if bet_milli < MIN_SLOT_BET_MILLI:
         await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>')
+        return
+
+    if bet_milli > MAX_SLOT_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>")
         return
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
@@ -4386,6 +4446,9 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
     user = update.effective_user
     register_user(user)
     remember_group(update.effective_chat)
+
+    if not await require_ruby_casino(update, context):
+        return
     banned, reason, banned_until = get_user_ban_status_direct(user.id)
     if banned:
         await send_clean_group_result(update, context, '⛔ Вы забанены у бота.\n' f'Причина: <b>{html.escape(reason or "не указана")}</b>\n' f'Осталось: <b>{html.escape(ban_time_text(banned_until))}</b>')
@@ -4397,6 +4460,10 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
     balance_milli = int(row[4])
     if bet_milli < MIN_COIN_BET_MILLI:
         await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_COIN_BET_MILLI)}</b>')
+        return
+
+    if bet_milli > MAX_COIN_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_COIN_BET_MILLI)}</b>")
         return
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
@@ -4427,6 +4494,9 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     remember_group(chat)
     if await handle_banned_action(update, context):
         return
+
+    if not await require_ruby_casino(update, context):
+        return
     if not context.args:
         await send_result(update, context, '🏀 <b>Баскетбол</b>\n\nКоманда: <code>/ball сумма</code>\nПример: <code>/ball 1</code>')
         return
@@ -4436,6 +4506,10 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if bet_milli < MIN_BALL_BET_MILLI:
         await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
+        return
+
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>")
         return
     row = get_user(user.id)
     if not row:
@@ -4473,6 +4547,9 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     remember_group(chat)
     if await handle_banned_action(update, context):
         return
+
+    if not await require_ruby_casino(update, context):
+        return
     if not context.args:
         await send_result(update, context, '⚽️ <b>Футбол</b>\n\nКоманда: <code>/football сумма</code>\nПример: <code>/football 1</code>')
         return
@@ -4482,6 +4559,10 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if bet_milli < MIN_FOOTBALL_BET_MILLI:
         await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>')
+        return
+
+    if bet_milli > MAX_FOOTBALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>")
         return
     row = get_user(user.id)
     if not row:
