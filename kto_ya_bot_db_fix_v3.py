@@ -100,6 +100,9 @@ WAIT_SEARCH_USER = 11
 WAIT_UNHIDE_USER = 12
 WAIT_DELETE_PHRASE = 13
 WAIT_BROADCAST_TEXT = 14
+WAIT_PROMO_CODE = 15
+WAIT_PROMO_AMOUNT = 16
+WAIT_PROMO_LIMIT = 17
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 PE_USER = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
@@ -137,13 +140,18 @@ PE_SLOT_CHERRY = '<tg-emoji emoji-id="5406759193052995173">🍒</tg-emoji>'
 PE_SLOT_STAR = '<tg-emoji emoji-id="5435957248314579621">⭐️</tg-emoji>'
 PE_SLOT_DIAMOND = '<tg-emoji emoji-id="5471952986970267163">💎</tg-emoji>'
 PE_SLOT_SEVEN = '<tg-emoji emoji-id="5382132232829804982">7️⃣</tg-emoji>'
+PE_RARITY_COMMON = '<tg-emoji emoji-id="5433713454319938373">🩶</tg-emoji>'
+PE_RARITY_RARE = '<tg-emoji emoji-id="5449380056201697322">💚</tg-emoji>'
+PE_RARITY_EPIC = '<tg-emoji emoji-id="5434031913260035048">🩷</tg-emoji>'
+PE_RARITY_LEGENDARY = '<tg-emoji emoji-id="5449366943666543715">💛</tg-emoji>'
+PE_RARITY_SECRET = '<tg-emoji emoji-id="5449692618151695997">🖤</tg-emoji>'
 
 def pe(text: str) -> str:
     """Заменяет обычные emoji на premium emoji в HTML-тексте сообщения."""
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('7️⃣', PE_SLOT_SEVEN), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_FLYING_MONEY), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('7️⃣', PE_SLOT_SEVEN), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -239,6 +247,38 @@ def init_db():
     cur.execute('\n        CREATE TABLE IF NOT EXISTS bonus_claims (\n            bonus_id TEXT PRIMARY KEY,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL,\n            claimed_at INTEGER\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS daily_bonuses (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS groups (\n            chat_id INTEGER PRIMARY KEY,\n            title TEXT,\n            username TEXT,\n            type TEXT,\n            added_at INTEGER NOT NULL,\n            last_seen_at INTEGER NOT NULL\n        )\n        ')
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_roles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            phrase TEXT NOT NULL,
+            rarity TEXT NOT NULL,
+            received_at INTEGER NOT NULL
+        )
+        """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS promo_codes (
+            code TEXT PRIMARY KEY,
+            amount_milli INTEGER NOT NULL,
+            max_uses INTEGER NOT NULL,
+            used_count INTEGER NOT NULL DEFAULT 0,
+            created_by INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1
+        )
+        """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS promo_activations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            activated_at INTEGER NOT NULL,
+            UNIQUE(code, user_id)
+        )
+        """)
+
     cur.execute("\n        CREATE TABLE IF NOT EXISTS withdrawals (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            user_id INTEGER NOT NULL,\n            wallet TEXT NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            status TEXT NOT NULL DEFAULT 'pending',\n            created_at INTEGER NOT NULL,\n            reviewed_by INTEGER,\n            reviewed_at INTEGER\n        )\n        ")
     phrase_cols = columns(conn, 'phrases')
     if 'rarity' not in phrase_cols:
@@ -485,6 +525,165 @@ def groups_text() -> str:
         lines.append(f'• <b>{html.escape(title)}</b>\n  ID: <code>{chat_id}</code>\n  Username: {html.escape(uname)}')
     return '\n\n'.join(lines)
 
+
+def save_user_role(user_id: int, phrase: str, rarity: str) -> None:
+    with db() as conn:
+        conn.execute(
+            """
+            INSERT INTO user_roles (user_id, phrase, rarity, received_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (user_id, phrase, rarity, ts()),
+        )
+        conn.commit()
+
+
+def rarity_icon(rarity: str) -> str:
+    return {
+        "common": "🩶",
+        "rare": "💚",
+        "epic": "🩷",
+        "legendary": "💛",
+        "secret": "🖤",
+    }.get(rarity, "🩶")
+
+
+def inventory_text(user_id: int) -> str:
+    with db() as conn:
+        counts = conn.execute(
+            "SELECT rarity, COUNT(*) FROM user_roles WHERE user_id=? GROUP BY rarity",
+            (user_id,),
+        ).fetchall()
+        latest = conn.execute(
+            """
+            SELECT phrase, rarity
+            FROM user_roles
+            WHERE user_id=?
+            ORDER BY id DESC
+            LIMIT 10
+            """,
+            (user_id,),
+        ).fetchall()
+
+    count_map = {rarity: count for rarity, count in counts}
+    total = sum(count_map.values())
+
+    lines = [
+        "🎭 <b>Инвентарь ролей</b>",
+        "",
+        f"Всего ролей: <b>{total}</b>",
+        "",
+        f"🩶 Обычные: <b>{count_map.get('common', 0)}</b>",
+        f"💚 Редкие: <b>{count_map.get('rare', 0)}</b>",
+        f"🩷 Эпические: <b>{count_map.get('epic', 0)}</b>",
+        f"💛 Легендарные: <b>{count_map.get('legendary', 0)}</b>",
+        f"🖤 Секретные: <b>{count_map.get('secret', 0)}</b>",
+    ]
+
+    if latest:
+        lines.append("")
+        lines.append("<b>Последние роли:</b>")
+        for phrase, rarity in latest:
+            label = RARITY_LABELS.get(rarity, rarity)
+            lines.append(f"{rarity_icon(rarity)} {html.escape(phrase)} — <b>{html.escape(label)}</b>")
+
+    return "\n".join(lines)
+
+
+def create_promo_code(code: str, amount_milli: int, max_uses: int, admin_id: int) -> tuple[bool, str]:
+    code = (code or "").strip().upper()
+
+    if not code:
+        return False, "Промокод пустой."
+    if amount_milli <= 0:
+        return False, "Сумма должна быть больше 0."
+    if max_uses <= 0:
+        return False, "Лимит активаций должен быть больше 0."
+
+    with db() as conn:
+        try:
+            conn.execute(
+                """
+                INSERT INTO promo_codes
+                (code, amount_milli, max_uses, used_count, created_by, created_at, active)
+                VALUES (?, ?, ?, 0, ?, ?, 1)
+                """,
+                (code, amount_milli, max_uses, admin_id, ts()),
+            )
+            conn.commit()
+            return True, f"Промокод <code>{html.escape(code)}</code> создан: <b>{money(amount_milli)}</b>, активаций: <b>{max_uses}</b>."
+        except sqlite3.IntegrityError:
+            return False, "Такой промокод уже существует."
+
+
+def activate_promo_code(user_id: int, code: str) -> tuple[bool, str]:
+    code = (code or "").strip().upper()
+
+    if not code:
+        return False, "Введите промокод."
+
+    with db() as conn:
+        promo = conn.execute(
+            """
+            SELECT code, amount_milli, max_uses, used_count, active
+            FROM promo_codes
+            WHERE code=?
+            """,
+            (code,),
+        ).fetchone()
+
+        if not promo:
+            return False, "Промокод не найден."
+
+        code, amount_milli, max_uses, used_count, active = promo
+
+        if not active:
+            return False, "Промокод отключен."
+        if used_count >= max_uses:
+            return False, "Лимит активаций промокода исчерпан."
+
+        already = conn.execute(
+            "SELECT id FROM promo_activations WHERE code=? AND user_id=?",
+            (code, user_id),
+        ).fetchone()
+
+        if already:
+            return False, "Вы уже активировали этот промокод."
+
+        conn.execute(
+            "INSERT INTO promo_activations (code, user_id, activated_at) VALUES (?, ?, ?)",
+            (code, user_id, ts()),
+        )
+        conn.execute("UPDATE promo_codes SET used_count=used_count+1 WHERE code=?", (code,))
+        conn.execute("UPDATE users SET balance_milli=balance_milli+? WHERE user_id=?", (amount_milli, user_id))
+        conn.commit()
+
+    return True, f"Промокод активирован. Начислено: <b>+{money(amount_milli)}</b>."
+
+
+def promo_codes_text() -> str:
+    with db() as conn:
+        rows = conn.execute(
+            """
+            SELECT code, amount_milli, max_uses, used_count, active
+            FROM promo_codes
+            ORDER BY created_at DESC
+            LIMIT 20
+            """
+        ).fetchall()
+
+    if not rows:
+        return "Промокодов пока нет."
+
+    lines = ["🎁 <b>Последние промокоды</b>", ""]
+
+    for code, amount_milli, max_uses, used_count, active in rows:
+        status = "активен" if active else "отключен"
+        lines.append(f"<code>{html.escape(code)}</code> — <b>{money(amount_milli)}</b> | {used_count}/{max_uses} | {status}")
+
+    return "\n".join(lines)
+
+
 def create_withdrawal(user_id: int, wallet: str, amount: int) -> int:
     with db() as conn:
         cur = conn.execute("INSERT INTO withdrawals (user_id, wallet, amount_milli, status, created_at) VALUES (?, ?, ?, 'pending', ?)", (user_id, wallet, amount, ts()))
@@ -511,6 +710,7 @@ def main_menu(admin=False, group=False):
     if not group:
         buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
         buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
+        buttons.append([InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory'), InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
 
     buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
     buttons.append([InlineKeyboardButton('🏆 Топ 3', callback_data='top3')])
@@ -530,6 +730,7 @@ def reply_main_menu(admin=False, group=False):
             ['🎭 Кто я'],
             ['👤 Профиль', '💸 Вывод USDT'],
             ['🔎 Поиск по ID', '🎰 Казино'],
+            ['🎭 Инвентарь', '🎁 Промокод'],
             ['🏆 Топ 3'],
         ]
 
@@ -549,12 +750,13 @@ def role_menu(group=False):
     if not group:
         buttons.append([InlineKeyboardButton('👤 Профиль', callback_data='profile'), InlineKeyboardButton('💸 Вывод USDT', callback_data='withdraw')])
         buttons.append([InlineKeyboardButton('🔎 Поиск по ID', callback_data='search_user')])
+        buttons.append([InlineKeyboardButton('🎭 Инвентарь', callback_data='inventory'), InlineKeyboardButton('🎁 Промокод', callback_data='promo_activate')])
         buttons.append([InlineKeyboardButton('🎰 Казино', callback_data='casino')])
 
     return InlineKeyboardMarkup(buttons) if buttons else None
 
 def admin_menu():
-    return InlineKeyboardMarkup([[InlineKeyboardButton('➕ Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('🗑 Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('📋 Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('🔢 Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('📣 Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('📊 Статистика', callback_data='admin_stats')], [InlineKeyboardButton('💰 Выдать USDT', callback_data='give_usdt')], [InlineKeyboardButton('➖ Забрать USDT', callback_data='take_usdt')], [InlineKeyboardButton('🆔 Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('🙈 Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('👁 Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('👥 Группы с ботом', callback_data='groups')], [InlineKeyboardButton('⬅️ Назад', callback_data='back')]])
+    return InlineKeyboardMarkup([[InlineKeyboardButton('➕ Добавить фразу', callback_data='add_phrase')], [InlineKeyboardButton('🗑 Удалить фразу', callback_data='delete_phrase_btn')], [InlineKeyboardButton('📋 Последние фразы', callback_data='last_phrases')], [InlineKeyboardButton('🔢 Количество фраз', callback_data='phrase_count')], [InlineKeyboardButton('📣 Уведомление в бот', callback_data='broadcast')], [InlineKeyboardButton('📊 Статистика', callback_data='admin_stats')], [InlineKeyboardButton('🎁 Создать промокод', callback_data='promo_create')], [InlineKeyboardButton('📋 Промокоды', callback_data='promo_list')], [InlineKeyboardButton('💰 Выдать USDT', callback_data='give_usdt')], [InlineKeyboardButton('➖ Забрать USDT', callback_data='take_usdt')], [InlineKeyboardButton('🆔 Выдать кастом UID', callback_data='custom_uid')], [InlineKeyboardButton('🙈 Скрыть пользователя', callback_data='hide_user')], [InlineKeyboardButton('👁 Раскрыть пользователя', callback_data='unhide_user')], [InlineKeyboardButton('👥 Группы с ботом', callback_data='groups')], [InlineKeyboardButton('⬅️ Назад', callback_data='back')]])
 
 def withdraw_admin_menu(wid: int):
     return InlineKeyboardMarkup([[InlineKeyboardButton('✅ Одобрить', callback_data=f'wd_ok:{wid}'), InlineKeyboardButton('❌ Отклонить', callback_data=f'wd_no:{wid}')]])
@@ -956,6 +1158,7 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     inc_opening(user.id)
     add_balance(user.id, reward_milli)
+    save_user_role(user.id, phrase, rarity)
 
     await send_result(
         update,
@@ -1022,6 +1225,15 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
     raw_text = update.message.text.strip()
     lower_text = raw_text.lower()
 
+    if context.user_data.get('waiting_promo_activate'):
+        context.user_data['waiting_promo_activate'] = False
+        ok, msg = activate_promo_code(update.effective_user.id, raw_text)
+        await update.message.reply_text(
+            pe(('✅ ' if ok else '❌ ') + msg),
+            parse_mode='HTML'
+        )
+        return
+
     if lower_text in TRIGGERS or lower_text in ('кто я?', '🎭 кто я'):
         await send_role(update, context)
         return
@@ -1036,6 +1248,23 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if lower_text in ('топ 3', '🏆 топ 3'):
         await send_clean_group_result(update, context, top_text())
+        return
+
+    if lower_text in ('инвентарь', '🎭 инвентарь'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('Инвентарь доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+
+        await send_result(update, context, inventory_text(update.effective_user.id))
+        return
+
+    if lower_text in ('промокод', '🎁 промокод'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
+            return
+
+        await update.message.reply_text(pe('🎁 Введите промокод одним сообщением:'), parse_mode='HTML')
+        context.user_data['waiting_promo_activate'] = True
         return
 
     if lower_text in ('казино', '🎰 казино'):
@@ -1148,6 +1377,70 @@ async def admin_stats_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
         return
     await send_long_message(context.bot, update.effective_chat.id, admin_stats_text(), reply_markup=admin_menu())
+
+
+
+async def inventory_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    await send_result(update, context, inventory_text(update.effective_user.id))
+
+
+async def promo_activate_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+
+    if q.message.chat.type != 'private':
+        await q.message.reply_text(pe('Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    register_user(q.from_user)
+
+    await q.message.reply_text(
+        pe('🎁 Введите промокод одним сообщением:'),
+        parse_mode='HTML'
+    )
+
+    return WAIT_PROMO_ACTIVATE
+
+
+async def promo_activate_text_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+
+    if update.effective_chat.type != 'private':
+        await update.message.reply_text(pe('Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    await update.message.reply_text(
+        pe('🎁 Введите промокод одним сообщением:'),
+        parse_mode='HTML'
+    )
+
+    return WAIT_PROMO_ACTIVATE
+
+
+async def promo_activate_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+
+    code = update.message.text.strip()
+
+    ok, msg = activate_promo_code(update.effective_user.id, code)
+    await update.message.reply_text(
+        pe(('✅ ' if ok else '❌ ') + msg),
+        parse_mode='HTML'
+    )
+
+    return ConversationHandler.END
+
+
+async def promo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+
+    if not context.args:
+        await send_result(update, context, "Напиши промокод:\n<code>/promo CODE</code>")
+        return
+
+    ok, msg = activate_promo_code(update.effective_user.id, context.args[0])
+    await send_result(update, context, ("✅ " if ok else "❌ ") + msg)
 
 
 async def casino_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1399,6 +1692,71 @@ async def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.warning('Не удалось отправить заявку админу %s: %s', admin_id, e)
     return ConversationHandler.END
 
+
+async def promo_create_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+
+    if not is_admin(q.from_user.id):
+        await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    await q.message.reply_text(pe('🎁 Введите название промокода:'), parse_mode='HTML')
+    return WAIT_PROMO_CODE
+
+
+async def promo_create_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    code = update.message.text.strip().upper()
+
+    if len(code) < 3:
+        await update.message.reply_text(pe('Промокод слишком короткий. Минимум 3 символа.'), parse_mode='HTML')
+        return WAIT_PROMO_CODE
+
+    context.user_data['promo_code'] = code
+    await update.message.reply_text(pe('Введите сумму USDT для промокода:'), parse_mode='HTML')
+    return WAIT_PROMO_AMOUNT
+
+
+async def promo_create_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    amount = parse_money(update.message.text)
+
+    if amount is None or amount <= 0:
+        await update.message.reply_text(pe('Введите сумму больше 0.'), parse_mode='HTML')
+        return WAIT_PROMO_AMOUNT
+
+    context.user_data['promo_amount'] = amount
+    await update.message.reply_text(pe('Введите лимит активаций промокода:'), parse_mode='HTML')
+    return WAIT_PROMO_LIMIT
+
+
+async def promo_create_limit(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return ConversationHandler.END
+
+    raw = update.message.text.strip()
+
+    if not raw.isdigit() or int(raw) <= 0:
+        await update.message.reply_text(pe('Введите лимит числом больше 0.'), parse_mode='HTML')
+        return WAIT_PROMO_LIMIT
+
+    code = context.user_data.get('promo_code')
+    amount = context.user_data.get('promo_amount')
+    limit = int(raw)
+
+    ok, msg = create_promo_code(code, amount, limit, update.effective_user.id)
+    await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+    return ConversationHandler.END
+
+
 async def give_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -1573,6 +1931,20 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(q.from_user)
     if q.message:
         remember_group(q.message.chat)
+    if data == 'inventory':
+        await q.answer()
+        register_user(q.from_user)
+        await send_result(update, context, inventory_text(q.from_user.id))
+        return
+
+    if data == 'promo_list':
+        await q.answer()
+        if not is_admin(q.from_user.id):
+            await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+            return
+        await q.message.reply_text(pe(promo_codes_text()), parse_mode='HTML')
+        return
+
     if data == 'casino':
         await q.answer()
         await show_casino(update, context)
@@ -1696,6 +2068,8 @@ def main():
     app.add_handler(CommandHandler('delete', delete_cmd))
     app.add_handler(CommandHandler('profile', profile_cmd))
     app.add_handler(CommandHandler('top', top_cmd))
+    app.add_handler(CommandHandler('inventory', inventory_cmd))
+    app.add_handler(CommandHandler('promo', promo_cmd))
     app.add_handler(CommandHandler('casino', casino_cmd))
     app.add_handler(CommandHandler('slots', slots_cmd))
     app.add_handler(CommandHandler('coin', coin_cmd))
@@ -1704,6 +2078,27 @@ def main():
     app.add_handler(CommandHandler('adminstats', admin_stats_cmd))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(add_phrase_start, pattern='^add_phrase$')], states={WAIT_PHRASE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phrase)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(withdraw_start, pattern='^withdraw$'), MessageHandler(filters.Regex('^(💸 )?Вывод USDT$'), withdraw_start_text)], states={WAIT_WALLET: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_wallet)], WAIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
+    app.add_handler(ConversationHandler(
+        entry_points=[
+            CallbackQueryHandler(promo_activate_start, pattern='^promo_activate$'),
+            MessageHandler(filters.Regex('^(🎁 )?Промокод$'), promo_activate_text_start),
+        ],
+        states={
+            WAIT_PROMO_ACTIVATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, promo_activate_finish)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+    ))
+
+    app.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(promo_create_start, pattern='^promo_create$')],
+        states={
+            WAIT_PROMO_CODE: [MessageHandler(filters.TEXT & ~filters.COMMAND, promo_create_code)],
+            WAIT_PROMO_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, promo_create_amount)],
+            WAIT_PROMO_LIMIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, promo_create_limit)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+    ))
+
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(give_start, pattern='^give_usdt$')], states={WAIT_GIVE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_user)], WAIT_GIVE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, give_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(take_start, pattern='^take_usdt$')], states={WAIT_TAKE_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_user)], WAIT_TAKE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, take_amount)]}, fallbacks=[CommandHandler('cancel', cancel)]))
     app.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(uid_start, pattern='^custom_uid$')], states={WAIT_UID_USER: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_user)], WAIT_UID_VALUE: [MessageHandler(filters.TEXT & ~filters.COMMAND, uid_value)]}, fallbacks=[CommandHandler('cancel', cancel)]))
