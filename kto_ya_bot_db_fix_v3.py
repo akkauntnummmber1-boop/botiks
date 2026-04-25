@@ -103,6 +103,7 @@ WAIT_BROADCAST_TEXT = 14
 WAIT_PROMO_CODE = 15
 WAIT_PROMO_AMOUNT = 16
 WAIT_PROMO_LIMIT = 17
+WAIT_PROMO_ACTIVATE = 18
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 PE_USER = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
