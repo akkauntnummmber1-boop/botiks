@@ -1,6 +1,7 @@
 import random
 import sqlite3
 import logging
+import re
 import asyncio
 import time
 import uuid
@@ -12,6 +13,7 @@ from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
 BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
 ADMIN_IDS = {5037478748, 6991875}
+ROLE_LOG_CHAT_ID = -1003782092245
 DB_DIR = 'data'
 DB_PATH = os.path.join(DB_DIR, 'bot.db')
 os.makedirs(DB_DIR, exist_ok=True)
@@ -324,6 +326,21 @@ def init_db():
     if 'hidden' not in user_cols:
         cur.execute('ALTER TABLE users ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0')
 
+    if 'banned' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN banned INTEGER NOT NULL DEFAULT 0")
+
+    if 'ban_reason' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN ban_reason TEXT")
+
+    if 'banned_until' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN banned_until INTEGER NOT NULL DEFAULT 0")
+
+    if 'banned_by' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN banned_by INTEGER")
+
+    if 'banned_at' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN banned_at INTEGER NOT NULL DEFAULT 0")
+
     if 'casino_last_spin_at' not in user_cols:
         cur.execute("ALTER TABLE users ADD COLUMN casino_last_spin_at INTEGER NOT NULL DEFAULT 0")
 
@@ -400,6 +417,8 @@ def add_phrase_db(text: str) -> bool:
 def has_luck_booster(user_id: int) -> bool:
     try:
         with db() as conn:
+            ensure_ban_columns(conn)
+            conn.commit()
             user_cols = columns(conn, "users")
             if "luck_booster_until" not in user_cols:
                 return False
@@ -668,6 +687,21 @@ def clear_expired_ban(user_id: int) -> bool:
 
 
 
+def ensure_ban_columns(conn) -> None:
+    user_cols = columns(conn, "users")
+
+    if "banned" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN banned INTEGER NOT NULL DEFAULT 0")
+    if "ban_reason" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN ban_reason TEXT")
+    if "banned_until" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN banned_until INTEGER NOT NULL DEFAULT 0")
+    if "banned_by" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN banned_by INTEGER")
+    if "banned_at" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN banned_at INTEGER NOT NULL DEFAULT 0")
+
+
 def get_user_ban_status_direct(user_id: int) -> tuple[bool, str, int]:
     """
     Надежная проверка бана напрямую из SQLite.
@@ -750,6 +784,8 @@ def set_ban_user(
     admin_id: int | None = None
 ) -> tuple[bool, str]:
     with db() as conn:
+        ensure_ban_columns(conn)
+
         row = conn.execute("SELECT user_id FROM users WHERE user_id=?", (user_id,)).fetchone()
 
         if not row:
@@ -762,13 +798,13 @@ def set_ban_user(
                 SET banned=1, ban_reason=?, banned_until=?, banned_by=?, banned_at=?
                 WHERE user_id=?
                 """,
-                (reason or "не указана", banned_until, admin_id, ts(), user_id),
+                (reason or "не указана", int(banned_until or 0), admin_id, ts(), user_id),
             )
             conn.commit()
 
             return True, (
                 "Пользователь забанен.\n"
-                f"Время: <b>{html.escape(ban_time_text(banned_until))}</b>\n"
+                f"Время: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>\n"
                 f"Причина: <b>{html.escape(reason or 'не указана')}</b>"
             )
 
@@ -1706,6 +1742,33 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
 
 
 
+def log_time_text() -> str:
+    return time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(ts()))
+
+
+async def send_role_log(context: ContextTypes.DEFAULT_TYPE, user, phrase: str, rarity_label: str, reward_milli: int):
+    username = f"@{user.username}" if getattr(user, "username", None) else "нет"
+
+    text = (
+        "🎭 <b>Получение карточки</b>\n"
+        f"⏲ Время: <b>{html.escape(log_time_text())}</b>\n"
+        f"👤 Username: <b>{html.escape(username)}</b>\n"
+        f"🆔 ID: <code>{user.id}</code>\n"
+        f"🎴 Карточка: <b>{html.escape(phrase)}</b>\n"
+        f"⭐ Редкость: <b>{html.escape(rarity_label)}</b>\n"
+        f"💰 Начислено: <b>+{money(reward_milli)}</b>"
+    )
+
+    try:
+        await context.bot.send_message(
+            chat_id=ROLE_LOG_CHAT_ID,
+            text=pe(text),
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
+
+
 async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat = update.effective_chat
@@ -1751,6 +1814,8 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f'💰 Добавлено: <b>+{money(reward_milli)}</b>',
         reply_markup=role_menu(group=is_group(chat))
     )
+
+    await send_role_log(context, user, phrase, rarity_label, reward_milli)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -3139,37 +3204,74 @@ async def search_user_finish(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
-    data = q.data
+    data = q.data or ""
+
     register_user(q.from_user)
+
     if q.message:
         remember_group(q.message.chat)
-        await send_result(update, context, profile_text(q.from_user.id))
-        return
 
-        await send_result(update, context, profile_text(q.from_user.id))
-        return
-
-    # PROFILE_FIX_FINAL_OK
-        await send_result(update, context, inventory_text(q.from_user.id))
-        return
-
-        await send_result(update, context, profile_text(q.from_user.id))
-        return
-
-    if data == 'promo_list':
+    # ВАЖНО: сначала обрабатываем заявки на вывод,
+    # чтобы кнопки "одобрить/отклонить" не открывали профиль.
+    if data.startswith('wd_ok:') or data.startswith('wd_no:'):
         await q.answer()
+
         if not is_admin(q.from_user.id):
             await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
             return
-        await q.message.reply_text(pe(promo_codes_text()), parse_mode='HTML')
-        return
 
-        await send_result(update, context, inventory_text(q.from_user.id))
+        try:
+            wid = int(data.split(':', 1)[1])
+        except Exception:
+            await q.message.reply_text(pe('❌ Ошибка заявки.'), parse_mode='HTML')
+            return
+
+        row = get_withdrawal(wid)
+
+        if not row:
+            await q.edit_message_text(pe('Заявка не найдена.'), parse_mode='HTML')
+            return
+
+        _, target, wallet, amount, status = row
+
+        if status != 'pending':
+            await q.edit_message_text(pe('Эта заявка уже обработана.'), parse_mode='HTML')
+            return
+
+        if data.startswith('wd_ok:'):
+            if set_withdrawal(wid, 'approved', q.from_user.id):
+                await q.edit_message_text(
+                    pe(f'✅ Заявка #{wid} одобрена.\nСумма: {money(amount)}'),
+                    parse_mode='HTML'
+                )
+                try:
+                    await context.bot.send_message(
+                        target,
+                        pe(f'✅ Ваша заявка на вывод {money(amount)} одобрена.'),
+                        parse_mode='HTML'
+                    )
+                except Exception:
+                    pass
+            return
+
+        if set_withdrawal(wid, 'declined', q.from_user.id):
+            add_balance(target, amount)
+            await q.edit_message_text(
+                pe(f'❌ Заявка #{wid} отклонена.\nСумма возвращена пользователю: {money(amount)}'),
+                parse_mode='HTML'
+            )
+            try:
+                await context.bot.send_message(
+                    target,
+                    pe(f'❌ Ваша заявка на вывод {money(amount)} отклонена. Средства возвращены на баланс.'),
+                    parse_mode='HTML'
+                )
+            except Exception:
+                pass
         return
 
     if data == 'profile':
         await q.answer()
-        register_user(q.from_user)
 
         if q.message.chat.type != 'private':
             await q.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
@@ -3181,6 +3283,16 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == 'transfer_money':
         await q.answer()
         await send_result(update, context, transfer_usage_text())
+        return
+
+    if data == 'promo_list':
+        await q.answer()
+
+        if not is_admin(q.from_user.id):
+            await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+            return
+
+        await q.message.reply_text(pe(promo_codes_text()), parse_mode='HTML')
         return
 
     if data == 'casino':
@@ -3204,14 +3316,14 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parts = data.split(':')
 
         if len(parts) != 3:
-            await send_clean_group_result(update, context, '❌ Ошибка ставки.')
+            await send_result(update, context, '❌ Ошибка ставки.')
             return
 
         side = normalize_coin_side(parts[1])
         amount = parse_money(parts[2])
 
         if side is None or amount is None:
-            await send_clean_group_result(update, context, '❌ Ошибка ставки.')
+            await send_result(update, context, '❌ Ошибка ставки.')
             return
 
         await play_coin(update, context, side, amount)
@@ -3221,52 +3333,24 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = claim_bonus(data.split(':', 1)[1], q.from_user.id)
         await q.answer(msg, show_alert=True)
         return
-    if data.startswith('wd_ok:') or data.startswith('wd_no:'):
-        await q.answer()
-        if not is_admin(q.from_user.id):
-            await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
-            return
-        wid = int(data.split(':', 1)[1])
-        row = get_withdrawal(wid)
-        if not row:
-            await q.edit_message_text(pe('Заявка не найдена.'), parse_mode='HTML')
-            return
-        _, target, wallet, amount, status = row
-        if status != 'pending':
-            await q.edit_message_text(pe('Эта заявка уже обработана.'), parse_mode='HTML')
-            return
-        if data.startswith('wd_ok:'):
-            if set_withdrawal(wid, 'approved', q.from_user.id):
-                await q.edit_message_text(pe(f'✅ Заявка #{wid} одобрена.\nСумма: {money(amount)}'), parse_mode='HTML')
-                try:
-                    await context.bot.send_message(target, pe(f'✅ Ваша заявка на вывод {money(amount)} одобрена.'), parse_mode='HTML')
-                except Exception:
-                    pass
-        elif set_withdrawal(wid, 'declined', q.from_user.id):
-            add_balance(target, amount)
-            await q.edit_message_text(pe(f'❌ Заявка #{wid} отклонена.\nСумма возвращена пользователю: {money(amount)}'), parse_mode='HTML')
-            try:
-                await context.bot.send_message(target, pe(f'❌ Ваша заявка на вывод {money(amount)} отклонена. Средства возвращены на баланс.'), parse_mode='HTML')
-            except Exception:
-                pass
-        return
+
     await q.answer()
+
     if data == 'whoami':
         await send_role(update, context)
-    elif data == 'profile':
-        if q.message.chat.type != 'private':
-            await q.answer('Профиль доступен только в личке.', show_alert=True)
-        else:
-            await send_result(update, context, profile_text(q.from_user.id))
+
     elif data == 'top3':
         await send_clean_group_result(update, context, top_text())
+
     elif data == 'daily_bonus':
         await q.answer('Ежедневный бонус отключен.', show_alert=True)
+
     elif data == 'admin_menu':
         if is_admin(q.from_user.id):
             await q.edit_message_text(pe(admin_panel_text()), parse_mode='HTML')
         else:
             await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+
     elif data == 'back':
         if is_group(q.message.chat):
             await q.message.reply_text(
@@ -3280,21 +3364,39 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='HTML',
                 reply_markup=reply_main_menu(is_admin(q.from_user.id), group=False)
             )
+
     elif data == 'last_phrases':
         rows = last_phrases(10)
-        text = 'Фраз пока нет.' if not rows else '📋 Последние фразы:\n\n' + '\n'.join((f'{pid}. [{RARITY_LABELS.get(rarity, rarity)}] {html.escape(txt)}' for pid, txt, rarity in rows))
+        text = 'Фраз пока нет.' if not rows else '📋 Последние фразы:\n\n' + '\n'.join(
+            f'{pid}. [{RARITY_LABELS.get(rarity, rarity)}] {html.escape(txt)}'
+            for pid, txt, rarity in rows
+        )
         await q.edit_message_text(pe(text), parse_mode='HTML', reply_markup=admin_menu())
+
     elif data == 'phrase_count':
-        await q.edit_message_text(pe(f'🔢 В базе фраз: {phrase_count()}'), reply_markup=admin_menu(), parse_mode='HTML')
+        await q.edit_message_text(
+            pe(f'🔢 В базе фраз: {phrase_count()}'),
+            reply_markup=admin_menu(),
+            parse_mode='HTML'
+        )
+
     elif data == 'admin_stats':
         if not is_admin(q.from_user.id):
             await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
             return
         await send_long_message(context.bot, q.message.chat.id, admin_stats_text(), reply_markup=admin_menu())
+
     elif data == 'groups':
+        if not is_admin(q.from_user.id):
+            await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+            return
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
 
+
+
 def main():
+    print('VERSION_RE_IMPORT_FIX')
+    print('VERSION_LOGS_WITHDRAW_BAN_FIX')
     print('VERSION_BASKETBALL_DELAY_CASINO_TEXT')
     print('VERSION_BASKETBALL_GAME')
     print('VERSION_CASINO_NO_BUTTONS')
