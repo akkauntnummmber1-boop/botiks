@@ -2827,7 +2827,7 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
-    is_goal = dice_value >= 4
+    is_goal = dice_value >= 3
     result_line = f"✅ <b>ГОООЛ!</b> Выигрыш: <b>+{money(win_milli)}</b>" if is_goal else f"❌ <b>Мимо ворот!</b> Проигрыш: <b>-{money(bet_milli)}</b>"
     return (
         f"⚽️ <b>Футбол</b>\n"
@@ -2903,7 +2903,7 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     dice_value = dice_msg.dice.value if dice_msg.dice else 1
-    is_goal = dice_value >= 4
+    is_goal = dice_value >= 3
     win_milli = bet_milli * 2 if is_goal else 0
     if win_milli > 0:
         add_balance(user.id, win_milli)
@@ -3630,6 +3630,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_FOOTBALL_GOAL_FIX')
     print('VERSION_FOOTBALL_15S_BANLIST_RANDOM_ROLES')
     print('VERSION_RE_IMPORT_FIX')
     print('VERSION_LOGS_WITHDRAW_BAN_FIX')
