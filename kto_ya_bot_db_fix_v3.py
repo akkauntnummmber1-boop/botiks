@@ -495,7 +495,8 @@ def ban_time_text(banned_until: int) -> str:
 def clear_expired_ban(user_id: int) -> bool:
     row = get_user(user_id)
 
-    if not row or len(row) < 13:
+    # В старой структуре бана еще нет.
+    if not row or len(row) < 14:
         return False
 
     banned = int(row[8] or 0)
@@ -517,33 +518,79 @@ def clear_expired_ban(user_id: int) -> bool:
     return False
 
 
-def is_banned_user(user_id: int) -> bool:
-    clear_expired_ban(user_id)
-    row = get_user(user_id)
 
-    if not row:
-        return False
-
-    # Индекс 8 — banned.
-    # Важно: не путать с casino_last_spin_at.
+def get_user_ban_status_direct(user_id: int) -> tuple[bool, str, int]:
+    """
+    Надежная проверка бана напрямую из SQLite.
+    Не использует get_user(), потому что у старых версий tuple может иметь другую структуру.
+    Возвращает: banned, reason, banned_until.
+    """
     try:
-        return bool(int(row[8] or 0))
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "banned" not in user_cols:
+                return False, "", 0
+
+            select_fields = ["banned"]
+
+            if "ban_reason" in user_cols:
+                select_fields.append("ban_reason")
+            else:
+                select_fields.append("NULL")
+
+            if "banned_until" in user_cols:
+                select_fields.append("banned_until")
+            else:
+                select_fields.append("0")
+
+            row = conn.execute(
+                f"SELECT {', '.join(select_fields)} FROM users WHERE user_id=?",
+                (user_id,),
+            ).fetchone()
+
+            if not row:
+                return False, "", 0
+
+            banned = bool(int(row[0] or 0))
+            reason = row[1] or "не указана"
+            banned_until = int(row[2] or 0)
+
+            # Если бан временный и истек — автоматически снимаем.
+            if banned and banned_until and banned_until <= ts():
+                reset_fields = ["banned=0"]
+
+                if "ban_reason" in user_cols:
+                    reset_fields.append("ban_reason=NULL")
+                if "banned_until" in user_cols:
+                    reset_fields.append("banned_until=0")
+                if "banned_by" in user_cols:
+                    reset_fields.append("banned_by=NULL")
+                if "banned_at" in user_cols:
+                    reset_fields.append("banned_at=0")
+
+                conn.execute(
+                    f"UPDATE users SET {', '.join(reset_fields)} WHERE user_id=?",
+                    (user_id,),
+                )
+                conn.commit()
+
+                return False, "", 0
+
+            return banned, reason, banned_until
+
     except Exception:
-        return False
+        # При любой проблеме с миграцией/колонками не баним пользователя ложно.
+        return False, "", 0
+
+
+def is_banned_user(user_id: int) -> bool:
+    banned, reason, banned_until = get_user_ban_status_direct(user_id)
+    return banned
 
 
 def get_ban_info(user_id: int) -> tuple[bool, str, int]:
-    clear_expired_ban(user_id)
-    row = get_user(user_id)
-
-    if not row or len(row) < 13:
-        return False, "", 0
-
-    banned = bool(row[8])
-    reason = row[9] or "не указана"
-    banned_until = int(row[10] or 0)
-
-    return banned, reason, banned_until
+    return get_user_ban_status_direct(user_id)
 
 
 def set_ban_user(
@@ -611,11 +658,21 @@ def search_user_text(user_id: int) -> str | None:
     if not row:
         return None
 
-    user_id, username, first_name, uid, balance, openings, last_role, hidden, banned, ban_reason, banned_until, banned_by, banned_at, *_ = row
+    user_id = row[0]
+    username = row[1]
+    first_name = row[2]
+    uid = row[3]
+    balance = row[4]
+    openings = row[5]
+    hidden = row[7] if len(row) > 7 else 0
 
     # Если человек скрыт, поиск делает вид, что его нет в боте.
     if hidden:
         return None
+
+    banned = int(row[8] or 0) if len(row) >= 14 else 0
+    ban_reason = row[9] if len(row) >= 14 else None
+    banned_until = int(row[10] or 0) if len(row) >= 14 else 0
 
     username_text = f"@{username}" if username else "нет"
     first_name_text = first_name or "нет"
@@ -635,10 +692,11 @@ def search_user_text(user_id: int) -> str | None:
     if banned:
         text += (
             f"\nПричина бана: <b>{html.escape(ban_reason or 'не указана')}</b>"
-            f"\nОсталось: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>"
+            f"\nОсталось: <b>{html.escape(ban_time_text(banned_until))}</b>"
         )
 
     return text
+
 
 
 def inc_opening(user_id: int):
@@ -707,7 +765,19 @@ def profile_text(user_id: int) -> str:
     if not row:
         return "Профиль не найден. Напиши /start."
 
-    user_id, username, first_name, uid, balance, openings, last_role, hidden, banned, ban_reason, banned_until, banned_by, banned_at, *_ = row
+    user_id = row[0]
+    username = row[1]
+    first_name = row[2]
+    uid = row[3]
+    balance = row[4]
+    openings = row[5]
+    hidden = row[7] if len(row) > 7 else 0
+
+    # Новые ban-поля есть только если len(row) >= 14.
+    banned = int(row[8] or 0) if len(row) >= 14 else 0
+    ban_reason = row[9] if len(row) >= 14 else None
+    banned_until = int(row[10] or 0) if len(row) >= 14 else 0
+
     uname = f"@{username}" if username else "нет"
     hidden_line = "\n🙈 Статус: <b>скрыт</b>" if hidden else ""
 
@@ -716,7 +786,7 @@ def profile_text(user_id: int) -> str:
         ban_line = (
             f"\n🚫 Бан: <b>да</b>"
             f"\nПричина: <b>{html.escape(ban_reason or 'не указана')}</b>"
-            f"\nОсталось: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>"
+            f"\nОсталось: <b>{html.escape(ban_time_text(banned_until))}</b>"
         )
 
     return (
@@ -729,6 +799,7 @@ def profile_text(user_id: int) -> str:
         f"{hidden_line}"
         f"{ban_line}"
     )
+
 
 
 def groups_text() -> str:
@@ -1119,15 +1190,16 @@ def get_casino_last_spin(user_id: int) -> int:
     if not row:
         return 0
 
-    # Индекс 13 — casino_last_spin_at.
+    # Новая структура: casino_last_spin_at — индекс 13.
     if len(row) >= 14:
         return int(row[13] or 0)
 
-    # Для старой структуры, если база/код без ban-полей.
+    # Старая структура: casino_last_spin_at — последний индекс, обычно 8.
     if len(row) >= 9:
-        return int(row[-1] or 0)
+        return int(row[8] or 0)
 
     return 0
+
 
 
 def set_casino_last_spin(user_id: int) -> None:
@@ -1231,8 +1303,15 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
     register_user(user)
     remember_group(update.effective_chat)
 
-    if is_banned_user(user.id):
-        await send_clean_group_result(update, context, '⛔ Вы забанены у бота.')
+    banned, reason, banned_until = get_user_ban_status_direct(user.id)
+    if banned:
+        await send_clean_group_result(
+            update,
+            context,
+            '⛔ Вы забанены у бота.\n'
+            f'Причина: <b>{html.escape(reason or "не указана")}</b>\n'
+            f'Осталось: <b>{html.escape(ban_time_text(banned_until))}</b>'
+        )
         return
 
     row = get_user(user.id)
@@ -1334,8 +1413,15 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
     register_user(user)
     remember_group(update.effective_chat)
 
-    if is_banned_user(user.id):
-        await send_clean_group_result(update, context, '⛔ Вы забанены у бота.')
+    banned, reason, banned_until = get_user_ban_status_direct(user.id)
+    if banned:
+        await send_clean_group_result(
+            update,
+            context,
+            '⛔ Вы забанены у бота.\n'
+            f'Причина: <b>{html.escape(reason or "не указана")}</b>\n'
+            f'Осталось: <b>{html.escape(ban_time_text(banned_until))}</b>'
+        )
         return
 
     row = get_user(user.id)
@@ -1397,8 +1483,15 @@ async def send_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(user)
     remember_group(chat)
 
-    if is_banned_user(user.id):
-        await send_result(update, context, '⛔ Вы забанены у бота.')
+    banned, reason, banned_until = get_user_ban_status_direct(user.id)
+    if banned:
+        await send_result(
+            update,
+            context,
+            '⛔ Вы забанены у бота.\n'
+            f'Причина: <b>{html.escape(reason or "не указана")}</b>\n'
+            f'Осталось: <b>{html.escape(ban_time_text(banned_until))}</b>'
+        )
         return
 
     row = get_user(user.id)
@@ -2433,6 +2526,23 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if q.message:
         remember_group(q.message.chat)
     # PROFILE_FIX_MARKER_V2
+    if data == 'profile':
+        await q.answer()
+        register_user(q.from_user)
+
+        if q.message.chat.type != 'private':
+            await q.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+
+        await send_result(
+            update,
+            context,
+            profile_text(q.from_user.id),
+            reply_markup=profile_inventory_menu()
+        )
+        return
+
+    # PROFILE_FIX_FINAL_MARKER
     if data == 'profile':
         await q.answer()
         register_user(q.from_user)
