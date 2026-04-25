@@ -1047,6 +1047,28 @@ def role_menu(group=False):
     return InlineKeyboardMarkup(buttons) if buttons else None
 
 
+def admin_panel_text() -> str:
+    return (
+        "<b>Админ-панель</b>\n\n"
+        "1️⃣ <code>/add текст</code> — добавить фразу\n"
+        "2️⃣ <code>/list</code> — последние фразы\n"
+        "3️⃣ <code>/delete ID</code> — удалить фразу\n"
+        "4️⃣ <code>/give USER_ID SUM причина</code> — выдать USDT\n"
+        "5️⃣ <code>/take USER_ID SUM</code> — забрать USDT\n"
+        "6️⃣ <code>/setuid USER_ID UID</code> — выдать кастом UID\n"
+        "7️⃣ <code>/hide USER_ID</code> — скрыть пользователя\n"
+        "8️⃣ <code>/unhide USER_ID</code> — раскрыть пользователя\n"
+        "9️⃣ <code>/ban USER_ID TIME причина</code> — забанить пользователя\n"
+        "1️⃣0️⃣ <code>/unban USER_ID</code> — разбанить пользователя\n\n"
+        "<b>Дополнительно:</b>\n"
+        "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
+        "<code>/promos</code> — список промокодов\n"
+        "<code>/adminstats</code> — статистика\n"
+        "<code>/groups</code> — группы с ботом\n"
+        "<code>/broadcast текст</code> — уведомление всем\n"
+    )
+
+
 def profile_inventory_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton('🎭 Инвентарь', callback_data='profile_inventory')]
@@ -1625,6 +1647,8 @@ async def admin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     await update.message.reply_text(pe(admin_panel_text()), parse_mode='HTML')
+
+
 
 async def add_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(update.effective_user)
@@ -2517,7 +2541,26 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # PROFILE_FIX_FINAL_OK
-    # PROFILE_INVENTORY_FINAL_FIX
+        await send_result(update, context, inventory_text(q.from_user.id))
+        return
+
+        await send_result(
+            update,
+            context,
+            profile_text(q.from_user.id),
+            reply_markup=profile_inventory_menu()
+        )
+        return
+
+    if data == 'promo_list':
+        await q.answer()
+        if not is_admin(q.from_user.id):
+            await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+            return
+        await q.message.reply_text(pe(promo_codes_text()), parse_mode='HTML')
+        return
+
+    # INVENTORY_PROFILE_CALLBACKS_FIXED
     if data in ('profile_inventory', 'inventory'):
         await q.answer()
         register_user(q.from_user)
@@ -2543,14 +2586,6 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             profile_text(q.from_user.id),
             reply_markup=profile_inventory_menu()
         )
-        return
-
-    if data == 'promo_list':
-        await q.answer()
-        if not is_admin(q.from_user.id):
-            await q.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
-            return
-        await q.message.reply_text(pe(promo_codes_text()), parse_mode='HTML')
         return
 
     if data == 'casino':
@@ -2665,12 +2700,14 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
 
 def main():
+    print('VERSION_ADMIN_FIX')
     init_db()
     app = Application.builder().token(BOT_TOKEN).defaults(Defaults(parse_mode="HTML")).build()
     app.add_handler(CommandHandler('start', start))
+    app.add_handler(CommandHandler('admin', admin_cmd))
+    app.add_handler(CommandHandler('админ', admin_cmd))
     app.add_handler(CommandHandler('menu', menu_cmd))
     app.add_handler(CommandHandler('whoami', whoami))
-    app.add_handler(CommandHandler('admin', admin_cmd))
     app.add_handler(CommandHandler('ban', ban_cmd))
     app.add_handler(CommandHandler('unban', unban_cmd))
     app.add_handler(CommandHandler('give', give_direct_cmd))
