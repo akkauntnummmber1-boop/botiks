@@ -2705,7 +2705,6 @@ def main():
     app = Application.builder().token(BOT_TOKEN).defaults(Defaults(parse_mode="HTML")).build()
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('admin', admin_cmd))
-    app.add_handler(CommandHandler('админ', admin_cmd))
     app.add_handler(CommandHandler('menu', menu_cmd))
     app.add_handler(CommandHandler('whoami', whoami))
     app.add_handler(CommandHandler('ban', ban_cmd))
