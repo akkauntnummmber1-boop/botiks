@@ -524,10 +524,12 @@ def is_banned_user(user_id: int) -> bool:
     if not row:
         return False
 
-    if len(row) >= 9:
-        return bool(row[8])
-
-    return False
+    # Индекс 8 — banned.
+    # Важно: не путать с casino_last_spin_at.
+    try:
+        return bool(int(row[8] or 0))
+    except Exception:
+        return False
 
 
 def get_ban_info(user_id: int) -> tuple[bool, str, int]:
@@ -701,12 +703,33 @@ def top_text() -> str:
 
 def profile_text(user_id: int) -> str:
     row = get_user(user_id)
+
     if not row:
-        return 'Профиль не найден. Напиши /start.'
+        return "Профиль не найден. Напиши /start."
+
     user_id, username, first_name, uid, balance, openings, last_role, hidden, banned, ban_reason, banned_until, banned_by, banned_at, *_ = row
-    uname = f'@{username}' if username else 'нет'
-    hidden_line = '\n🙈 Статус: <b>скрыт</b>' if hidden else ''
-    return f'👤 <b>Профиль</b>\n\n🆔 Telegram ID: <code>{user_id}</code>\n🔖 UID: <code>{html.escape(str(uid))}</code>\n👁 Открытия: <b>{openings}</b>\n💰 Баланс: <b>{money(balance)}</b>\n📛 Username: {html.escape(uname)}{hidden_line}'
+    uname = f"@{username}" if username else "нет"
+    hidden_line = "\n🙈 Статус: <b>скрыт</b>" if hidden else ""
+
+    ban_line = ""
+    if banned:
+        ban_line = (
+            f"\n🚫 Бан: <b>да</b>"
+            f"\nПричина: <b>{html.escape(ban_reason or 'не указана')}</b>"
+            f"\nОсталось: <b>{html.escape(ban_time_text(int(banned_until or 0)))}</b>"
+        )
+
+    return (
+        "👤 <b>Профиль</b>\n\n"
+        f"🆔 Telegram ID: <code>{user_id}</code>\n"
+        f"🔖 UID: <code>{html.escape(str(uid))}</code>\n"
+        f"👁 Открытия: <b>{openings}</b>\n"
+        f"💰 Баланс: <b>{money(balance)}</b>\n"
+        f"📛 Username: {html.escape(uname)}"
+        f"{hidden_line}"
+        f"{ban_line}"
+    )
+
 
 def groups_text() -> str:
     with db() as conn:
@@ -1096,8 +1119,13 @@ def get_casino_last_spin(user_id: int) -> int:
     if not row:
         return 0
 
+    # Индекс 13 — casino_last_spin_at.
+    if len(row) >= 14:
+        return int(row[13] or 0)
+
+    # Для старой структуры, если база/код без ban-полей.
     if len(row) >= 9:
-        return int(row[8] or 0)
+        return int(row[-1] or 0)
 
     return 0
 
@@ -2404,6 +2432,23 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     register_user(q.from_user)
     if q.message:
         remember_group(q.message.chat)
+    # PROFILE_FIX_MARKER_V2
+    if data == 'profile':
+        await q.answer()
+        register_user(q.from_user)
+
+        if q.message.chat.type != 'private':
+            await q.message.reply_text(pe('Профиль доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+
+        await send_result(
+            update,
+            context,
+            profile_text(q.from_user.id),
+            reply_markup=profile_inventory_menu()
+        )
+        return
+
     if data == 'inventory':
         await q.answer()
         register_user(q.from_user)
