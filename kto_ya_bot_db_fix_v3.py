@@ -27,17 +27,17 @@ LUCK_BOOSTER_SECONDS = 30 * 60
 CASE_SECRET_REWARD_CHANCE = 1  # 1 из 1000
 CASE_DISCOUNT_MILLI = 2000  # скидка 2 💵 на следующий кейс
 CASE_PREFIXES = ["Любитель казика", "Подружка админа", "T1 WORKER"]
-MIN_SLOT_BET_MILLI = 100       # 0.1 💵
-MAX_SLOT_BET_MILLI = 10000     # 10 💵
+MIN_SLOT_BET_MILLI = 1000       # 1 💵
+MAX_SLOT_BET_MILLI = 10**18     # без лимита, ограничение только балансом
 SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–15%
 
-MIN_COIN_BET_MILLI = 100       # 0.1 💵
-MAX_COIN_BET_MILLI = 10000     # 10 💵
+MIN_COIN_BET_MILLI = 1000       # 1 💵
+MAX_COIN_BET_MILLI = 10**18     # без лимита, ограничение только балансом
 MIN_BALL_BET_MILLI = 1000       # 1 💵
-MAX_BALL_BET_MILLI = 10000     # 10 💵
+MAX_BALL_BET_MILLI = 10**18     # без лимита, ограничение только балансом
 BASKETBALL_ANIMATION_DELAY = 4
 MIN_FOOTBALL_BET_MILLI = 1000       # 1 💵
-MAX_FOOTBALL_BET_MILLI = 10000     # 10 💵
+MAX_FOOTBALL_BET_MILLI = 10**18     # без лимита, ограничение только балансом
 FOOTBALL_ANIMATION_DELAY = 4
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
@@ -1581,10 +1581,6 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
         await send_clean_group_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>")
         return
 
-    if bet_milli > MAX_SLOT_BET_MILLI:
-        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>")
-        return
-
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
         return
@@ -1752,10 +1748,6 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
 
     if bet_milli < MIN_COIN_BET_MILLI:
         await send_clean_group_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_COIN_BET_MILLI)}</b>")
-        return
-
-    if bet_milli > MAX_COIN_BET_MILLI:
-        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_COIN_BET_MILLI)}</b>")
         return
 
     if balance_milli < bet_milli:
@@ -2740,8 +2732,7 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not context.args:
         await send_result(update, context, "🏀 <b>Баскетбол</b>\nКоманда: <code>/ball сумма</code>\nПример: <code>/ball 1</code>\n"
-                          f"Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>\n"
-                          f"Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>")
+                          f"Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>\n")
         return
 
     bet_milli = parse_money(context.args[0])
@@ -2750,9 +2741,6 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if bet_milli < MIN_BALL_BET_MILLI:
         await send_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>")
-        return
-    if bet_milli > MAX_BALL_BET_MILLI:
-        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>")
         return
 
     row = get_user(user.id)
@@ -2839,8 +2827,7 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not context.args:
         await send_result(update, context, "⚽️ <b>Футбол</b>\nКоманда: <code>/football сумма</code>\nПример: <code>/football 1</code>\n"
-                          f"Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>\n"
-                          f"Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>")
+                          f"Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>\n")
         return
 
     bet_milli = parse_money(context.args[0])
@@ -2849,9 +2836,6 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if bet_milli < MIN_FOOTBALL_BET_MILLI:
         await send_result(update, context, f"❗️ Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>")
-        return
-    if bet_milli > MAX_FOOTBALL_BET_MILLI:
-        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>")
         return
 
     row = get_user(user.id)
@@ -3595,6 +3579,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_CASINO_NO_MAX_BET')
     print('VERSION_TOKEN_USDT_VISUAL_GAME_TITLES_FIX')
     print('VERSION_BALANCE_FLOOR_FIX')
     print('VERSION_TOP_TRIGGER_LEVEL_EMOJI_FIX')
@@ -3966,7 +3951,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         '🪙 <code>/coin орел 1</code> — орел / решка\n'
         '🏀 <code>/ball 1</code> — баскетбол\n'
         '⚽️ <code>/football 1</code> — футбол\n'
-        '🎁 <code>/case open</code> — кейс'
+        '🎁 <code>/case open</code> — кейс\n\nМинимальная ставка в играх: <b>1 💵</b>'
     )
     await send_clean_group_result(update, context, text)
 
@@ -4374,9 +4359,6 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
     if bet_milli < MIN_SLOT_BET_MILLI:
         await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>')
         return
-    if bet_milli > MAX_SLOT_BET_MILLI:
-        await send_clean_group_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>')
-        return
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
         return
@@ -4416,9 +4398,6 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
     if bet_milli < MIN_COIN_BET_MILLI:
         await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_COIN_BET_MILLI)}</b>')
         return
-    if bet_milli > MAX_COIN_BET_MILLI:
-        await send_clean_group_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_COIN_BET_MILLI)}</b>')
-        return
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
         return
@@ -4457,9 +4436,6 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if bet_milli < MIN_BALL_BET_MILLI:
         await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
-        return
-    if bet_milli > MAX_BALL_BET_MILLI:
-        await send_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>')
         return
     row = get_user(user.id)
     if not row:
@@ -4507,9 +4483,6 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if bet_milli < MIN_FOOTBALL_BET_MILLI:
         await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>')
         return
-    if bet_milli > MAX_FOOTBALL_BET_MILLI:
-        await send_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>')
-        return
     row = get_user(user.id)
     if not row:
         await send_result(update, context, 'Профиль не найден. Напиши /start.')
@@ -4545,6 +4518,6 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.type == 'private':
         return ConversationHandler.END
 
+
 if __name__ == '__main__':
     main()
-
