@@ -254,7 +254,9 @@ def init_db():
     cur = conn.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS phrases (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            text TEXT NOT NULL UNIQUE,\n            created_at INTEGER NOT NULL\n        )\n        ')
-    cur.execute('\n        CREATE TABLE IF NOT EXISTS users (\n            user_id INTEGER PRIMARY KEY,\n            username TEXT,\n            first_name TEXT,\n            uid TEXT UNIQUE,\n            balance_milli INTEGER NOT NULL DEFAULT 0,\n            openings INTEGER NOT NULL DEFAULT 0,\n            last_role_at INTEGER NOT NULL DEFAULT 0,\n            hidden INTEGER NOT NULL DEFAULT 0,\n            casino_last_spin_at INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL\n        )\n        ')
+    cur.execute('\n        CREATE TABLE IF NOT EXISTS users (\n            user_id INTEGER PRIMARY KEY,\n            username TEXT,\n            first_name TEXT,\n            uid TEXT UNIQUE,\n            balance_milli INTEGER NOT NULL DEFAULT 0,\n            openings INTEGER NOT NULL DEFAULT 0,\n            last_role_at INTEGER NOT NULL DEFAULT 0,\n            hidden INTEGER NOT NULL DEFAULT 0,\n            casino_last_spin_at INTEGER NOT NULL DEFAULT 0,
+            coin_last_result TEXT,
+            coin_streak INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS bonus_claims (\n            bonus_id TEXT PRIMARY KEY,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL,\n            claimed_at INTEGER\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS daily_bonuses (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS groups (\n            chat_id INTEGER PRIMARY KEY,\n            title TEXT,\n            username TEXT,\n            type TEXT,\n            added_at INTEGER NOT NULL,\n            last_seen_at INTEGER NOT NULL\n        )\n        ')
@@ -1330,8 +1332,75 @@ def coin_side_label(side: str) -> str:
     return "Орел" if side == "orel" else "Решка"
 
 
-def roll_coin() -> str:
-    return random.choice(["orel", "reshka"])
+def get_coin_streak(user_id: int) -> tuple[str | None, int]:
+    try:
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "coin_last_result" not in user_cols or "coin_streak" not in user_cols:
+                return None, 0
+
+            row = conn.execute(
+                "SELECT coin_last_result, coin_streak FROM users WHERE user_id=?",
+                (user_id,),
+            ).fetchone()
+
+            if not row:
+                return None, 0
+
+            return row[0], int(row[1] or 0)
+    except Exception:
+        return None, 0
+
+
+def set_coin_streak(user_id: int, result: str) -> None:
+    try:
+        last_result, streak = get_coin_streak(user_id)
+
+        if last_result == result:
+            streak += 1
+        else:
+            streak = 1
+
+        with db() as conn:
+            user_cols = columns(conn, "users")
+
+            if "coin_last_result" not in user_cols or "coin_streak" not in user_cols:
+                return
+
+            conn.execute(
+                "UPDATE users SET coin_last_result=?, coin_streak=? WHERE user_id=?",
+                (result, streak, user_id),
+            )
+            conn.commit()
+    except Exception:
+        pass
+
+
+def roll_coin(user_id: int | None = None) -> str:
+    """
+    Честный шанс 50/50.
+    SystemRandom берет системный рандом, а не обычный псевдорандом.
+    Дополнительно: если у пользователя 5 раз подряд выпала одна сторона,
+    следующая принудительно меняется, чтобы не было ощущения "вечной решки".
+    """
+    rng = random.SystemRandom()
+
+    if user_id is not None:
+        last_result, streak = get_coin_streak(user_id)
+
+        if last_result in ("orel", "reshka") and streak >= 5:
+            result = "reshka" if last_result == "orel" else "orel"
+            set_coin_streak(user_id, result)
+            return result
+
+    result = rng.choice(["orel", "reshka"])
+
+    if user_id is not None:
+        set_coin_streak(user_id, result)
+
+    return result
+
 
 
 def coin_result_text(user, bet_milli: int, choice: str, result: str, win_milli: int, balance_after: int) -> str:
@@ -1402,7 +1471,7 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
         await send_clean_group_result(update, context, f"❌ {html.escape(msg)}")
         return
 
-    result = roll_coin()
+    result = roll_coin(user.id)
     win_milli = bet_milli * 2 if side == result else 0
 
     if win_milli > 0:
