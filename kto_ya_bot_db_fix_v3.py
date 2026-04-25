@@ -254,9 +254,7 @@ def init_db():
     cur = conn.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS phrases (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            text TEXT NOT NULL UNIQUE,\n            created_at INTEGER NOT NULL\n        )\n        ')
-    cur.execute('\n        CREATE TABLE IF NOT EXISTS users (\n            user_id INTEGER PRIMARY KEY,\n            username TEXT,\n            first_name TEXT,\n            uid TEXT UNIQUE,\n            balance_milli INTEGER NOT NULL DEFAULT 0,\n            openings INTEGER NOT NULL DEFAULT 0,\n            last_role_at INTEGER NOT NULL DEFAULT 0,\n            hidden INTEGER NOT NULL DEFAULT 0,\n            casino_last_spin_at INTEGER NOT NULL DEFAULT 0,
-            coin_last_result TEXT,
-            coin_streak INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL\n        )\n        ')
+    cur.execute('\n        CREATE TABLE IF NOT EXISTS users (\n            user_id INTEGER PRIMARY KEY,\n            username TEXT,\n            first_name TEXT,\n            uid TEXT UNIQUE,\n            balance_milli INTEGER NOT NULL DEFAULT 0,\n            openings INTEGER NOT NULL DEFAULT 0,\n            last_role_at INTEGER NOT NULL DEFAULT 0,\n            hidden INTEGER NOT NULL DEFAULT 0,\n            casino_last_spin_at INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS bonus_claims (\n            bonus_id TEXT PRIMARY KEY,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed INTEGER NOT NULL DEFAULT 0,\n            created_at INTEGER NOT NULL,\n            claimed_at INTEGER\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS daily_bonuses (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            user_id INTEGER NOT NULL,\n            amount_milli INTEGER NOT NULL,\n            claimed_at INTEGER NOT NULL\n        )\n        ')
     cur.execute('\n        CREATE TABLE IF NOT EXISTS groups (\n            chat_id INTEGER PRIMARY KEY,\n            title TEXT,\n            username TEXT,\n            type TEXT,\n            added_at INTEGER NOT NULL,\n            last_seen_at INTEGER NOT NULL\n        )\n        ')
@@ -301,7 +299,13 @@ def init_db():
         cur.execute('ALTER TABLE users ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0')
 
     if 'casino_last_spin_at' not in user_cols:
-        cur.execute('ALTER TABLE users ADD COLUMN casino_last_spin_at INTEGER NOT NULL DEFAULT 0')
+        cur.execute("ALTER TABLE users ADD COLUMN casino_last_spin_at INTEGER NOT NULL DEFAULT 0")
+
+    if 'coin_last_result' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN coin_last_result TEXT")
+
+    if 'coin_streak' not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN coin_streak INTEGER NOT NULL DEFAULT 0")
 
     cur.execute("INSERT OR IGNORE INTO meta (key, value) VALUES ('next_uid', '1')")
     conn.commit()
@@ -1379,10 +1383,8 @@ def set_coin_streak(user_id: int, result: str) -> None:
 
 def roll_coin(user_id: int | None = None) -> str:
     """
-    Честный шанс 50/50.
-    SystemRandom берет системный рандом, а не обычный псевдорандом.
-    Дополнительно: если у пользователя 5 раз подряд выпала одна сторона,
-    следующая принудительно меняется, чтобы не было ощущения "вечной решки".
+    Честный шанс 50/50 через SystemRandom.
+    Если одна сторона выпала 5 раз подряд, следующая будет противоположной.
     """
     rng = random.SystemRandom()
 
@@ -2674,6 +2676,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(pe(groups_text()), parse_mode='HTML')
 
 def main():
+    print('VERSION_COIN_FIX_SAFE')
     print('VERSION_ADMIN_FIX')
     init_db()
     app = Application.builder().token(BOT_TOKEN).defaults(Defaults(parse_mode="HTML")).build()
