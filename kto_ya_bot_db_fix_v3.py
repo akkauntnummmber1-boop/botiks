@@ -12,7 +12,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
 BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
-ADMIN_IDS = {6991875, 5037478748, 7736144948}
+ADMIN_IDS = {5037478748, 6991875}
 ROLE_LOG_CHAT_ID = -1003782092245
 DB_DIR = 'data'
 DB_PATH = os.path.join(DB_DIR, 'bot.db')
@@ -20,7 +20,7 @@ os.makedirs(DB_DIR, exist_ok=True)
 TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 5 * 60
 
-CASINO_COOLDOWN_SECONDS = 0     # без кд
+CASINO_COOLDOWN_SECONDS = 15
 CASE_PRICE_MILLI = 5000  # 5 💵
 CASE_COOLDOWN_SECONDS = 30
 LUCK_BOOSTER_SECONDS = 30 * 60
@@ -28,16 +28,16 @@ CASE_SECRET_REWARD_CHANCE = 1  # 1 из 1000
 CASE_DISCOUNT_MILLI = 2000  # скидка 2 💵 на следующий кейс
 CASE_PREFIXES = ["Любитель казика", "Подружка админа", "T1 WORKER"]
 MIN_SLOT_BET_MILLI = 1000       # 1 💵
-MAX_SLOT_BET_MILLI = 10**18     # без лимита
+MAX_SLOT_BET_MILLI = 6000      # 6 💵
 SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–15%
 
 MIN_COIN_BET_MILLI = 1000       # 1 💵
-MAX_COIN_BET_MILLI = 10**18     # без лимита
+MAX_COIN_BET_MILLI = 6000      # 6 💵
 MIN_BALL_BET_MILLI = 1000       # 1 💵
-MAX_BALL_BET_MILLI = 10**18     # без лимита
+MAX_BALL_BET_MILLI = 6000      # 6 💵
 BASKETBALL_ANIMATION_DELAY = 4
 MIN_FOOTBALL_BET_MILLI = 1000       # 1 💵
-MAX_FOOTBALL_BET_MILLI = 10**18     # без лимита
+MAX_FOOTBALL_BET_MILLI = 6000      # 6 💵
 FOOTBALL_ANIMATION_DELAY = 4
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
@@ -69,11 +69,11 @@ RARITY_LABELS = {
 }
 
 ROLE_REWARDS_MILLI = {
-    'common': 500,       # 0.5 💵
-    'rare': 600,         # 0.6 💵
-    'epic': 1000,        # 1 💵
-    'legendary': 1500,   # 1.5 💵
-    'secret': 30000,     # 30 💵
+    'common': 300,
+    'rare': 500,
+    'epic': 700,
+    'legendary': 1500,
+    'secret': 30000,
 }
 
 ROLE_EXP_REWARDS = {
@@ -1350,7 +1350,7 @@ def admin_panel_text() -> str:
         "<b>Дополнительно:</b>\n"
         "<code>/promo_create CODE SUM LIMIT</code> — создать промокод\n"
         "<code>/promos</code> — список промокодов\n"
-        "<code>/adminstats</code> — статистика\n<code>/startchat</code> — запустить групповое событие на 1 час\n<code>/clearmoney</code> — очистить деньги у всех игроков\n<code>/expgive USER_ID EXP</code> — выдать EXP игроку\n<code>/clearmoney</code> — очистить деньги у всех игроков\n"
+        "<code>/adminstats</code> — статистика\n<code>/startchat</code> — запустить групповое событие на 1 час\n<code>/clearmoney</code> — очистить деньги у всех игроков\n<code>/expgive USER_ID EXP</code> — выдать EXP игроку\n<code>/exptake USER_ID EXP</code> — забрать EXP у игрока\n<code>/clearmoney</code> — очистить деньги у всех игроков\n"
         "<code>/groups</code> — группы с ботом\n"
         "<code>/broadcast текст</code> — уведомление всем\n"
     )
@@ -1608,6 +1608,13 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
         await send_clean_group_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
         return
 
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+
+    if left > 0:
+        await send_clean_group_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующим спином.")
+        return
+
     ok, msg = take_balance(user.id, bet_milli)
 
     if not ok:
@@ -1768,6 +1775,13 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
 
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
+        return
+
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+
+    if left > 0:
+        await send_clean_group_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
         return
 
     ok, msg = take_balance(user.id, bet_milli)
@@ -2778,6 +2792,12 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
         return
 
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+    if left > 0:
+        await send_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
+        return
+
     ok, msg = take_balance(user.id, bet_milli)
     if not ok:
         await send_result(update, context, f"❌ {html.escape(msg)}")
@@ -2865,6 +2885,12 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     balance_milli = int(row[4])
     if balance_milli < bet_milli:
         await send_result(update, context, f"❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>")
+        return
+
+    last_spin = get_casino_last_spin(user.id)
+    left = CASINO_COOLDOWN_SECONDS - (ts() - last_spin)
+    if left > 0:
+        await send_result(update, context, f"⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
         return
 
     ok, msg = take_balance(user.id, bet_milli)
@@ -3592,7 +3618,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    print('VERSION_NO_CASINO_LIMITS_NEW_ADMIN')
+    print('VERSION_GOLD_CASINO_6_PAYLIMIT_EXPTAKE')
     print('VERSION_DAILY_EXP_EXPGIVE_STATS_STARTCHAT_DM')
     print('VERSION_ROLL_PHRASE_COMPAT_FIX')
     print('VERSION_ROLE_TRIGGER_BUTTON_FIX')
@@ -3649,6 +3675,7 @@ def main():
     app.add_handler(CommandHandler('unban', unban_cmd))
     app.add_handler(CommandHandler('give', give_direct_cmd))
     app.add_handler(CommandHandler('expgive', expgive_cmd))
+    app.add_handler(CommandHandler('exptake', exptake_cmd))
     app.add_handler(CommandHandler('take', take_direct_cmd))
     app.add_handler(CommandHandler('setuid', setuid_direct_cmd))
     app.add_handler(CommandHandler('hide', hide_direct_cmd))
@@ -4008,7 +4035,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         '🪙 <code>/coin орел 1</code> — орел / решка\n'
         '🏀 <code>/ball 1</code> — баскетбол\n'
         '⚽️ <code>/football 1</code> — футбол\n'
-        '🎁 <code>/case open</code> — кейс\n\nМинимальная ставка: <b>1 💵</b>\nДоступ: <b>только Ruby</b>'
+        '🎁 <code>/case open</code> — кейс\n\nМинимальная ставка: <b>1 💵</b>\nМаксимальная ставка: <b>10 💵</b>\nДоступ: <b>только Ruby</b>'
     )
     await send_clean_group_result(update, context, text)
 
@@ -4419,8 +4446,16 @@ async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_mil
     if bet_milli < MIN_SLOT_BET_MILLI:
         await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_SLOT_BET_MILLI)}</b>')
         return
+
+    if bet_milli > MAX_SLOT_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_SLOT_BET_MILLI)}</b>")
+        return
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_clean_group_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующим спином.')
         return
     ok, msg = take_balance(user.id, bet_milli)
     if not ok:
@@ -4457,8 +4492,16 @@ async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: st
     if bet_milli < MIN_COIN_BET_MILLI:
         await send_clean_group_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_COIN_BET_MILLI)}</b>')
         return
+
+    if bet_milli > MAX_COIN_BET_MILLI:
+        await send_clean_group_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_COIN_BET_MILLI)}</b>")
+        return
     if balance_milli < bet_milli:
         await send_clean_group_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_clean_group_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.')
         return
     ok, msg = take_balance(user.id, bet_milli)
     if not ok:
@@ -4495,6 +4538,10 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if bet_milli < MIN_BALL_BET_MILLI:
         await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
         return
+
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>")
+        return
     row = get_user(user.id)
     if not row:
         await send_result(update, context, 'Профиль не найден. Напиши /start.')
@@ -4502,6 +4549,10 @@ async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     balance_milli = int(row[4])
     if balance_milli < bet_milli:
         await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.')
         return
     ok, msg = take_balance(user.id, bet_milli)
     if not ok:
@@ -4540,6 +4591,10 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if bet_milli < MIN_FOOTBALL_BET_MILLI:
         await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>')
         return
+
+    if bet_milli > MAX_FOOTBALL_BET_MILLI:
+        await send_result(update, context, f"❗️ Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>")
+        return
     row = get_user(user.id)
     if not row:
         await send_result(update, context, 'Профиль не найден. Напиши /start.')
@@ -4547,6 +4602,10 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     balance_milli = int(row[4])
     if balance_milli < bet_milli:
         await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user.id))
+    if left > 0:
+        await send_result(update, context, f'⏲ Подождите еще <b>{left} сек.</b> перед следующей игрой.')
         return
     ok, msg = take_balance(user.id, bet_milli)
     if not ok:
@@ -4870,7 +4929,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         '⚽️ <code>/football 1</code> — футбол\n'
         '🎁 <code>/case open</code> — кейс\n\n'
         'Минимальная ставка: <b>1 💵</b>\n'
-        ''
+        'Максимальная ставка: <b>10 💵</b>\n'
         'Доступ: <b>только Ruby</b>'
     )
 
@@ -5705,6 +5764,204 @@ async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
 # ===== END FINAL DAILY EXP ADMIN EVENTS FIX =====
+
+
+# ===== FINAL GOLD CASINO 6 PAYLIMIT EXPTAKE =====
+
+PAY_DAILY_LIMIT = 5
+
+def level_info_by_exp(exp: int) -> dict:
+    exp = int(exp or 0)
+    levels = [
+        {'level': 0, 'emoji': '0⃣', 'name': 'None', 'start': 0, 'end': 50},
+        {'level': 1, 'emoji': '1⃣', 'name': 'Bronze', 'start': 50, 'end': 150},
+        {'level': 2, 'emoji': '2⃣', 'name': 'Silver', 'start': 150, 'end': 350},
+        {'level': 3, 'emoji': '3⃣', 'name': 'Gold', 'start': 350, 'end': 700},
+        {'level': 4, 'emoji': '⭐', 'name': 'Ruby', 'start': 700, 'end': None},
+    ]
+    current = levels[0]
+    for item in levels:
+        if item['end'] is None:
+            if exp >= item['start']:
+                current = item
+        elif item['start'] <= exp < item['end']:
+            current = item
+            break
+    next_level = levels[min(current['level'] + 1, len(levels) - 1)]
+    if current['end'] is None:
+        percent, need = 100, 0
+    else:
+        span = max(1, current['end'] - current['start'])
+        percent = int(max(0, min(100, ((exp - current['start']) / span) * 100)))
+        need = max(0, current['end'] - exp)
+    return {'current': current, 'next': next_level, 'percent': percent, 'need': need, 'exp': exp}
+
+
+def user_has_gold_level(user_id: int) -> bool:
+    level_name = level_info_by_exp(get_user_exp(user_id))['current']['name']
+    return level_name in ('Gold', 'Ruby')
+
+
+async def require_gold_casino(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    if user_has_gold_level(update.effective_user.id):
+        return True
+    level = level_info_by_exp(get_user_exp(update.effective_user.id))
+    await send_result(
+        update,
+        context,
+        "🔒 <b>Казино доступно с уровня Gold.</b>\n\n"
+        f"Ваш уровень: <b>{level['current']['emoji']} {level['current']['name']}</b>\n"
+        f"Ваш опыт: <b>{level['exp']} EXP</b>\n"
+        f"До Gold: <b>{max(0, 350 - level['exp'])} EXP</b>"
+    )
+    return False
+
+
+async def require_ruby_casino(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    return await require_gold_casino(update, context)
+
+
+def ensure_pay_limits_table():
+    with db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS pay_daily_limits (
+                user_id INTEGER NOT NULL,
+                day INTEGER NOT NULL,
+                count INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (user_id, day)
+            )
+        """)
+        conn.commit()
+
+
+def get_pay_count_today(user_id: int) -> int:
+    ensure_pay_limits_table()
+    with db() as conn:
+        row = conn.execute("SELECT count FROM pay_daily_limits WHERE user_id=? AND day=?", (user_id, day_start())).fetchone()
+    return int(row[0] or 0) if row else 0
+
+
+def increment_pay_count_today(user_id: int):
+    ensure_pay_limits_table()
+    with db() as conn:
+        conn.execute("""
+            INSERT INTO pay_daily_limits (user_id, day, count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(user_id, day) DO UPDATE SET count=count+1
+        """, (user_id, day_start()))
+        conn.commit()
+
+
+async def exptake_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text(pe('⛔ У тебя нет доступа.'), parse_mode='HTML')
+        return
+    if len(context.args) < 2:
+        await update.message.reply_text(pe('👏 <b>Забрать EXP</b>\n\nКоманда: <code>/exptake USER_ID EXP</code>\nПример: <code>/exptake 123456789 100</code>'), parse_mode='HTML')
+        return
+    try:
+        user_id = int(context.args[0])
+        amount = int(context.args[1])
+    except Exception:
+        await update.message.reply_text(pe('❌ USER_ID и EXP должны быть числами.'), parse_mode='HTML')
+        return
+    if amount <= 0:
+        await update.message.reply_text(pe('❌ EXP должен быть больше 0.'), parse_mode='HTML')
+        return
+    row = get_user_full(user_id)
+    if not row:
+        await update.message.reply_text(pe('❌ Пользователь не найден в базе.'), parse_mode='HTML')
+        return
+    current = get_user_exp(user_id)
+    new_exp = max(0, current - amount)
+    with db() as conn:
+        conn.execute("UPDATE users SET exp=? WHERE user_id=?", (new_exp, user_id))
+        conn.commit()
+    level = level_info_by_exp(new_exp)
+    await update.message.reply_text(
+        pe(f'👏 <b>EXP забран.</b>\n\nID: <code>{user_id}</code>\nЗабрано: <b>-{amount} EXP</b>\nТеперь: <b>{new_exp} EXP</b>\nУровень: <b>{level["current"]["emoji"]} {level["current"]["name"]}</b>'),
+        parse_mode='HTML'
+    )
+
+
+async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+    if await handle_banned_action(update, context):
+        return
+    if not await require_gold_casino(update, context):
+        return
+    await send_clean_group_result(update, context,
+        '🎮 <b>Играть</b>\n\n'
+        '🎰 <code>/slots 1</code> — слоты\n'
+        '🪙 <code>/coin орел 1</code> — орел / решка\n'
+        '🏀 <code>/ball 1</code> — баскетбол\n'
+        '⚽️ <code>/football 1</code> — футбол\n'
+        '🎁 <code>/case open</code> — кейс\n\n'
+        'Минимальная ставка: <b>1 💵</b>\n'
+        'Максимальная ставка: <b>6 💵</b>\n'
+        'Доступ: <b>с уровня Gold</b>'
+    )
+
+
+async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+    if await handle_banned_action(update, context):
+        return
+    used = get_pay_count_today(update.effective_user.id)
+    if used >= PAY_DAILY_LIMIT:
+        await send_result(update, context, f"💵 <b>Лимит переводов на сегодня исчерпан.</b>\n\nИспользовано: <b>{used}/{PAY_DAILY_LIMIT}</b>")
+        return
+    if len(context.args) < 2:
+        await send_result(update, context, transfer_usage_text())
+        return
+    target_raw = context.args[0]
+    amount = parse_money(context.args[1])
+    comment = ' '.join(context.args[2:]).strip() or 'без комментария'
+    if amount is None or amount <= 0:
+        await send_result(update, context, '❌ Введите сумму числом.')
+        return
+    target_id = resolve_user_id(target_raw)
+    if not target_id:
+        await send_result(update, context, '❌ Получатель не найден. Используй USER_ID или @username.')
+        return
+    if target_id == update.effective_user.id:
+        await send_result(update, context, '❌ Нельзя переводить самому себе.')
+        return
+    sender = get_user(update.effective_user.id)
+    if not sender:
+        await send_result(update, context, '❌ Профиль не найден. Напиши /start.')
+        return
+    sender_balance = int(sender[4])
+    if sender_balance < amount:
+        await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(sender_balance)}</b>')
+        return
+    ok, msg = take_balance(update.effective_user.id, amount)
+    if not ok:
+        await send_result(update, context, f'❌ {html.escape(msg)}')
+        return
+    add_balance(target_id, amount)
+    increment_pay_count_today(update.effective_user.id)
+    sender_name = mention(update.effective_user)
+    await send_result(update, context,
+        f"💵 <b>Перевод выполнен</b>\n\n"
+        f"Сумма: <b>{money(amount)}</b>\n"
+        f"Получатель: <code>{html.escape(str(target_raw))}</code>\n"
+        f"Комментарий: <b>{html.escape(comment)}</b>\n"
+        f"Лимит сегодня: <b>{used + 1}/{PAY_DAILY_LIMIT}</b>"
+    )
+    try:
+        await context.bot.send_message(target_id, pe(
+            f"🎁 <b>Новый перевод</b>\n\n"
+            f"👤 От кого: {sender_name}\n"
+            f"💵 Сумма: <b>{money(amount)}</b>\n"
+            f"💬 Сообщение: <b>{html.escape(comment)}</b>"
+        ), parse_mode='HTML')
+    except Exception:
+        pass
+
+# ===== END FINAL GOLD CASINO 6 PAYLIMIT EXPTAKE =====
 
 if __name__ == '__main__':
     main()
