@@ -3618,6 +3618,8 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_PAY_REPLY_AND_ID_GROUPS')
+    print('VERSION_REPLY_PAY_IN_GROUPS')
     print('VERSION_GOLD_CASINO_6_PAYLIMIT_EXPTAKE')
     print('VERSION_DAILY_EXP_EXPGIVE_STATS_STARTCHAT_DM')
     print('VERSION_ROLL_PHRASE_COMPAT_FIX')
@@ -5962,6 +5964,166 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 # ===== END FINAL GOLD CASINO 6 PAYLIMIT EXPTAKE =====
+
+
+
+
+
+# ===== FINAL PAY REPLY_AND_ID GROUPS FIX =====
+
+def transfer_usage_text() -> str:
+    return (
+        '💵 <b>Передача денег</b>\n\n'
+        '<b>В группе реплаем:</b>\n'
+        '<code>/pay сумма комментарий</code>\n\n'
+        '<b>В группе по ID / username:</b>\n'
+        '<code>/pay USER_ID сумма комментарий</code>\n'
+        '<code>/pay @username сумма комментарий</code>\n\n'
+        '<b>В ЛС:</b>\n'
+        '<code>/pay USER_ID сумма комментарий</code>\n'
+        '<code>/pay @username сумма комментарий</code>\n\n'
+        'Пример реплаем: <code>/pay 1 подарок</code>\n'
+        'Пример по ID: <code>/pay 123456789 1 подарок</code>'
+    )
+
+
+async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    used = get_pay_count_today(update.effective_user.id)
+    if used >= PAY_DAILY_LIMIT:
+        await send_result(
+            update,
+            context,
+            f"💵 <b>Лимит переводов на сегодня исчерпан.</b>\n\n"
+            f"Использовано: <b>{used}/{PAY_DAILY_LIMIT}</b>"
+        )
+        return
+
+    target_id = None
+    target_label = None
+    amount = None
+    comment = 'без комментария'
+
+    if is_group(update.effective_chat):
+        # В группе два варианта:
+        # 1) Реплай: /pay сумма комментарий
+        # 2) По ID/@username: /pay USER_ID сумма комментарий
+        if not context.args:
+            await send_result(update, context, transfer_usage_text())
+            return
+
+        first_arg_amount = parse_money(context.args[0])
+
+        if update.message.reply_to_message and update.message.reply_to_message.from_user and first_arg_amount is not None:
+            target_user = update.message.reply_to_message.from_user
+
+            if target_user.is_bot:
+                await send_result(update, context, '❌ Нельзя переводить деньги боту.')
+                return
+
+            register_user(target_user)
+
+            target_id = target_user.id
+            target_label = mention(target_user)
+            amount = first_arg_amount
+            comment = ' '.join(context.args[1:]).strip() or 'без комментария'
+
+        else:
+            if len(context.args) < 2:
+                await send_result(
+                    update,
+                    context,
+                    '💵 <b>Передача денег в группе</b>\n\n'
+                    'Реплаем: <code>/pay сумма комментарий</code>\n'
+                    'По ID: <code>/pay USER_ID сумма комментарий</code>'
+                )
+                return
+
+            target_raw = context.args[0]
+            amount = parse_money(context.args[1])
+            comment = ' '.join(context.args[2:]).strip() or 'без комментария'
+            target_id = resolve_user_id(target_raw)
+            target_label = html.escape(str(target_raw))
+
+            if not target_id:
+                await send_result(update, context, '❌ Получатель не найден. Используй USER_ID или @username, либо сделай реплай.')
+                return
+
+    else:
+        # В ЛС только старый формат: /pay USER_ID сумма комментарий
+        if len(context.args) < 2:
+            await send_result(update, context, transfer_usage_text())
+            return
+
+        target_raw = context.args[0]
+        amount = parse_money(context.args[1])
+        comment = ' '.join(context.args[2:]).strip() or 'без комментария'
+        target_id = resolve_user_id(target_raw)
+        target_label = html.escape(str(target_raw))
+
+        if not target_id:
+            await send_result(update, context, '❌ Получатель не найден. Используй USER_ID или @username.')
+            return
+
+    if amount is None or amount <= 0:
+        await send_result(update, context, '❌ Введите сумму числом.')
+        return
+
+    if target_id == update.effective_user.id:
+        await send_result(update, context, '❌ Нельзя переводить самому себе.')
+        return
+
+    sender = get_user(update.effective_user.id)
+    if not sender:
+        await send_result(update, context, '❌ Профиль не найден. Напиши /start.')
+        return
+
+    sender_balance = int(sender[4])
+    if sender_balance < amount:
+        await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(sender_balance)}</b>')
+        return
+
+    ok, msg = take_balance(update.effective_user.id, amount)
+    if not ok:
+        await send_result(update, context, f'❌ {html.escape(msg)}')
+        return
+
+    add_balance(target_id, amount)
+    increment_pay_count_today(update.effective_user.id)
+
+    sender_name = mention(update.effective_user)
+
+    await send_result(
+        update,
+        context,
+        f"💵 <b>Перевод выполнен</b>\n\n"
+        f"От кого: {sender_name}\n"
+        f"Кому: {target_label}\n"
+        f"Сумма: <b>{money(amount)}</b>\n"
+        f"Комментарий: <b>{html.escape(comment)}</b>\n"
+        f"Лимит сегодня: <b>{used + 1}/{PAY_DAILY_LIMIT}</b>"
+    )
+
+    try:
+        await context.bot.send_message(
+            target_id,
+            pe(
+                f"🎁 <b>Новый перевод</b>\n\n"
+                f"👤 От кого: {sender_name}\n"
+                f"💵 Сумма: <b>{money(amount)}</b>\n"
+                f"💬 Сообщение: <b>{html.escape(comment)}</b>"
+            ),
+            parse_mode='HTML'
+        )
+    except Exception:
+        pass
+
+# ===== END FINAL PAY REPLY_AND_ID GROUPS FIX =====
 
 if __name__ == '__main__':
     main()
