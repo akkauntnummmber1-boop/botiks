@@ -3618,6 +3618,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_CASINO_BASKET_CUBE_RU')
     print('VERSION_PAY_REPLY_AND_ID_GROUPS')
     print('VERSION_REPLY_PAY_IN_GROUPS')
     print('VERSION_GOLD_CASINO_6_PAYLIMIT_EXPTAKE')
@@ -6124,6 +6125,348 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 # ===== END FINAL PAY REPLY_AND_ID GROUPS FIX =====
+
+
+# ===== FINAL CASINO RUSSIAN_BASKET_CUBE FIX =====
+
+CUBE_ANIMATION_DELAY = 4
+
+
+async def require_gold_casino(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    return True
+
+
+async def require_ruby_casino(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    return True
+
+
+def cube_multiplier(sides_count: int) -> float:
+    if sides_count <= 1:
+        return 5.0
+    if sides_count == 2:
+        return 2.5
+    return 1.7
+
+
+def cube_result_text(user, bet_milli: int, chosen_sides: list[int], dice_value: int, win_milli: int, balance_after: int) -> str:
+    sides_text = ', '.join(str(x) for x in chosen_sides)
+
+    if dice_value in chosen_sides:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🎲'
+        detail = 'Куб выпал на выбранную сторону!'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🎲'
+        detail = 'Куб выпал не на твою сторону :('
+
+    return (
+        f'{mention(user)}\n'
+        f'{headline}\n'
+        f'Вы выбрали: <b>{html.escape(sides_text)}</b>\n'
+        f'Выпало: <b>{dice_value}</b>\n\n'
+        f'{detail}\n\n'
+        f'💵 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+async def send_cube_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, chosen_sides: list[int], dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(CUBE_ANIMATION_DELAY)
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=pe(cube_result_text(user, bet_milli, chosen_sides, dice_value, win_milli, balance_after)),
+        parse_mode='HTML',
+        reply_to_message_id=message_id,
+        reply_markup=repeat_game_menu('cube', bet_milli, ','.join(str(x) for x in chosen_sides)),
+    )
+
+
+def repeat_game_menu(game: str, bet_milli: int, side: str | None = None):
+    if game == 'ball':
+        data = f'repeat:ball:{bet_milli}'
+    elif game == 'cube':
+        data = f'repeat:cube:{side}:{bet_milli}'
+    else:
+        return None
+
+    return InlineKeyboardMarkup([[InlineKeyboardButton('🔁 Повторить игру', callback_data=data)]])
+
+
+async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    text = (
+        '🎮 <b>Играть</b>\n\n'
+        '🏀 <code>баскетбол 1</code> — баскетбол\n'
+        '🎲 <code>куб 2 3 4 1</code> — куб\n\n'
+        'В кубе можно выбрать от <b>1</b> до <b>3</b> сторон.\n'
+        'Чем меньше сторон выбрано — тем больше выигрыш.\n\n'
+        'Минимальная ставка: <b>1 💵</b>\n'
+        'Максимальная ставка: <b>6 💵</b>'
+    )
+
+    await send_clean_group_result(update, context, text)
+
+
+async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+
+    register_user(user)
+    remember_group(chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    if not context.args:
+        await send_result(update, context, '🏀 <b>Баскетбол</b>\n\nКоманда: <code>баскетбол сумма</code>\nПример: <code>баскетбол 1</code>')
+        return
+
+    bet_milli = parse_money(context.args[0])
+    if bet_milli is None or bet_milli <= 0:
+        await send_result(update, context, 'Введите ставку числом. Например: <code>баскетбол 1</code>')
+        return
+
+    if bet_milli < MIN_BALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
+        return
+
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>')
+        return
+
+    row = get_user(user.id)
+    if not row:
+        await send_result(update, context, 'Профиль не найден. Напиши /start.')
+        return
+
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await send_result(update, context, f'❌ {html.escape(msg)}')
+        return
+
+    add_game_stats(user.id, bet_milli)
+
+    dice_msg = await context.bot.send_dice(
+        chat_id=chat.id,
+        emoji='🏀',
+        reply_to_message_id=update.message.message_id if update.message else None
+    )
+
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    is_hit = dice_value >= 4
+    win_milli = bet_milli * 2 if is_hit else 0
+
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+
+    context.application.create_task(
+        send_ball_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, dice_value, win_milli, balance_after)
+    )
+
+
+async def cube_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+
+    register_user(user)
+    remember_group(chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    if len(context.args) < 2:
+        await send_result(update, context, '🎲 <b>Куб</b>\n\nКоманда: <code>куб стороны ставка</code>\nПример: <code>куб 2 3 4 1</code>\n\nМожно выбрать максимум <b>3</b> стороны.')
+        return
+
+    raw_sides = []
+    amount_arg = context.args[-1]
+
+    for item in context.args[:-1]:
+        try:
+            raw_sides.append(int(item))
+        except Exception:
+            await send_result(update, context, '❌ Стороны куба должны быть числами от 1 до 6.')
+            return
+
+    chosen_sides = sorted(set(raw_sides))
+
+    if len(chosen_sides) < 1:
+        await send_result(update, context, '❌ Выбери хотя бы одну сторону куба.')
+        return
+
+    if len(chosen_sides) > 3:
+        await send_result(update, context, '❌ Можно выбрать максимум <b>3</b> стороны куба.')
+        return
+
+    if any(x < 1 or x > 6 for x in chosen_sides):
+        await send_result(update, context, '❌ Стороны куба должны быть от <b>1</b> до <b>6</b>.')
+        return
+
+    bet_milli = parse_money(amount_arg)
+    if bet_milli is None or bet_milli <= 0:
+        await send_result(update, context, 'Введите ставку числом. Например: <code>куб 2 3 4 1</code>')
+        return
+
+    if bet_milli < MIN_BALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
+        return
+
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await send_result(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>')
+        return
+
+    row = get_user(user.id)
+    if not row:
+        await send_result(update, context, 'Профиль не найден. Напиши /start.')
+        return
+
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await send_result(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await send_result(update, context, f'❌ {html.escape(msg)}')
+        return
+
+    add_game_stats(user.id, bet_milli)
+
+    dice_msg = await context.bot.send_dice(
+        chat_id=chat.id,
+        emoji='🎲',
+        reply_to_message_id=update.message.message_id if update.message else None
+    )
+
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    is_win = dice_value in chosen_sides
+    win_milli = int(round(bet_milli * cube_multiplier(len(chosen_sides)))) if is_win else 0
+
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+
+    context.application.create_task(
+        send_cube_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, chosen_sides, dice_value, win_milli, balance_after)
+    )
+
+
+async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    raw_text = update.message.text.strip()
+    txt = raw_text.lower()
+    parts = raw_text.split()
+    lower_parts = txt.split()
+
+    if context.user_data.get('waiting_promo_activate'):
+        context.user_data['waiting_promo_activate'] = False
+        ok, msg = activate_promo_code(update.effective_user.id, raw_text)
+        await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+        return
+
+    if txt in ('🏠 главное меню', 'главное меню'):
+        await open_main_screen(update, context)
+        return
+
+    if lower_parts and lower_parts[0] == 'баскетбол':
+        context.args = parts[1:]
+        await ball_cmd(update, context)
+        return
+
+    if lower_parts and lower_parts[0] == 'куб':
+        context.args = parts[1:]
+        await cube_cmd(update, context)
+        return
+
+    if txt in ('👏 ежедневный exp', 'ежедневный exp', 'ежедневный опыт', '/dailyexp'):
+        await daily_exp_cmd(update, context)
+        return
+
+    if txt in TRIGGERS or txt in ('я', 'кто', 'кто я', 'кто я?', '🎭 кто я'):
+        await send_role(update, context)
+        return
+
+    if txt in ('играть', '🎮 играть', 'казино', '🎰 казино'):
+        await show_casino(update, context)
+        return
+
+    if txt in ('профиль', '👤 профиль'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('👤 Профиль доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+        await send_result(update, context, profile_text(update.effective_user.id), reply_markup=profile_actions_menu())
+        return
+
+    if txt in ('топ 3', '🏆 топ 3', 'топ'):
+        await send_clean_group_result(update, context, top_text())
+        return
+
+    if txt in ('передача денег', '💵 передача денег'):
+        await send_result(update, context, transfer_usage_text())
+        return
+
+    if txt in ('промокод', '🎁 промокод'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('🎁 Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
+            return
+        await update.message.reply_text(pe('🎁 Введите промокод одним сообщением:'), parse_mode='HTML')
+        context.user_data['waiting_promo_activate'] = True
+        return
+
+
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    data = q.data or ''
+
+    register_user(q.from_user)
+    if q.message:
+        remember_group(q.message.chat)
+
+    if data == 'casino':
+        await q.answer()
+        await show_casino(update, context)
+        return
+
+    if data.startswith('repeat:'):
+        await q.answer()
+        parts = data.split(':')
+        game = parts[1] if len(parts) > 1 else ''
+        try:
+            if game == 'ball' and len(parts) == 3:
+                context.args = [str(int(parts[2]) / 1000)]
+                return await ball_cmd(update, context)
+            if game == 'cube' and len(parts) == 4:
+                sides = parts[2].split(',')
+                context.args = sides + [str(int(parts[3]) / 1000)]
+                return await cube_cmd(update, context)
+        except Exception:
+            await q.message.reply_text(pe('❌ Не удалось повторить игру.'), parse_mode='HTML')
+            return
+
+    return await old_buttons_visual(update, context)
+
+# ===== END FINAL CASINO RUSSIAN_BASKET_CUBE FIX =====
 
 if __name__ == '__main__':
     main()
