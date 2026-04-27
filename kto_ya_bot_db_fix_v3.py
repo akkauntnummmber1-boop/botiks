@@ -3618,6 +3618,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_DISABLE_FOOTBALL_COIN_SLOTS')
     print('VERSION_CASINO_BASKET_CUBE_RU')
     print('VERSION_PAY_REPLY_AND_ID_GROUPS')
     print('VERSION_REPLY_PAY_IN_GROUPS')
@@ -6467,6 +6468,185 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return await old_buttons_visual(update, context)
 
 # ===== END FINAL CASINO RUSSIAN_BASKET_CUBE FIX =====
+
+
+# ===== FINAL DISABLE OLD CASINO GAMES =====
+
+OLD_CASINO_GAME_DISABLED_TEXT = (
+    "❌ <b>Эта игра удалена.</b>\n\n"
+    "Доступные игры:\n"
+    "🏀 <code>баскетбол 1</code>\n"
+    "🎲 <code>куб 2 3 4 1</code>"
+)
+
+
+async def old_casino_game_disabled(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_result(update, context, OLD_CASINO_GAME_DISABLED_TEXT)
+
+
+async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await old_casino_game_disabled(update, context)
+
+
+async def coin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await old_casino_game_disabled(update, context)
+
+
+async def slots_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await old_casino_game_disabled(update, context)
+
+
+async def play_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, side: str, bet_milli: int):
+    await old_casino_game_disabled(update, context)
+
+
+async def play_slots(update: Update, context: ContextTypes.DEFAULT_TYPE, bet_milli: int):
+    await old_casino_game_disabled(update, context)
+
+
+async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    text = (
+        '🎮 <b>Играть</b>\n\n'
+        '🏀 <code>баскетбол 1</code> — баскетбол\n'
+        '🎲 <code>куб 2 3 4 1</code> — куб\n\n'
+        'В кубе можно выбрать от <b>1</b> до <b>3</b> сторон.\n'
+        'Чем меньше сторон выбрано — тем больше выигрыш.\n\n'
+        'Минимальная ставка: <b>1 💵</b>\n'
+        'Максимальная ставка: <b>6 💵</b>'
+    )
+
+    await send_clean_group_result(update, context, text)
+
+
+async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    raw_text = update.message.text.strip()
+    txt = raw_text.lower()
+    parts = raw_text.split()
+    lower_parts = txt.split()
+
+    if context.user_data.get('waiting_promo_activate'):
+        context.user_data['waiting_promo_activate'] = False
+        ok, msg = activate_promo_code(update.effective_user.id, raw_text)
+        await update.message.reply_text(pe(('✅ ' if ok else '❌ ') + msg), parse_mode='HTML')
+        return
+
+    if txt in ('🏠 главное меню', 'главное меню'):
+        await open_main_screen(update, context)
+        return
+
+    if lower_parts and lower_parts[0] == 'баскетбол':
+        context.args = parts[1:]
+        await ball_cmd(update, context)
+        return
+
+    if lower_parts and lower_parts[0] == 'куб':
+        context.args = parts[1:]
+        await cube_cmd(update, context)
+        return
+
+    if lower_parts and lower_parts[0] in (
+        'футбол', '/football', 'football',
+        'орел', 'орёл', 'решка', '/coin', 'coin',
+        'слоты', 'слот', '/slots', 'slots', 'spin', 'spins'
+    ):
+        await old_casino_game_disabled(update, context)
+        return
+
+    if txt in ('👏 ежедневный exp', 'ежедневный exp', 'ежедневный опыт', '/dailyexp'):
+        await daily_exp_cmd(update, context)
+        return
+
+    if txt in TRIGGERS or txt in ('я', 'кто', 'кто я', 'кто я?', '🎭 кто я'):
+        await send_role(update, context)
+        return
+
+    if txt in ('играть', '🎮 играть', 'казино', '🎰 казино'):
+        await show_casino(update, context)
+        return
+
+    if txt in ('профиль', '👤 профиль'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('👤 Профиль доступен только в личке с ботом.'), parse_mode='HTML')
+            return
+        await send_result(update, context, profile_text(update.effective_user.id), reply_markup=profile_actions_menu())
+        return
+
+    if txt in ('топ 3', '🏆 топ 3', 'топ'):
+        await send_clean_group_result(update, context, top_text())
+        return
+
+    if txt in ('передача денег', '💵 передача денег'):
+        await send_result(update, context, transfer_usage_text())
+        return
+
+    if txt in ('промокод', '🎁 промокод'):
+        if update.effective_chat.type != 'private':
+            await update.message.reply_text(pe('🎁 Промокоды доступны только в личке с ботом.'), parse_mode='HTML')
+            return
+        await update.message.reply_text(pe('🎁 Введите промокод одним сообщением:'), parse_mode='HTML')
+        context.user_data['waiting_promo_activate'] = True
+        return
+
+
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    data = q.data or ''
+
+    register_user(q.from_user)
+    if q.message:
+        remember_group(q.message.chat)
+
+    if data == 'casino':
+        await q.answer()
+        await show_casino(update, context)
+        return
+
+    if data.startswith('slots_bet:') or data.startswith('coin_bet:'):
+        await q.answer()
+        await q.message.reply_text(pe(OLD_CASINO_GAME_DISABLED_TEXT), parse_mode='HTML')
+        return
+
+    if data.startswith('repeat:'):
+        await q.answer()
+        parts = data.split(':')
+        game = parts[1] if len(parts) > 1 else ''
+
+        if game in ('slots', 'coin', 'football'):
+            await q.message.reply_text(pe(OLD_CASINO_GAME_DISABLED_TEXT), parse_mode='HTML')
+            return
+
+        try:
+            if game == 'ball' and len(parts) == 3:
+                context.args = [str(int(parts[2]) / 1000)]
+                return await ball_cmd(update, context)
+
+            if game == 'cube' and len(parts) == 4:
+                sides = parts[2].split(',')
+                context.args = sides + [str(int(parts[3]) / 1000)]
+                return await cube_cmd(update, context)
+
+        except Exception:
+            await q.message.reply_text(pe('❌ Не удалось повторить игру.'), parse_mode='HTML')
+            return
+
+    return await old_buttons_visual(update, context)
+
+# ===== END FINAL DISABLE OLD CASINO GAMES =====
 
 if __name__ == '__main__':
     main()
