@@ -11,7 +11,7 @@ from pathlib import Path
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
-BOT_TOKEN = '8210062279:AAEaZinIXK50BhuR5vYqBaKYaQhP_Lyb7As'
+BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
 ADMIN_IDS = {5037478748, 6991875}
 ROLE_LOG_CHAT_ID = -1003782092245
 DB_DIR = 'data'
@@ -184,6 +184,15 @@ PE_CLAN_CASTLE = '<tg-emoji emoji-id="5467928559664242360">🏰</tg-emoji>'
 PE_CLAN_OWNER = '<tg-emoji emoji-id="5321011803075923151">👑</tg-emoji>'
 PE_CLAN_LOCK = '<tg-emoji emoji-id="5296369303661067030">🔒</tg-emoji>'
 PE_CLAN_OPEN = '<tg-emoji emoji-id="5193191330079062069">🔓</tg-emoji>'
+PE_CLAN_DOOR = '<tg-emoji emoji-id="5258084656674250503">🚪</tg-emoji>'
+PE_CLAN_TROPHY = '<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji>'
+PE_CLAN_GOLD = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
+PE_CLAN_SILVER = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
+PE_CLAN_BRONZE = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
+PE_CLAN_USER = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
+PE_CLAN_OK = '<tg-emoji emoji-id="5260726538302660868">✅</tg-emoji>'
+PE_CLAN_NO = '<tg-emoji emoji-id="5260342697075416641">❌</tg-emoji>'
+
 
 
 PE_ARROW_RIGHT = '<tg-emoji emoji-id="5193191330079062069">➡️</tg-emoji>'
@@ -219,7 +228,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('🔒', PE_LOCK_EVENT), ('👏', PE_EXP_CLAP), ('🏷', PE_PREFIX_TAG), ('🏰', PE_CLAN_CASTLE), ('👑', PE_CLAN_OWNER), ('🔒', PE_CLAN_LOCK), ('🔓', PE_CLAN_OPEN), ('❗️', PE_EVENT_ALERT), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('🔒', PE_LOCK_EVENT), ('👏', PE_EXP_CLAP), ('🏷', PE_PREFIX_TAG), ('❌', PE_CLAN_NO), ('✅', PE_CLAN_OK), ('👤', PE_CLAN_USER), ('🥉', PE_CLAN_BRONZE), ('🥈', PE_CLAN_SILVER), ('🥇', PE_CLAN_GOLD), ('🏆', PE_CLAN_TROPHY), ('🚪', PE_CLAN_DOOR), ('🏰', PE_CLAN_CASTLE), ('👑', PE_CLAN_OWNER), ('🔒', PE_CLAN_LOCK), ('🔓', PE_CLAN_OPEN), ('❗️', PE_EVENT_ALERT), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -3623,6 +3632,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_CLAN_PREMIUM_EMOJI_PACK')
     print('VERSION_CLAN_MENU_INLINE_FIX')
     print('VERSION_CLAN_ADMIN_COMMANDS')
     print('VERSION_CLANS_SYSTEM')
@@ -7480,7 +7490,7 @@ def clan_menu_keyboard(user_id: int):
     rows = [
         [InlineKeyboardButton('🏰 Создать клан', callback_data='clan_create_help'), InlineKeyboardButton('🚪 Войти в клан', callback_data='clan_join_help')],
         [InlineKeyboardButton('👑 Мой клан', callback_data='clan_my'), InlineKeyboardButton('🏆 Топ 3 кланов', callback_data='clan_top3')],
-        [InlineKeyboardButton('🚶 Покинуть клан', callback_data='clan_leave')],
+        [InlineKeyboardButton('🚪 Покинуть клан', callback_data='clan_leave')],
     ]
     if row and row[7] == 'owner':
         rows.append([InlineKeyboardButton('🔒 Закрыть / открыть', callback_data='clan_toggle')])
@@ -7545,14 +7555,14 @@ def leave_clan(user_id: int) -> tuple[bool, str]:
                 conn.execute("UPDATE clans SET owner_id=? WHERE clan_id=?", (new_owner, clan_id))
                 conn.execute("DELETE FROM clan_members WHERE user_id=?", (user_id,))
                 conn.commit()
-                return True, f"🚶 Вы покинули клан <b>{html.escape(name)}</b>.\n👑 Новый владелец назначен автоматически."
+                return True, f"🚪 Вы покинули клан <b>{html.escape(name)}</b>.\n👑 Новый владелец назначен автоматически."
             conn.execute("DELETE FROM clan_members WHERE clan_id=?", (clan_id,))
             conn.execute("DELETE FROM clans WHERE clan_id=?", (clan_id,))
             conn.commit()
-            return True, f"🚶 Вы покинули клан <b>{html.escape(name)}</b>.\nКлан удалён."
+            return True, f"🚪 Вы покинули клан <b>{html.escape(name)}</b>.\nКлан удалён."
         conn.execute("DELETE FROM clan_members WHERE user_id=?", (user_id,))
         conn.commit()
-    return True, f"🚶 Вы покинули клан <b>{html.escape(name)}</b>."
+    return True, f"🚪 Вы покинули клан <b>{html.escape(name)}</b>."
 
 
 def toggle_clan_closed(user_id: int) -> tuple[bool, str]:
