@@ -20,7 +20,7 @@ os.makedirs(DB_DIR, exist_ok=True)
 TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 5 * 60
 
-CASINO_COOLDOWN_SECONDS = 15
+CASINO_COOLDOWN_SECONDS = 5     # кд казино 5 секунд
 CASE_PRICE_MILLI = 5000  # 5 💵
 CASE_COOLDOWN_SECONDS = 30
 LUCK_BOOSTER_SECONDS = 30 * 60
@@ -3618,6 +3618,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_CASINO_5_SEC_COOLDOWN')
     print('VERSION_RETURN_FOOTBALL_RU_COMMAND')
     print('VERSION_HARD_REMOVE_OLD_CASINO_GAMES')
     print('VERSION_DISABLE_FOOTBALL_COIN_SLOTS')
@@ -7168,6 +7169,206 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.answer()
 
 # ===== END FINAL RETURN FOOTBALL RU COMMAND =====
+
+
+# ===== FINAL CASINO 5 SEC COOLDOWN =====
+
+async def check_casino_cooldown(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id: int) -> bool:
+    left = CASINO_COOLDOWN_SECONDS - (ts() - get_casino_last_spin(user_id))
+    if left > 0:
+        await safe_reply_game(update, context, f"⏱ Подождите еще <b>{left} сек.</b> перед следующей игрой.")
+        return False
+    return True
+
+
+async def ball_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+    register_user(user)
+    remember_group(chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    if not await check_casino_cooldown(update, context, user.id):
+        return
+
+    if not context.args:
+        await safe_reply_game(update, context, '🏀 <b>Баскетбол</b>\n\nКоманда: <code>баскетбол сумма</code>\nПример: <code>баскетбол 1</code>')
+        return
+
+    bet_milli = parse_money(context.args[0])
+    if bet_milli is None or bet_milli <= 0:
+        await safe_reply_game(update, context, 'Введите ставку числом. Например: <code>баскетбол 1</code>')
+        return
+    if bet_milli < MIN_BALL_BET_MILLI:
+        await safe_reply_game(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
+        return
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await safe_reply_game(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>')
+        return
+
+    row = get_user(user.id)
+    if not row:
+        await safe_reply_game(update, context, 'Профиль не найден. Напиши /start.')
+        return
+
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await safe_reply_game(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await safe_reply_game(update, context, f'❌ {html.escape(msg)}')
+        return
+
+    add_game_stats(user.id, bet_milli)
+    set_casino_last_spin(user.id)
+
+    dice_msg = await context.bot.send_dice(chat_id=chat.id, emoji='🏀', reply_to_message_id=update.message.message_id if update.message else None)
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    win_milli = bet_milli * 2 if dice_value >= 4 else 0
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+    context.application.create_task(send_ball_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, dice_value, win_milli, balance_after))
+
+
+async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+    register_user(user)
+    remember_group(chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    if not await check_casino_cooldown(update, context, user.id):
+        return
+
+    if not context.args:
+        await safe_reply_game(update, context, '⚽️ <b>Футбол</b>\n\nКоманда: <code>футбол сумма</code>\nПример: <code>футбол 2</code>\n\nМинимальная ставка: <b>2 💵</b>')
+        return
+
+    bet_milli = parse_money(context.args[0])
+    if bet_milli is None or bet_milli <= 0:
+        await safe_reply_game(update, context, 'Введите ставку числом. Например: <code>футбол 2</code>')
+        return
+    if bet_milli < MIN_FOOTBALL_BET_MILLI:
+        await safe_reply_game(update, context, f'❗️ Минимальная ставка в футболе: <b>{money(MIN_FOOTBALL_BET_MILLI)}</b>')
+        return
+    if bet_milli > MAX_FOOTBALL_BET_MILLI:
+        await safe_reply_game(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_FOOTBALL_BET_MILLI)}</b>')
+        return
+
+    row = get_user(user.id)
+    if not row:
+        await safe_reply_game(update, context, 'Профиль не найден. Напиши /start.')
+        return
+
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await safe_reply_game(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await safe_reply_game(update, context, f'❌ {html.escape(msg)}')
+        return
+
+    add_game_stats(user.id, bet_milli)
+    set_casino_last_spin(user.id)
+
+    dice_msg = await context.bot.send_dice(chat_id=chat.id, emoji='⚽', reply_to_message_id=update.message.message_id if update.message else None)
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    win_milli = bet_milli * 2 if dice_value >= 3 else 0
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+    context.application.create_task(send_football_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, dice_value, win_milli, balance_after))
+
+
+async def cube_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    chat = update.effective_chat
+    register_user(user)
+    remember_group(chat)
+
+    if await handle_banned_action(update, context):
+        return
+
+    if not await check_casino_cooldown(update, context, user.id):
+        return
+
+    if len(context.args) < 2:
+        await safe_reply_game(update, context, '🎲 <b>Куб</b>\n\nКоманда: <code>куб стороны ставка</code>\nПример: <code>куб 2 3 4 1</code>\n\nМожно выбрать максимум <b>3</b> стороны.')
+        return
+
+    raw_sides = []
+    amount_arg = context.args[-1]
+    for item in context.args[:-1]:
+        try:
+            raw_sides.append(int(item))
+        except Exception:
+            await safe_reply_game(update, context, '❌ Стороны куба должны быть числами от 1 до 6.')
+            return
+
+    chosen_sides = sorted(set(raw_sides))
+    if len(chosen_sides) < 1:
+        await safe_reply_game(update, context, '❌ Выбери хотя бы одну сторону куба.')
+        return
+    if len(chosen_sides) > 3:
+        await safe_reply_game(update, context, '❌ Можно выбрать максимум <b>3</b> стороны куба.')
+        return
+    if any(x < 1 or x > 6 for x in chosen_sides):
+        await safe_reply_game(update, context, '❌ Стороны куба должны быть от <b>1</b> до <b>6</b>.')
+        return
+
+    bet_milli = parse_money(amount_arg)
+    if bet_milli is None or bet_milli <= 0:
+        await safe_reply_game(update, context, 'Введите ставку числом. Например: <code>куб 2 3 4 1</code>')
+        return
+    if bet_milli < MIN_BALL_BET_MILLI:
+        await safe_reply_game(update, context, f'❗️ Минимальная ставка: <b>{money(MIN_BALL_BET_MILLI)}</b>')
+        return
+    if bet_milli > MAX_BALL_BET_MILLI:
+        await safe_reply_game(update, context, f'❗️ Максимальная ставка: <b>{money(MAX_BALL_BET_MILLI)}</b>')
+        return
+
+    row = get_user(user.id)
+    if not row:
+        await safe_reply_game(update, context, 'Профиль не найден. Напиши /start.')
+        return
+
+    balance_milli = int(row[4])
+    if balance_milli < bet_milli:
+        await safe_reply_game(update, context, f'❌ Недостаточно средств.\nВаш баланс: <b>{money(balance_milli)}</b>')
+        return
+
+    ok, msg = take_balance(user.id, bet_milli)
+    if not ok:
+        await safe_reply_game(update, context, f'❌ {html.escape(msg)}')
+        return
+
+    add_game_stats(user.id, bet_milli)
+    set_casino_last_spin(user.id)
+
+    dice_msg = await context.bot.send_dice(chat_id=chat.id, emoji='🎲', reply_to_message_id=update.message.message_id if update.message else None)
+    dice_value = dice_msg.dice.value if dice_msg.dice else 1
+    win_milli = int(round(bet_milli * cube_multiplier(len(chosen_sides)))) if dice_value in chosen_sides else 0
+    if win_milli > 0:
+        add_balance(user.id, win_milli)
+
+    updated = get_user(user.id)
+    balance_after = int(updated[4]) if updated else 0
+    context.application.create_task(send_cube_result_later(context, chat.id, dice_msg.message_id, user, bet_milli, chosen_sides, dice_value, win_milli, balance_after))
+
+# ===== END FINAL CASINO 5 SEC COOLDOWN =====
 
 if __name__ == '__main__':
     main()
