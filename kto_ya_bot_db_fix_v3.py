@@ -12,7 +12,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.error import BadRequest
 from telegram.ext import ApplicationHandlerStop, Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
 BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
-ADMIN_IDS = {5037478748, 6991875}
+ADMIN_IDS = {5037478748, 6991875, 5975861407, 7736144948}
 
 PE_CRYPTO_CHART = '<tg-emoji emoji-id="5431577498364158238">📊</tg-emoji>'
 PE_CRYPTO_PORTFOLIO = '<tg-emoji emoji-id="5359785904535774578">💼</tg-emoji>'
