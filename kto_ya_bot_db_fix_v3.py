@@ -12,7 +12,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.error import BadRequest
 from telegram.ext import ApplicationHandlerStop, Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
 BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
-ADMIN_IDS = {5037478748, 6991875, 5975861407}
+ADMIN_IDS = {5037478748, 6991875}
 
 PE_CRYPTO_CHART = '<tg-emoji emoji-id="5431577498364158238">📊</tg-emoji>'
 PE_CRYPTO_PORTFOLIO = '<tg-emoji emoji-id="5359785904535774578">💼</tg-emoji>'
@@ -3662,6 +3662,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_GLOBAL_NUMBER_ROUNDING_FIX')
     print('VERSION_BTC_BUTTON_ICON_ORANGE')
     print('VERSION_CRYPTO_BUTTON_EMOJI_FIX')
     print('VERSION_CRYPTO_PREMIUM_EMOJI_PACK')
@@ -11392,6 +11393,89 @@ def dashboard_message_menu():
     ])
 
 # ===== END_FINAL_CRYPTO_BUTTON_EMOJI_FIX =====
+
+
+# ===== FINAL_GLOBAL_NUMBER_ROUNDING_FIX =====
+
+def _fmt_decimal_ru(value: float, max_decimals: int = 2) -> str:
+    """
+    Аккуратное округление для всех чисел:
+    1.0 -> 1
+    1.5 -> 1,5
+    1.234 -> 1,23
+    1000 -> 1 000
+    """
+    value = float(value or 0)
+    sign = '-' if value < 0 else ''
+    value = abs(value)
+
+    if value >= 1000:
+        s = f'{value:,.0f}'.replace(',', ' ')
+    else:
+        s = f'{value:.{max_decimals}f}'.rstrip('0').rstrip('.')
+
+    if not s:
+        s = '0'
+
+    return sign + s.replace('.', ',')
+
+
+def format_milli_rounded(milli: int, max_decimals: int = 2) -> str:
+    return _fmt_decimal_ru(int(milli or 0) / 1000, max_decimals=max_decimals)
+
+
+def money(milli: int) -> str:
+    return f'{format_milli_rounded(milli, 2)} 💵'
+
+
+def money_balance(milli: int) -> str:
+    return f'{format_milli_rounded(milli, 2)} 💵'
+
+
+def crypto_money_short(milli: int) -> str:
+    return f'{format_milli_rounded(milli, 2)} 💵'
+
+
+def crypto_qty_short(qty_micro: int) -> str:
+    qty = int(qty_micro or 0) / 1_000_000
+
+    # Для больших количеств — целое, для маленьких — до 4 знаков.
+    if qty >= 100:
+        return _fmt_decimal_ru(qty, 0)
+    if qty >= 1:
+        return _fmt_decimal_ru(qty, 3)
+    return _fmt_decimal_ru(qty, 4)
+
+
+def crypto_format_qty(qty_micro: int) -> str:
+    return crypto_qty_short(qty_micro)
+
+
+def crypto_format_price(price_milli: int) -> str:
+    return crypto_money_short(price_milli)
+
+
+def crypto_change_short(price_milli: int, last_price_milli: int) -> str:
+    price_milli = int(price_milli or 0)
+    last_price_milli = int(last_price_milli or price_milli or 1)
+
+    if last_price_milli <= 0:
+        return '0%'
+
+    diff = ((price_milli - last_price_milli) / last_price_milli) * 100
+    sign = '+' if diff >= 0 else ''
+    return f'{sign}{_fmt_decimal_ru(diff, 2)}%'
+
+
+def crypto_change_text(price_milli: int, last_price_milli: int) -> str:
+    change = crypto_change_short(price_milli, last_price_milli)
+    try:
+        negative = str(change).startswith('-')
+    except Exception:
+        negative = False
+    return f'📉 {change}' if negative else f'📈 {change}'
+
+# ===== END_FINAL_GLOBAL_NUMBER_ROUNDING_FIX =====
 
 if __name__ == '__main__':
     main()
