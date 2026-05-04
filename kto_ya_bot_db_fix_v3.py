@@ -14,6 +14,14 @@ from telegram.ext import ApplicationHandlerStop, Application, CallbackQueryHandl
 BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
 ADMIN_IDS = {5037478748, 6991875}
 
+PE_CRYPTO_CHART = '<tg-emoji emoji-id="5431577498364158238">📊</tg-emoji>'
+PE_CRYPTO_PORTFOLIO = '<tg-emoji emoji-id="5359785904535774578">💼</tg-emoji>'
+PE_CRYPTO_HISTORY = '<tg-emoji emoji-id="5434144690511290129">📰</tg-emoji>'
+PE_CRYPTO_GREEN = '<tg-emoji emoji-id="5305313173623041702">🟢</tg-emoji>'
+PE_CRYPTO_RED = '<tg-emoji emoji-id="5411225014148014586">🔴</tg-emoji>'
+PE_CRYPTO_OK = '<tg-emoji emoji-id="5273806972871787310">✅</tg-emoji>'
+PE_CRYPTO_NO = '<tg-emoji emoji-id="5210952531676504517">❌</tg-emoji>'
+
 PE_DAILY_TOP_TROPHY = '<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji>'
 PE_DAILY_TOP_GOLD = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
 PE_DAILY_TOP_SILVER = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
@@ -39,6 +47,8 @@ TRIGGERS = {'кто я', 'кто', 'я'}
 ROLE_COOLDOWN_SECONDS = 5 * 60
 
 CASINO_COOLDOWN_SECONDS = 5     # кд казино 5 секунд
+FOOTBALL_WIN_MULTIPLIER = 1.5      # выигрыш футбол
+BASKETBALL_WIN_MULTIPLIER = 2.0    # выигрыш баскетбол
 CASE_PRICE_MILLI = 5000  # 5 💵
 CASE_COOLDOWN_SECONDS = 30
 LUCK_BOOSTER_SECONDS = 30 * 60
@@ -248,7 +258,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('⏱', PE_TOP_CLOCK), ('💵', PE_TOP_PROFIT), ('📰', PE_TOP_ROLES), ('👤', PE_TOP_USER), ('🥉', PE_TOP_BRONZE), ('🥈', PE_TOP_SILVER), ('🥇', PE_TOP_GOLD), ('🏆', PE_TOP_TROPHY), ('⏱', PE_DAILY_TOP_CLOCK), ('💵', PE_DAILY_TOP_PROFIT), ('📰', PE_DAILY_TOP_ROLES), ('👤', PE_DAILY_TOP_USER), ('🥉', PE_DAILY_TOP_BRONZE), ('🥈', PE_DAILY_TOP_SILVER), ('🥇', PE_DAILY_TOP_GOLD), ('🏆', PE_DAILY_TOP_TROPHY), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('🔒', PE_LOCK_EVENT), ('👏', PE_EXP_CLAP), ('🏷', PE_PREFIX_TAG), ('📖', PE_ROLE_DESC), ('❌', PE_CLAN_NO), ('✅', PE_CLAN_OK), ('👤', PE_CLAN_USER), ('🥉', PE_CLAN_BRONZE), ('🥈', PE_CLAN_SILVER), ('🥇', PE_CLAN_GOLD), ('🏆', PE_CLAN_TROPHY), ('🚪', PE_CLAN_DOOR), ('🏰', PE_CLAN_CASTLE), ('👑', PE_CLAN_OWNER), ('🔒', PE_CLAN_LOCK), ('🔓', PE_CLAN_OPEN), ('❗️', PE_EVENT_ALERT), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('⏱', PE_TOP_CLOCK), ('💵', PE_TOP_PROFIT), ('📰', PE_TOP_ROLES), ('👤', PE_TOP_USER), ('🥉', PE_TOP_BRONZE), ('🥈', PE_TOP_SILVER), ('🥇', PE_TOP_GOLD), ('🏆', PE_TOP_TROPHY), ('⏱', PE_DAILY_TOP_CLOCK), ('💵', PE_DAILY_TOP_PROFIT), ('📰', PE_DAILY_TOP_ROLES), ('👤', PE_DAILY_TOP_USER), ('🥉', PE_DAILY_TOP_BRONZE), ('🥈', PE_DAILY_TOP_SILVER), ('🥇', PE_DAILY_TOP_GOLD), ('🏆', PE_DAILY_TOP_TROPHY), ('❌', PE_CRYPTO_NO), ('✅', PE_CRYPTO_OK), ('🔴', PE_CRYPTO_RED), ('🟢', PE_CRYPTO_GREEN), ('📰', PE_CRYPTO_HISTORY), ('📜', PE_CRYPTO_HISTORY), ('💼', PE_CRYPTO_PORTFOLIO), ('📊', PE_CRYPTO_CHART), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('🔒', PE_LOCK_EVENT), ('👏', PE_EXP_CLAP), ('🏷', PE_PREFIX_TAG), ('📖', PE_ROLE_DESC), ('❌', PE_CLAN_NO), ('✅', PE_CLAN_OK), ('👤', PE_CLAN_USER), ('🥉', PE_CLAN_BRONZE), ('🥈', PE_CLAN_SILVER), ('🥇', PE_CLAN_GOLD), ('🏆', PE_CLAN_TROPHY), ('🚪', PE_CLAN_DOOR), ('🏰', PE_CLAN_CASTLE), ('👑', PE_CLAN_OWNER), ('🔒', PE_CLAN_LOCK), ('🔓', PE_CLAN_OPEN), ('❗️', PE_EVENT_ALERT), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -2940,7 +2950,7 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     dice_value = dice_msg.dice.value if dice_msg.dice else 1
     is_goal = dice_value >= 3
-    win_milli = bet_milli * 2 if is_goal else 0
+    win_milli = int(round(bet_milli * 1.5)) if is_goal else 0
     if win_milli > 0:
         add_balance(user.id, win_milli)
 
@@ -3652,6 +3662,17 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_BTC_BUTTON_ICON_ORANGE')
+    print('VERSION_CRYPTO_BUTTON_EMOJI_FIX')
+    print('VERSION_CRYPTO_PREMIUM_EMOJI_PACK')
+    print('VERSION_CRYPTO_NO_LIMIT_FEE_02')
+    print('VERSION_CRYPTO_BINANCE_MINIMAL_UI')
+    print('VERSION_CRYPTO_MINIMAL_UI_FIX')
+    print('VERSION_VIRTUAL_CRYPTO_MARKET')
+    print('VERSION_COMMA_DECIMAL_AMOUNTS')
+    print('VERSION_NO_AMOUNT_ROUNDING')
+    print('VERSION_FOOTBALL_1_5_BASKETBALL_2X')
+    print('VERSION_CASINO_WIN_MULTIPLIER_1_5')
     print('VERSION_CASINO_MAX_BET_100')
     print('VERSION_CASINO_PHOTOS_DATA_PATH')
     print('VERSION_TOP3_CMD_NAME_FIX')
@@ -4702,7 +4723,7 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     dice_msg = await context.bot.send_dice(chat_id=chat.id, emoji='⚽', reply_to_message_id=update.message.message_id if update.message else None)
     dice_value = dice_msg.dice.value if dice_msg.dice else 1
     is_goal = dice_value >= 3
-    win_milli = bet_milli * 2 if is_goal else 0
+    win_milli = int(round(bet_milli * 1.5)) if is_goal else 0
     if win_milli > 0:
         add_balance(user.id, win_milli)
     set_casino_last_spin(user.id)
@@ -7070,7 +7091,7 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     dice_value = dice_msg.dice.value if dice_msg.dice else 1
     is_goal = dice_value >= 3
-    win_milli = bet_milli * 2 if is_goal else 0
+    win_milli = int(round(bet_milli * 1.5)) if is_goal else 0
 
     if win_milli > 0:
         add_balance(user.id, win_milli)
@@ -7367,7 +7388,7 @@ async def football_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     dice_msg = await context.bot.send_dice(chat_id=chat.id, emoji='⚽', reply_to_message_id=update.message.message_id if update.message else None)
     dice_value = dice_msg.dice.value if dice_msg.dice else 1
-    win_milli = bet_milli * 2 if dice_value >= 3 else 0
+    win_milli = int(round(bet_milli * 1.5)) if dice_value >= 3 else 0
     if win_milli > 0:
         add_balance(user.id, win_milli)
 
@@ -9641,6 +9662,1736 @@ async def top3_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await top_cmd(update, context)
 
 # ===== END_FINAL_TOP3_CMD_NAME_FIX =====
+
+
+# ===== FINAL_NO_AMOUNT_ROUNDING_FIX =====
+
+def format_milli_no_round(milli: int) -> str:
+    """
+    Показывает сумму без округления:
+    1000 -> 1
+    1500 -> 1.5
+    1234 -> 1.234
+    """
+    milli = int(milli or 0)
+    sign = '-' if milli < 0 else ''
+    milli = abs(milli)
+
+    whole = milli // 1000
+    frac = milli % 1000
+
+    if frac == 0:
+        return f'{sign}{whole}'
+
+    frac_text = f'{frac:03d}'.rstrip('0')
+    return f'{sign}{whole}.{frac_text}'
+
+
+def money(milli: int) -> str:
+    return f'{format_milli_no_round(milli)} 💵'
+
+
+def money_balance(milli: int) -> str:
+    return f'{format_milli_no_round(milli)} 💵'
+
+# ===== END_FINAL_NO_AMOUNT_ROUNDING_FIX =====
+
+
+# ===== FINAL_COMMA_DECIMAL_AMOUNTS =====
+
+def format_milli_no_round(milli: int) -> str:
+    """
+    Показывает сумму без округления и с запятой:
+    1000 -> 1
+    1500 -> 1,5
+    1234 -> 1,234
+    """
+    milli = int(milli or 0)
+    sign = '-' if milli < 0 else ''
+    milli = abs(milli)
+
+    whole = milli // 1000
+    frac = milli % 1000
+
+    if frac == 0:
+        return f'{sign}{whole}'
+
+    frac_text = f'{frac:03d}'.rstrip('0')
+    return f'{sign}{whole},{frac_text}'
+
+
+def money(milli: int) -> str:
+    return f'{format_milli_no_round(milli)} 💵'
+
+
+def money_balance(milli: int) -> str:
+    return f'{format_milli_no_round(milli)} 💵'
+
+# ===== END_FINAL_COMMA_DECIMAL_AMOUNTS =====
+
+
+# ===== FINAL_VIRTUAL_CRYPTO_MARKET =====
+
+from pathlib import Path as _CryptoAssetsPath
+
+CRYPTO_ASSETS_DIR = _CryptoAssetsPath("/app/data/assets/crypto")
+
+CRYPTO_PHOTOS = {
+    "market": CRYPTO_ASSETS_DIR / "market.jpg",
+    "portfolio": CRYPTO_ASSETS_DIR / "portfolio.jpg",
+    "BTC": CRYPTO_ASSETS_DIR / "btc.jpg",
+    "ETH": CRYPTO_ASSETS_DIR / "eth.jpg",
+    "TON": CRYPTO_ASSETS_DIR / "ton.jpg",
+    "SOL": CRYPTO_ASSETS_DIR / "sol.jpg",
+    "DOGE": CRYPTO_ASSETS_DIR / "doge.jpg",
+}
+
+CRYPTO_COINS = {
+    "BTC": {"name": "Bitcoin", "start_milli": 65000000, "vol_bps": 500},
+    "ETH": {"name": "Ethereum", "start_milli": 3200000, "vol_bps": 650},
+    "TON": {"name": "Toncoin", "start_milli": 5500, "vol_bps": 850},
+    "SOL": {"name": "Solana", "start_milli": 150000, "vol_bps": 950},
+    "DOGE": {"name": "Dogecoin", "start_milli": 150, "vol_bps": 1200},
+}
+
+CRYPTO_UPDATE_SECONDS = 15 * 60
+CRYPTO_FEE_BPS = 20
+CRYPTO_MIN_BUY_MILLI = 1000
+CRYPTO_MAX_PORTFOLIO_INVESTED_MILLI = 10**18
+CRYPTO_MIN_SELL_AGE_SECONDS = 5 * 60
+
+
+def crypto_photo_path(key: str):
+    path = CRYPTO_PHOTOS.get(key)
+    if path and path.exists() and path.is_file():
+        return str(path)
+    return None
+
+
+async def crypto_send_photo_or_text(context: ContextTypes.DEFAULT_TYPE, chat_id: int, text: str, photo_key: str | None = None, reply_markup=None, reply_to_message_id: int | None = None):
+    photo_path = crypto_photo_path(photo_key) if photo_key else None
+    safe_html = pe(text)
+
+    if photo_path:
+        try:
+            with open(photo_path, "rb") as photo:
+                return await context.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=photo,
+                    caption=safe_html,
+                    parse_mode='HTML',
+                    reply_markup=reply_markup,
+                    reply_to_message_id=reply_to_message_id,
+                )
+        except Exception:
+            pass
+
+    try:
+        return await context.bot.send_message(
+            chat_id=chat_id,
+            text=safe_html,
+            parse_mode='HTML',
+            reply_markup=reply_markup,
+            reply_to_message_id=reply_to_message_id,
+        )
+    except Exception:
+        plain = re.sub(r'<tg-emoji emoji-id="\d+">(.*?)</tg-emoji>', r'\1', safe_html)
+        plain = re.sub(r'<a href="[^"]+">(.*?)</a>', r'\1', plain)
+        plain = re.sub(r'</?(?:b|i|u|s|code|pre|blockquote|span)[^>]*>', '', plain)
+        if 'safe_tg_text' in globals():
+            plain = safe_tg_text(plain)
+        return await context.bot.send_message(
+            chat_id=chat_id,
+            text=plain,
+            reply_markup=reply_markup,
+            reply_to_message_id=reply_to_message_id,
+        )
+
+
+def ensure_crypto_tables():
+    with db() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS crypto_market (
+                symbol TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                price_milli INTEGER NOT NULL,
+                last_price_milli INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS crypto_holdings (
+                user_id INTEGER NOT NULL,
+                symbol TEXT NOT NULL,
+                qty_micro INTEGER NOT NULL DEFAULT 0,
+                invested_milli INTEGER NOT NULL DEFAULT 0,
+                avg_price_milli INTEGER NOT NULL DEFAULT 0,
+                updated_at INTEGER NOT NULL,
+                PRIMARY KEY (user_id, symbol)
+            )
+            """
+        )
+        now = ts()
+        for symbol, info in CRYPTO_COINS.items():
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO crypto_market (symbol, name, price_milli, last_price_milli, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (symbol, info["name"], info["start_milli"], info["start_milli"], now),
+            )
+        conn.commit()
+
+
+def crypto_update_market_if_needed():
+    ensure_crypto_tables()
+    now = ts()
+
+    with db() as conn:
+        rows = conn.execute("SELECT symbol, price_milli, updated_at FROM crypto_market").fetchall()
+
+        for symbol, price_milli, updated_at in rows:
+            if now - int(updated_at or 0) < CRYPTO_UPDATE_SECONDS:
+                continue
+
+            info = CRYPTO_COINS.get(symbol)
+            if not info:
+                continue
+
+            old_price = max(1, int(price_milli or info["start_milli"]))
+            vol_bps = int(info["vol_bps"])
+            change_bps = random.randint(-vol_bps, vol_bps)
+
+            # Маленький шанс пампа/дампа.
+            if random.randint(1, 100) <= 8:
+                change_bps += random.choice([-1, 1]) * random.randint(vol_bps // 2, vol_bps)
+
+            new_price = max(1, int(old_price * (10000 + change_bps) / 10000))
+
+            conn.execute(
+                "UPDATE crypto_market SET last_price_milli=?, price_milli=?, updated_at=? WHERE symbol=?",
+                (old_price, new_price, now, symbol),
+            )
+
+        conn.commit()
+
+
+def crypto_market_rows():
+    crypto_update_market_if_needed()
+    with db() as conn:
+        return conn.execute(
+            "SELECT symbol, name, price_milli, last_price_milli, updated_at FROM crypto_market ORDER BY CASE symbol WHEN 'BTC' THEN 1 WHEN 'ETH' THEN 2 WHEN 'TON' THEN 3 WHEN 'SOL' THEN 4 WHEN 'DOGE' THEN 5 ELSE 99 END"
+        ).fetchall()
+
+
+def crypto_price(symbol: str) -> int | None:
+    crypto_update_market_if_needed()
+    symbol = symbol.upper()
+    with db() as conn:
+        row = conn.execute("SELECT price_milli FROM crypto_market WHERE symbol=?", (symbol,)).fetchone()
+    return int(row[0]) if row else None
+
+
+def crypto_format_price(price_milli: int) -> str:
+    return money(int(price_milli))
+
+
+def crypto_format_qty(qty_micro: int) -> str:
+    qty_micro = int(qty_micro or 0)
+    whole = qty_micro // 1_000_000
+    frac = qty_micro % 1_000_000
+    if frac == 0:
+        return str(whole)
+    return f"{whole},{str(frac).zfill(6).rstrip('0')}"
+
+
+def crypto_change_text(price_milli: int, last_price_milli: int) -> str:
+    price_milli = int(price_milli or 0)
+    last_price_milli = int(last_price_milli or price_milli or 1)
+
+    if last_price_milli <= 0:
+        return "0%"
+
+    diff_bps = int((price_milli - last_price_milli) * 10000 / last_price_milli)
+    sign = "+" if diff_bps >= 0 else "-"
+    abs_bps = abs(diff_bps)
+    percent_whole = abs_bps // 100
+    percent_frac = abs_bps % 100
+    arrow = "📈" if diff_bps >= 0 else "📉"
+    return f"{arrow} {sign}{percent_whole},{str(percent_frac).zfill(2)}%"
+
+
+def crypto_menu_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("₿ BTC", callback_data="crypto_coin:BTC"),
+            InlineKeyboardButton("♦️ ETH", callback_data="crypto_coin:ETH"),
+        ],
+        [
+            InlineKeyboardButton("💎 TON", callback_data="crypto_coin:TON"),
+            InlineKeyboardButton("☀️ SOL", callback_data="crypto_coin:SOL"),
+        ],
+        [
+            InlineKeyboardButton("🐶 DOGE", callback_data="crypto_coin:DOGE"),
+        ],
+        [
+            InlineKeyboardButton("💼 Портфель", callback_data="crypto_portfolio"),
+            InlineKeyboardButton("🔄 Обновить курс", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_coin_keyboard(symbol: str):
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Купить 1 💵", callback_data=f"crypto_buy:{symbol}:1000"),
+            InlineKeyboardButton("Купить 5 💵", callback_data=f"crypto_buy:{symbol}:5000"),
+            InlineKeyboardButton("Купить 10 💵", callback_data=f"crypto_buy:{symbol}:10000"),
+        ],
+        [
+            InlineKeyboardButton("Продать всё", callback_data=f"crypto_sell_all:{symbol}"),
+            InlineKeyboardButton("💼 Портфель", callback_data="crypto_portfolio"),
+        ],
+        [
+            InlineKeyboardButton("⬅️ Назад", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_menu_text() -> str:
+    rows = crypto_market_rows()
+
+    lines = [
+        "🪙 <b>Криптовалюта</b>\n",
+        "Виртуальный рынок с игровыми курсами, похожими на реальные.",
+        "Курс обновляется каждые <b>15 минут</b>.\n",
+    ]
+
+    for symbol, name, price_milli, last_price_milli, updated_at in rows:
+        lines.append(
+            f"<b>{symbol}</b> — {html.escape(name)}\n"
+            f"Курс: <b>{crypto_format_price(price_milli)}</b> · {crypto_change_text(price_milli, last_price_milli)}"
+        )
+
+    lines.append(
+        "\nКоманды:\n"
+        "<code>крипта купить BTC 10</code>\n"
+        "<code>крипта продать BTC все</code>\n"
+        "<code>крипта портфель</code>"
+    )
+
+    return "\n\n".join(lines)
+
+
+def crypto_coin_text(symbol: str) -> str:
+    rows = crypto_market_rows()
+    data = None
+    for row in rows:
+        if row[0] == symbol:
+            data = row
+            break
+
+    if not data:
+        return "❌ Валюта не найдена."
+
+    symbol, name, price_milli, last_price_milli, updated_at = data
+    info = CRYPTO_COINS.get(symbol, {})
+    vol = int(info.get("vol_bps", 0)) / 100
+
+    return (
+        f"🪙 <b>{symbol}</b> — <b>{html.escape(name)}</b>\n\n"
+        f"Курс: <b>{crypto_format_price(price_milli)}</b>\n"
+        f"Изменение: <b>{crypto_change_text(price_milli, last_price_milli)}</b>\n"
+        f"Волатильность: <b>до {str(vol).replace('.', ',')}%</b>\n\n"
+        f"Команды:\n"
+        f"<code>крипта купить {symbol} 10</code>\n"
+        f"<code>крипта продать {symbol} все</code>\n"
+        f"<code>крипта продать {symbol} 50%</code>\n\n"
+        f"Комиссия покупки/продажи: <b>0,2%</b>\n"
+        f"Минимальная покупка: <b>1 💵</b>\n"
+        f""
+    )
+
+
+def user_crypto_portfolio_rows(user_id: int):
+    crypto_update_market_if_needed()
+    with db() as conn:
+        return conn.execute(
+            """
+            SELECT h.symbol, h.qty_micro, h.invested_milli, h.avg_price_milli, h.updated_at,
+                   m.price_milli, m.name
+            FROM crypto_holdings h
+            JOIN crypto_market m ON m.symbol=h.symbol
+            WHERE h.user_id=? AND h.qty_micro > 0
+            ORDER BY h.symbol ASC
+            """,
+            (user_id,),
+        ).fetchall()
+
+
+def crypto_portfolio_text(user_id: int) -> str:
+    rows = user_crypto_portfolio_rows(user_id)
+
+    if not rows:
+        return (
+            "💼 <b>Портфель</b>\n\n"
+            "У тебя пока нет криптовалюты.\n\n"
+            "Пример покупки:\n"
+            "<code>крипта купить BTC 10</code>"
+        )
+
+    lines = ["💼 <b>Портфель</b>\n"]
+    total_value = 0
+    total_invested = 0
+
+    for symbol, qty_micro, invested_milli, avg_price_milli, updated_at, price_milli, name in rows:
+        value_milli = int(int(qty_micro) * int(price_milli) / 1_000_000)
+        profit_milli = value_milli - int(invested_milli or 0)
+        total_value += value_milli
+        total_invested += int(invested_milli or 0)
+        sign = "+" if profit_milli >= 0 else ""
+
+        lines.append(
+            f"<b>{symbol}</b> — {html.escape(str(name))}\n"
+            f"Количество: <b>{crypto_format_qty(qty_micro)}</b>\n"
+            f"Куплено на: <b>{money(invested_milli)}</b>\n"
+            f"Сейчас стоит: <b>{money(value_milli)}</b>\n"
+            f"Профит: <b>{sign}{money(profit_milli)}</b>"
+        )
+
+    total_profit = total_value - total_invested
+    total_sign = "+" if total_profit >= 0 else ""
+
+    lines.append(
+        f"<b>Итого</b>\n"
+        f"Стоимость: <b>{money(total_value)}</b>\n"
+        f"Профит: <b>{total_sign}{money(total_profit)}</b>"
+    )
+
+    return "\n\n".join(lines)
+
+
+def crypto_total_invested(user_id: int) -> int:
+    with db() as conn:
+        row = conn.execute("SELECT COALESCE(SUM(invested_milli), 0) FROM crypto_holdings WHERE user_id=?", (user_id,)).fetchone()
+    return int(row[0] or 0) if row else 0
+
+
+def crypto_buy(user_id: int, symbol: str, amount_milli: int) -> tuple[bool, str]:
+    ensure_crypto_tables()
+    symbol = symbol.upper()
+
+    if symbol not in CRYPTO_COINS:
+        return False, "Такой криптовалюты нет."
+
+    if amount_milli < CRYPTO_MIN_BUY_MILLI:
+        return False, f"Минимальная покупка: {money(CRYPTO_MIN_BUY_MILLI)}."
+
+    if crypto_total_invested(user_id) + amount_milli > CRYPTO_MAX_PORTFOLIO_INVESTED_MILLI:
+        return False, f"Лимит вложений в крипту: {money(CRYPTO_MAX_PORTFOLIO_INVESTED_MILLI)}."
+
+    user_row = get_user(user_id)
+    if not user_row:
+        return False, "Профиль не найден. Напиши /start."
+
+    balance_milli = int(user_row[4])
+    if balance_milli < amount_milli:
+        return False, f"Недостаточно средств. Баланс: {money(balance_milli)}."
+
+    price_milli = crypto_price(symbol)
+    if not price_milli:
+        return False, "Не удалось получить курс."
+
+    fee_milli = int(amount_milli * CRYPTO_FEE_BPS / 10000)
+    net_milli = amount_milli - fee_milli
+    qty_micro = int(net_milli * 1_000_000 / price_milli)
+
+    if qty_micro <= 0:
+        return False, "Сумма слишком маленькая для покупки."
+
+    ok, msg = take_balance(user_id, amount_milli)
+    if not ok:
+        return False, msg
+
+    now = ts()
+    with db() as conn:
+        old = conn.execute(
+            "SELECT qty_micro, invested_milli FROM crypto_holdings WHERE user_id=? AND symbol=?",
+            (user_id, symbol),
+        ).fetchone()
+
+        if old:
+            old_qty, old_invested = int(old[0] or 0), int(old[1] or 0)
+            new_qty = old_qty + qty_micro
+            new_invested = old_invested + amount_milli
+            avg_price = int(new_invested * 1_000_000 / max(1, new_qty))
+            conn.execute(
+                "UPDATE crypto_holdings SET qty_micro=?, invested_milli=?, avg_price_milli=?, updated_at=? WHERE user_id=? AND symbol=?",
+                (new_qty, new_invested, avg_price, now, user_id, symbol),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO crypto_holdings (user_id, symbol, qty_micro, invested_milli, avg_price_milli, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (user_id, symbol, qty_micro, amount_milli, price_milli, now),
+            )
+
+        conn.commit()
+
+    return True, (
+        f"✅ <b>Покупка выполнена</b>\n\n"
+        f"Валюта: <b>{symbol}</b>\n"
+        f"Потрачено: <b>{money(amount_milli)}</b>\n"
+        f"Комиссия: <b>{money(fee_milli)}</b>\n"
+        f"Получено: <b>{crypto_format_qty(qty_micro)} {symbol}</b>\n"
+        f"Курс: <b>{crypto_format_price(price_milli)}</b>"
+    )
+
+
+def crypto_sell(user_id: int, symbol: str, part_raw: str) -> tuple[bool, str]:
+    ensure_crypto_tables()
+    symbol = symbol.upper()
+
+    if symbol not in CRYPTO_COINS:
+        return False, "Такой криптовалюты нет."
+
+    price_milli = crypto_price(symbol)
+    if not price_milli:
+        return False, "Не удалось получить курс."
+
+    with db() as conn:
+        row = conn.execute(
+            "SELECT qty_micro, invested_milli, updated_at FROM crypto_holdings WHERE user_id=? AND symbol=?",
+            (user_id, symbol),
+        ).fetchone()
+
+        if not row or int(row[0] or 0) <= 0:
+            return False, f"У тебя нет {symbol}."
+
+        qty_micro, invested_milli, updated_at = int(row[0]), int(row[1] or 0), int(row[2] or 0)
+
+        if ts() - updated_at < CRYPTO_MIN_SELL_AGE_SECONDS:
+            left = CRYPTO_MIN_SELL_AGE_SECONDS - (ts() - updated_at)
+            return False, f"Продажа будет доступна через {left} сек."
+
+        part = (part_raw or '').strip().lower()
+
+        if part in ('все', 'all', '100', '100%'):
+            sell_qty = qty_micro
+        elif part.endswith('%'):
+            try:
+                pct = int(part[:-1])
+            except Exception:
+                return False, "Процент продажи должен быть числом."
+            if pct <= 0 or pct > 100:
+                return False, "Процент должен быть от 1% до 100%."
+            sell_qty = int(qty_micro * pct / 100)
+        else:
+            try:
+                pct = int(part)
+                if pct <= 0 or pct > 100:
+                    return False, "Можно продать процент от 1 до 100 или написать «все»."
+                sell_qty = int(qty_micro * pct / 100)
+            except Exception:
+                return False, "Напиши: <code>крипта продать BTC все</code> или <code>крипта продать BTC 50%</code>."
+
+        sell_qty = max(1, min(qty_micro, sell_qty))
+        gross_milli = int(sell_qty * price_milli / 1_000_000)
+        fee_milli = int(gross_milli * CRYPTO_FEE_BPS / 10000)
+        receive_milli = max(0, gross_milli - fee_milli)
+
+        invested_part = int(invested_milli * sell_qty / max(1, qty_micro))
+        new_qty = qty_micro - sell_qty
+        new_invested = max(0, invested_milli - invested_part)
+
+        if new_qty <= 0:
+            conn.execute("DELETE FROM crypto_holdings WHERE user_id=? AND symbol=?", (user_id, symbol))
+        else:
+            avg_price = int(new_invested * 1_000_000 / max(1, new_qty))
+            conn.execute(
+                "UPDATE crypto_holdings SET qty_micro=?, invested_milli=?, avg_price_milli=?, updated_at=? WHERE user_id=? AND symbol=?",
+                (new_qty, new_invested, avg_price, ts(), user_id, symbol),
+            )
+
+        conn.commit()
+
+    add_balance(user_id, receive_milli)
+    profit_milli = receive_milli - invested_part
+    sign = "+" if profit_milli >= 0 else ""
+
+    return True, (
+        f"✅ <b>Продажа выполнена</b>\n\n"
+        f"Валюта: <b>{symbol}</b>\n"
+        f"Продано: <b>{crypto_format_qty(sell_qty)} {symbol}</b>\n"
+        f"Получено: <b>{money(receive_milli)}</b>\n"
+        f"Комиссия: <b>{money(fee_milli)}</b>\n"
+        f"Профит: <b>{sign}{money(profit_milli)}</b>\n"
+        f"Курс: <b>{crypto_format_price(price_milli)}</b>"
+    )
+
+
+async def show_crypto_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    chat_id = update.effective_chat.id if update.effective_chat else update.callback_query.message.chat.id
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+
+    await crypto_send_photo_or_text(
+        context=context,
+        chat_id=chat_id,
+        text=crypto_menu_text(),
+        photo_key="market",
+        reply_markup=crypto_menu_keyboard(),
+        reply_to_message_id=reply_to,
+    )
+
+
+async def show_crypto_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, symbol: str):
+    chat_id = update.effective_chat.id if update.effective_chat else update.callback_query.message.chat.id
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+
+    await crypto_send_photo_or_text(
+        context=context,
+        chat_id=chat_id,
+        text=crypto_coin_text(symbol),
+        photo_key=symbol,
+        reply_markup=crypto_coin_keyboard(symbol),
+        reply_to_message_id=reply_to,
+    )
+
+
+async def show_crypto_portfolio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+
+    chat_id = update.effective_chat.id if update.effective_chat else update.callback_query.message.chat.id
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+
+    await crypto_send_photo_or_text(
+        context=context,
+        chat_id=chat_id,
+        text=crypto_portfolio_text(update.effective_user.id),
+        photo_key="portfolio",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Назад к рынку", callback_data="crypto_menu")]]),
+        reply_to_message_id=reply_to,
+    )
+
+
+def dashboard_message_menu():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton('👤 Профиль', callback_data='profile'),
+            InlineKeyboardButton('📊 Статистика', callback_data='profile_stats'),
+        ],
+        [
+            InlineKeyboardButton('🪙 Криптовалюта', callback_data='crypto_menu'),
+            InlineKeyboardButton('👏 Ежедневный EXP', callback_data='daily_exp'),
+        ],
+        [
+            InlineKeyboardButton('🏰 Кланы', callback_data='clans'),
+            InlineKeyboardButton('💸 Вывести', callback_data='withdraw'),
+        ],
+        [
+            InlineKeyboardButton('👥 Группа', url='https://t.me/bezdnao'),
+        ],
+    ])
+
+
+_previous_buttons_for_crypto_market = buttons
+
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    data = q.data or ''
+
+    if data == 'crypto_menu':
+        await q.answer()
+        await show_crypto_menu(update, context)
+        return
+
+    if data == 'crypto_portfolio':
+        await q.answer()
+        await show_crypto_portfolio(update, context)
+        return
+
+    if data.startswith('crypto_coin:'):
+        await q.answer()
+        symbol = data.split(':', 1)[1].upper()
+        await show_crypto_coin(update, context, symbol)
+        return
+
+    if data.startswith('crypto_buy:'):
+        await q.answer()
+        _, symbol, amount_raw = data.split(':')
+        ok, msg = crypto_buy(q.from_user.id, symbol, int(amount_raw))
+        await q.message.reply_text(pe(('' if ok else '❌ ') + msg), parse_mode='HTML')
+        return
+
+    if data.startswith('crypto_sell_all:'):
+        await q.answer()
+        symbol = data.split(':', 1)[1].upper()
+        ok, msg = crypto_sell(q.from_user.id, symbol, 'все')
+        await q.message.reply_text(pe(('' if ok else '❌ ') + msg), parse_mode='HTML')
+        return
+
+    return await _previous_buttons_for_crypto_market(update, context)
+
+
+_previous_trigger_for_crypto_market = trigger
+
+async def trigger(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message and update.message.text:
+        raw = update.message.text.strip()
+        low = raw.lower()
+        parts = raw.split()
+
+        if low in ('крипта', 'криптовалюта', '🪙 криптовалюта'):
+            await show_crypto_menu(update, context)
+            return
+
+        if low in ('крипта курс', 'курс крипты', 'криптовалюта курс'):
+            await show_crypto_menu(update, context)
+            return
+
+        if low in ('крипта портфель', 'портфель крипты', 'криптовалюта портфель'):
+            await show_crypto_portfolio(update, context)
+            return
+
+        if len(parts) >= 4 and parts[0].lower() in ('крипта', 'криптовалюта') and parts[1].lower() == 'купить':
+            symbol = parts[2].upper()
+            amount_milli = parse_money(parts[3])
+            if amount_milli is None:
+                await send_result(update, context, '❌ Введите сумму числом. Пример: <code>крипта купить BTC 10</code>')
+                return
+            ok, msg = crypto_buy(update.effective_user.id, symbol, amount_milli)
+            await send_result(update, context, ('' if ok else '❌ ') + msg)
+            return
+
+        if len(parts) >= 4 and parts[0].lower() in ('крипта', 'криптовалюта') and parts[1].lower() == 'продать':
+            symbol = parts[2].upper()
+            part = parts[3]
+            ok, msg = crypto_sell(update.effective_user.id, symbol, part)
+            await send_result(update, context, ('' if ok else '❌ ') + msg)
+            return
+
+        if len(parts) >= 2 and parts[0].lower() in ('крипта', 'криптовалюта') and parts[1].upper() in CRYPTO_COINS:
+            await show_crypto_coin(update, context, parts[1].upper())
+            return
+
+    return await _previous_trigger_for_crypto_market(update, context)
+
+
+# ===== END_FINAL_VIRTUAL_CRYPTO_MARKET =====
+
+
+# ===== FINAL_CRYPTO_MINIMAL_UI_FIX =====
+
+def crypto_money_short(milli: int) -> str:
+    milli = int(milli or 0)
+    sign = '-' if milli < 0 else ''
+    milli = abs(milli)
+    value = milli / 1000
+
+    if value >= 1000:
+        txt = f'{value:,.0f}'.replace(',', ' ')
+    elif value >= 100:
+        txt = f'{value:.0f}'
+    elif value >= 10:
+        txt = f'{value:.1f}'.rstrip('0').rstrip('.')
+    else:
+        txt = f'{value:.2f}'.rstrip('0').rstrip('.')
+
+    return sign + txt.replace('.', ',') + ' 💵'
+
+
+def crypto_qty_short(qty_micro: int) -> str:
+    qty = int(qty_micro or 0) / 1_000_000
+    if qty >= 100:
+        txt = f'{qty:.0f}'
+    elif qty >= 1:
+        txt = f'{qty:.3f}'
+    elif qty >= 0.01:
+        txt = f'{qty:.4f}'
+    else:
+        txt = f'{qty:.6f}'
+    return txt.rstrip('0').rstrip('.').replace('.', ',')
+
+
+def crypto_change_short(price_milli: int, last_price_milli: int) -> str:
+    price_milli = int(price_milli or 0)
+    last_price_milli = int(last_price_milli or price_milli or 1)
+    if last_price_milli <= 0:
+        return '0%'
+    diff = ((price_milli - last_price_milli) / last_price_milli) * 100
+    sign = '+' if diff >= 0 else ''
+    return f'{sign}{diff:.1f}%'.replace('.', ',')
+
+
+def crypto_menu_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("BTC", callback_data="crypto_coin:BTC"),
+            InlineKeyboardButton("ETH", callback_data="crypto_coin:ETH"),
+            InlineKeyboardButton("TON", callback_data="crypto_coin:TON"),
+        ],
+        [
+            InlineKeyboardButton("SOL", callback_data="crypto_coin:SOL"),
+            InlineKeyboardButton("DOGE", callback_data="crypto_coin:DOGE"),
+        ],
+        [
+            InlineKeyboardButton("Портфель", callback_data="crypto_portfolio"),
+            InlineKeyboardButton("Команды", callback_data="crypto_commands"),
+        ],
+        [
+            InlineKeyboardButton("Обновить", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_coin_keyboard(symbol: str):
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Купить 1", callback_data=f"crypto_buy:{symbol}:1000"),
+            InlineKeyboardButton("Купить 5", callback_data=f"crypto_buy:{symbol}:5000"),
+            InlineKeyboardButton("Купить 10", callback_data=f"crypto_buy:{symbol}:10000"),
+        ],
+        [
+            InlineKeyboardButton("Продать всё", callback_data=f"crypto_sell_all:{symbol}"),
+            InlineKeyboardButton("Портфель", callback_data="crypto_portfolio"),
+        ],
+        [
+            InlineKeyboardButton("Назад", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_portfolio_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("Продать всё", callback_data="crypto_sell_all_portfolio")],
+        [
+            InlineKeyboardButton("Рынок", callback_data="crypto_menu"),
+            InlineKeyboardButton("Команды", callback_data="crypto_commands"),
+        ],
+    ])
+
+
+def crypto_commands_text() -> str:
+    return (
+        "🪙 <b>Команды</b>\n\n"
+        "<code>крипта</code> — рынок\n"
+        "<code>крипта портфель</code> — портфель\n"
+        "<code>крипта BTC</code> — карточка валюты\n"
+        "<code>крипта купить BTC 10</code> — купить\n"
+        "<code>крипта продать BTC все</code> — продать всё\n"
+        "<code>крипта продать BTC 50%</code> — продать часть\n\n"
+        "Валюты: <b>BTC, ETH, TON, SOL, DOGE</b>"
+    )
+
+
+def crypto_menu_text() -> str:
+    rows = crypto_market_rows()
+    lines = ["🪙 <b>Криптовалюта</b>\n"]
+
+    for symbol, name, price_milli, last_price_milli, updated_at in rows:
+        lines.append(f"<b>{symbol}</b> — {crypto_money_short(price_milli)} · {crypto_change_short(price_milli, last_price_milli)}")
+
+    lines.append("\nПокупка от <b>1 💵</b> · комиссия <b>0,2%</b>")
+    return "\n".join(lines)
+
+
+def crypto_coin_text(symbol: str) -> str:
+    rows = crypto_market_rows()
+    data = None
+    for row in rows:
+        if row[0] == symbol:
+            data = row
+            break
+
+    if not data:
+        return "❌ Валюта не найдена."
+
+    symbol, name, price_milli, last_price_milli, updated_at = data
+    return (
+        f"🪙 <b>{symbol}</b>\n\n"
+        f"Курс — <b>{crypto_money_short(price_milli)}</b>\n"
+        f"Изменение — <b>{crypto_change_short(price_milli, last_price_milli)}</b>\n\n"
+        f"Покупка от <b>1 💵</b>\n"
+        f"Комиссия — <b>0,2%</b>"
+    )
+
+
+def crypto_portfolio_text(user_id: int) -> str:
+    rows = user_crypto_portfolio_rows(user_id)
+    if not rows:
+        return (
+            "💼 <b>Портфель</b>\n\n"
+            "Пока пусто.\n\n"
+            "<code>крипта купить BTC 10</code>"
+        )
+
+    lines = ["💼 <b>Портфель</b>\n"]
+    total_value = 0
+    total_invested = 0
+
+    for symbol, qty_micro, invested_milli, avg_price_milli, updated_at, price_milli, name in rows:
+        value_milli = int(int(qty_micro) * int(price_milli) / 1_000_000)
+        profit_milli = value_milli - int(invested_milli or 0)
+        total_value += value_milli
+        total_invested += int(invested_milli or 0)
+        sign = "+" if profit_milli >= 0 else ""
+
+        lines.append(
+            f"<b>{symbol}</b> — {crypto_qty_short(qty_micro)}\n"
+            f"Стоимость: <b>{crypto_money_short(value_milli)}</b>\n"
+            f"Профит: <b>{sign}{crypto_money_short(profit_milli)}</b>"
+        )
+
+    total_profit = total_value - total_invested
+    sign = "+" if total_profit >= 0 else ""
+    lines.append(
+        f"<b>Итого</b>\n"
+        f"Стоимость: <b>{crypto_money_short(total_value)}</b>\n"
+        f"Профит: <b>{sign}{crypto_money_short(total_profit)}</b>"
+    )
+    return "\n\n".join(lines)
+
+
+def crypto_buy(user_id: int, symbol: str, amount_milli: int) -> tuple[bool, str]:
+    ensure_crypto_tables()
+    symbol = symbol.upper()
+
+    if symbol not in CRYPTO_COINS:
+        return False, "Такой криптовалюты нет."
+    if amount_milli < CRYPTO_MIN_BUY_MILLI:
+        return False, f"Минимальная покупка: {crypto_money_short(CRYPTO_MIN_BUY_MILLI)}."
+    if crypto_total_invested(user_id) + amount_milli > CRYPTO_MAX_PORTFOLIO_INVESTED_MILLI:
+        return False, f"Лимит вложений: {crypto_money_short(CRYPTO_MAX_PORTFOLIO_INVESTED_MILLI)}."
+
+    user_row = get_user(user_id)
+    if not user_row:
+        return False, "Профиль не найден. Напиши /start."
+
+    balance_milli = int(user_row[4])
+    if balance_milli < amount_milli:
+        return False, f"Недостаточно средств. Баланс: {crypto_money_short(balance_milli)}."
+
+    price_milli = crypto_price(symbol)
+    if not price_milli:
+        return False, "Не удалось получить курс."
+
+    fee_milli = int(amount_milli * CRYPTO_FEE_BPS / 10000)
+    net_milli = amount_milli - fee_milli
+    qty_micro = int(net_milli * 1_000_000 / price_milli)
+
+    if qty_micro <= 0:
+        return False, "Сумма слишком маленькая для покупки."
+
+    ok, msg = take_balance(user_id, amount_milli)
+    if not ok:
+        return False, msg
+
+    now = ts()
+    with db() as conn:
+        old = conn.execute("SELECT qty_micro, invested_milli FROM crypto_holdings WHERE user_id=? AND symbol=?", (user_id, symbol)).fetchone()
+        if old:
+            old_qty, old_invested = int(old[0] or 0), int(old[1] or 0)
+            new_qty = old_qty + qty_micro
+            new_invested = old_invested + amount_milli
+            avg_price = int(new_invested * 1_000_000 / max(1, new_qty))
+            conn.execute("UPDATE crypto_holdings SET qty_micro=?, invested_milli=?, avg_price_milli=?, updated_at=? WHERE user_id=? AND symbol=?", (new_qty, new_invested, avg_price, now, user_id, symbol))
+        else:
+            conn.execute("INSERT INTO crypto_holdings (user_id, symbol, qty_micro, invested_milli, avg_price_milli, updated_at) VALUES (?, ?, ?, ?, ?, ?)", (user_id, symbol, qty_micro, amount_milli, price_milli, now))
+        conn.commit()
+
+    return True, (
+        f"✅ <b>Куплено</b>\n\n"
+        f"{symbol}: <b>{crypto_qty_short(qty_micro)}</b>\n"
+        f"Сумма: <b>{crypto_money_short(amount_milli)}</b>\n"
+        f"Комиссия: <b>{crypto_money_short(fee_milli)}</b>\n"
+        f"Курс: <b>{crypto_money_short(price_milli)}</b>"
+    )
+
+
+def crypto_sell(user_id: int, symbol: str, part_raw: str) -> tuple[bool, str]:
+    ensure_crypto_tables()
+    symbol = symbol.upper()
+
+    if symbol not in CRYPTO_COINS:
+        return False, "Такой криптовалюты нет."
+
+    price_milli = crypto_price(symbol)
+    if not price_milli:
+        return False, "Не удалось получить курс."
+
+    with db() as conn:
+        row = conn.execute("SELECT qty_micro, invested_milli, updated_at FROM crypto_holdings WHERE user_id=? AND symbol=?", (user_id, symbol)).fetchone()
+        if not row or int(row[0] or 0) <= 0:
+            return False, f"У тебя нет {symbol}."
+
+        qty_micro, invested_milli, updated_at = int(row[0]), int(row[1] or 0), int(row[2] or 0)
+        if ts() - updated_at < CRYPTO_MIN_SELL_AGE_SECONDS:
+            left = CRYPTO_MIN_SELL_AGE_SECONDS - (ts() - updated_at)
+            return False, f"Продажа будет доступна через {left} сек."
+
+        part = (part_raw or '').strip().lower()
+        if part in ('все', 'all', '100', '100%'):
+            sell_qty = qty_micro
+        elif part.endswith('%'):
+            try:
+                pct = int(part[:-1])
+            except Exception:
+                return False, "Процент должен быть числом."
+            if pct <= 0 or pct > 100:
+                return False, "Процент от 1% до 100%."
+            sell_qty = int(qty_micro * pct / 100)
+        else:
+            try:
+                pct = int(part)
+                if pct <= 0 or pct > 100:
+                    return False, "Можно продать от 1% до 100% или «все»."
+                sell_qty = int(qty_micro * pct / 100)
+            except Exception:
+                return False, "Напиши: <code>крипта продать BTC все</code>."
+
+        sell_qty = max(1, min(qty_micro, sell_qty))
+        gross_milli = int(sell_qty * price_milli / 1_000_000)
+        fee_milli = int(gross_milli * CRYPTO_FEE_BPS / 10000)
+        receive_milli = max(0, gross_milli - fee_milli)
+        invested_part = int(invested_milli * sell_qty / max(1, qty_micro))
+        new_qty = qty_micro - sell_qty
+        new_invested = max(0, invested_milli - invested_part)
+
+        if new_qty <= 0:
+            conn.execute("DELETE FROM crypto_holdings WHERE user_id=? AND symbol=?", (user_id, symbol))
+        else:
+            avg_price = int(new_invested * 1_000_000 / max(1, new_qty))
+            conn.execute("UPDATE crypto_holdings SET qty_micro=?, invested_milli=?, avg_price_milli=?, updated_at=? WHERE user_id=? AND symbol=?", (new_qty, new_invested, avg_price, ts(), user_id, symbol))
+        conn.commit()
+
+    add_balance(user_id, receive_milli)
+    profit_milli = receive_milli - invested_part
+    sign = "+" if profit_milli >= 0 else ""
+    return True, (
+        f"✅ <b>Продано</b>\n\n"
+        f"{symbol}: <b>{crypto_qty_short(sell_qty)}</b>\n"
+        f"Получено: <b>{crypto_money_short(receive_milli)}</b>\n"
+        f"Комиссия: <b>{crypto_money_short(fee_milli)}</b>\n"
+        f"Профит: <b>{sign}{crypto_money_short(profit_milli)}</b>"
+    )
+
+
+def crypto_sell_all_portfolio(user_id: int) -> tuple[bool, str]:
+    rows = user_crypto_portfolio_rows(user_id)
+    if not rows:
+        return False, "Портфель пуст."
+
+    sold = []
+    errors = []
+    for symbol, qty_micro, invested_milli, avg_price_milli, updated_at, price_milli, name in rows:
+        ok, msg = crypto_sell(user_id, symbol, 'все')
+        if ok:
+            sold.append(symbol)
+        else:
+            errors.append(f"{symbol}: {msg}")
+
+    if not sold and errors:
+        return False, "\n".join(errors[:5])
+
+    result = "✅ <b>Портфель продан</b>\n\nПродано: <b>" + ", ".join(sold) + "</b>"
+    if errors:
+        result += "\n\nНе продано:\n" + "\n".join(errors[:3])
+    return True, result
+
+
+async def show_crypto_portfolio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+    chat_id = update.effective_chat.id if update.effective_chat else update.callback_query.message.chat.id
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+    await crypto_send_photo_or_text(context=context, chat_id=chat_id, text=crypto_portfolio_text(update.effective_user.id), photo_key="portfolio", reply_markup=crypto_portfolio_keyboard(), reply_to_message_id=reply_to)
+
+
+def dashboard_message_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton('Профиль', callback_data='profile'), InlineKeyboardButton('Статистика', callback_data='profile_stats')],
+        [InlineKeyboardButton('Криптовалюта', callback_data='crypto_menu'), InlineKeyboardButton('Ежедневный EXP', callback_data='daily_exp')],
+        [InlineKeyboardButton('Кланы', callback_data='clans'), InlineKeyboardButton('Вывести', callback_data='withdraw')],
+        [InlineKeyboardButton('Группа', url='https://t.me/bezdnao')],
+    ])
+
+
+_previous_buttons_for_crypto_minimal_ui = buttons
+
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    data = q.data or ''
+
+    if data == 'crypto_commands':
+        await q.answer()
+        await q.message.reply_text(pe(crypto_commands_text()), parse_mode='HTML')
+        return
+
+    if data == 'crypto_sell_all_portfolio':
+        await q.answer()
+        ok, msg = crypto_sell_all_portfolio(q.from_user.id)
+        await q.message.reply_text(pe(('' if ok else '❌ ') + msg), parse_mode='HTML')
+        return
+
+    return await _previous_buttons_for_crypto_minimal_ui(update, context)
+
+# ===== END_FINAL_CRYPTO_MINIMAL_UI_FIX =====
+
+
+# ===== FINAL_CRYPTO_BINANCE_MINIMAL_UI =====
+
+CRYPTO_TRADE_BUY = 'crypto_trade_buy'
+CRYPTO_TRADE_SELL = 'crypto_trade_sell'
+
+
+def crypto_pair(symbol: str) -> str:
+    return f"{symbol.upper()}/USDT"
+
+
+def crypto_pair_keyboard(symbol: str):
+    symbol = symbol.upper()
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Купить", callback_data=f"crypto_buy_open:{symbol}"),
+            InlineKeyboardButton("Продать", callback_data=f"crypto_sell_open:{symbol}"),
+        ],
+        [
+            InlineKeyboardButton("25%", callback_data=f"crypto_sell_pct:{symbol}:25"),
+            InlineKeyboardButton("50%", callback_data=f"crypto_sell_pct:{symbol}:50"),
+            InlineKeyboardButton("75%", callback_data=f"crypto_sell_pct:{symbol}:75"),
+            InlineKeyboardButton("100%", callback_data=f"crypto_sell_pct:{symbol}:100"),
+        ],
+        [
+            InlineKeyboardButton("Портфель", callback_data="crypto_portfolio"),
+            InlineKeyboardButton("Назад", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_market_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("BTC/USDT", callback_data="crypto_coin:BTC"),
+            InlineKeyboardButton("ETH/USDT", callback_data="crypto_coin:ETH"),
+        ],
+        [
+            InlineKeyboardButton("TON/USDT", callback_data="crypto_coin:TON"),
+            InlineKeyboardButton("SOL/USDT", callback_data="crypto_coin:SOL"),
+        ],
+        [InlineKeyboardButton("DOGE/USDT", callback_data="crypto_coin:DOGE")],
+        [
+            InlineKeyboardButton("Портфель", callback_data="crypto_portfolio"),
+            InlineKeyboardButton("История", callback_data="crypto_history"),
+        ],
+        [
+            InlineKeyboardButton("Команды", callback_data="crypto_commands"),
+            InlineKeyboardButton("Обновить", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_trade_buy_keyboard(symbol: str):
+    symbol = symbol.upper()
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("1 💵", callback_data=f"crypto_buy:{symbol}:1000"),
+            InlineKeyboardButton("5 💵", callback_data=f"crypto_buy:{symbol}:5000"),
+            InlineKeyboardButton("10 💵", callback_data=f"crypto_buy:{symbol}:10000"),
+        ],
+        [
+            InlineKeyboardButton("25 💵", callback_data=f"crypto_buy:{symbol}:25000"),
+            InlineKeyboardButton("50 💵", callback_data=f"crypto_buy:{symbol}:50000"),
+        ],
+        [InlineKeyboardButton("Назад", callback_data=f"crypto_coin:{symbol}")],
+    ])
+
+
+def crypto_trade_sell_keyboard(symbol: str):
+    symbol = symbol.upper()
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("25%", callback_data=f"crypto_sell_pct:{symbol}:25"),
+            InlineKeyboardButton("50%", callback_data=f"crypto_sell_pct:{symbol}:50"),
+            InlineKeyboardButton("75%", callback_data=f"crypto_sell_pct:{symbol}:75"),
+            InlineKeyboardButton("100%", callback_data=f"crypto_sell_pct:{symbol}:100"),
+        ],
+        [InlineKeyboardButton("Назад", callback_data=f"crypto_coin:{symbol}")],
+    ])
+
+
+def crypto_portfolio_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("Продать всё", callback_data="crypto_sell_all_portfolio")],
+        [
+            InlineKeyboardButton("Рынок", callback_data="crypto_menu"),
+            InlineKeyboardButton("История", callback_data="crypto_history"),
+        ],
+    ])
+
+
+def crypto_market_text() -> str:
+    rows = crypto_market_rows()
+    lines = ["📊 <b>Рынок</b>\n"]
+    for symbol, name, price_milli, last_price_milli, updated_at in rows:
+        lines.append(f"<b>{crypto_pair(symbol)}</b>    {crypto_money_short(price_milli)}    {crypto_change_short(price_milli, last_price_milli)}")
+    return "\n".join(lines)
+
+
+def crypto_menu_text() -> str:
+    return crypto_market_text()
+
+
+def crypto_user_holding(user_id: int, symbol: str):
+    ensure_crypto_tables()
+    with db() as conn:
+        return conn.execute(
+            "SELECT qty_micro, invested_milli, avg_price_milli, updated_at FROM crypto_holdings WHERE user_id=? AND symbol=?",
+            (user_id, symbol.upper()),
+        ).fetchone()
+
+
+def crypto_coin_text_for_user(user_id: int, symbol: str) -> str:
+    symbol = symbol.upper()
+    data = None
+    for row in crypto_market_rows():
+        if row[0] == symbol:
+            data = row
+            break
+    if not data:
+        return "❌ Валюта не найдена."
+
+    symbol, name, price_milli, last_price_milli, updated_at = data
+    holding = crypto_user_holding(user_id, symbol)
+    qty_micro = int(holding[0]) if holding else 0
+    invested_milli = int(holding[1]) if holding else 0
+    value_milli = int(qty_micro * int(price_milli) / 1_000_000)
+    pnl_milli = value_milli - invested_milli
+    sign = "+" if pnl_milli >= 0 else ""
+
+    return (
+        f"<b>{crypto_pair(symbol)}</b>\n\n"
+        f"Цена: <b>{crypto_money_short(price_milli)}</b>\n"
+        f"24ч: <b>{crypto_change_short(price_milli, last_price_milli)}</b>\n\n"
+        f"Ваш {symbol}: <b>{crypto_qty_short(qty_micro)}</b>\n"
+        f"Стоимость: <b>{crypto_money_short(value_milli)}</b>\n"
+        f"PNL: <b>{sign}{crypto_money_short(pnl_milli)}</b>"
+    )
+
+
+def crypto_coin_text(symbol: str) -> str:
+    return crypto_coin_text_for_user(0, symbol)
+
+
+def crypto_buy_screen_text(user_id: int, symbol: str) -> str:
+    symbol = symbol.upper()
+    price = crypto_price(symbol) or 0
+    row = get_user(user_id)
+    balance = int(row[4]) if row else 0
+    return (
+        f"🟢 <b>Купить {crypto_pair(symbol)}</b>\n\n"
+        f"Цена: <b>{crypto_money_short(price)}</b>\n"
+        f"Доступно: <b>{crypto_money_short(balance)}</b>\n\n"
+        f"Выбери сумму или напиши:\n"
+        f"<code>крипта купить {symbol} 10</code>"
+    )
+
+
+def crypto_sell_screen_text(user_id: int, symbol: str) -> str:
+    symbol = symbol.upper()
+    price = crypto_price(symbol) or 0
+    holding = crypto_user_holding(user_id, symbol)
+    qty_micro = int(holding[0]) if holding else 0
+    value_milli = int(qty_micro * price / 1_000_000)
+    return (
+        f"🔴 <b>Продать {crypto_pair(symbol)}</b>\n\n"
+        f"Цена: <b>{crypto_money_short(price)}</b>\n"
+        f"Доступно: <b>{crypto_qty_short(qty_micro)} {symbol}</b>\n"
+        f"Стоимость: <b>{crypto_money_short(value_milli)}</b>"
+    )
+
+
+def crypto_portfolio_text(user_id: int) -> str:
+    rows = user_crypto_portfolio_rows(user_id)
+    if not rows:
+        return "💼 <b>Портфель</b>\n\nБаланс пуст.\n\n<code>крипта купить BTC 10</code>"
+
+    total_value = 0
+    total_invested = 0
+    lines = ["💼 <b>Портфель</b>\n"]
+    for symbol, qty_micro, invested_milli, avg_price_milli, updated_at, price_milli, name in rows:
+        value_milli = int(int(qty_micro) * int(price_milli) / 1_000_000)
+        pnl_milli = value_milli - int(invested_milli or 0)
+        total_value += value_milli
+        total_invested += int(invested_milli or 0)
+        sign = "+" if pnl_milli >= 0 else ""
+        lines.append(
+            f"<b>{symbol}</b>  {crypto_qty_short(qty_micro)}\n"
+            f"{crypto_money_short(value_milli)} · PNL {sign}{crypto_money_short(pnl_milli)}"
+        )
+
+    total_pnl = total_value - total_invested
+    sign = "+" if total_pnl >= 0 else ""
+    lines.insert(1, f"Стоимость: <b>{crypto_money_short(total_value)}</b>\nPNL: <b>{sign}{crypto_money_short(total_pnl)}</b>\n")
+    return "\n\n".join(lines)
+
+
+def ensure_crypto_history_table():
+    ensure_crypto_tables()
+    with db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS crypto_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                side TEXT NOT NULL,
+                symbol TEXT NOT NULL,
+                amount_milli INTEGER NOT NULL DEFAULT 0,
+                qty_micro INTEGER NOT NULL DEFAULT 0,
+                price_milli INTEGER NOT NULL DEFAULT 0,
+                fee_milli INTEGER NOT NULL DEFAULT 0,
+                pnl_milli INTEGER NOT NULL DEFAULT 0,
+                created_at INTEGER NOT NULL
+            )
+        """)
+        conn.commit()
+
+
+def add_crypto_history(user_id: int, side: str, symbol: str, amount_milli: int, qty_micro: int, price_milli: int, fee_milli: int, pnl_milli: int = 0):
+    ensure_crypto_history_table()
+    with db() as conn:
+        conn.execute(
+            "INSERT INTO crypto_history (user_id, side, symbol, amount_milli, qty_micro, price_milli, fee_milli, pnl_milli, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (user_id, side, symbol.upper(), int(amount_milli or 0), int(qty_micro or 0), int(price_milli or 0), int(fee_milli or 0), int(pnl_milli or 0), ts()),
+        )
+        conn.commit()
+
+
+def crypto_history_text(user_id: int) -> str:
+    ensure_crypto_history_table()
+    with db() as conn:
+        rows = conn.execute(
+            "SELECT side, symbol, amount_milli, qty_micro, price_milli, pnl_milli FROM crypto_history WHERE user_id=? ORDER BY created_at DESC LIMIT 10",
+            (user_id,),
+        ).fetchall()
+
+    if not rows:
+        return "📜 <b>История</b>\n\nСделок пока нет."
+
+    lines = ["📜 <b>История</b>\n"]
+    for side, symbol, amount_milli, qty_micro, price_milli, pnl_milli in rows:
+        side_text = "BUY" if side == "buy" else "SELL"
+        pnl = ""
+        if side == "sell":
+            sign = "+" if int(pnl_milli or 0) >= 0 else ""
+            pnl = f" · PNL {sign}{crypto_money_short(pnl_milli)}"
+        lines.append(f"<b>{side_text} {symbol}</b>\n{crypto_money_short(amount_milli)} · {crypto_qty_short(qty_micro)} · {crypto_money_short(price_milli)}{pnl}")
+    return "\n\n".join(lines)
+
+
+_old_crypto_buy_binance_ui = crypto_buy
+
+def crypto_buy(user_id: int, symbol: str, amount_milli: int) -> tuple[bool, str]:
+    symbol = symbol.upper()
+    price_before = crypto_price(symbol) or 0
+    fee_milli = int(amount_milli * CRYPTO_FEE_BPS / 10000)
+    net_milli = amount_milli - fee_milli
+    qty_micro = int(net_milli * 1_000_000 / max(1, price_before))
+    ok, msg = _old_crypto_buy_binance_ui(user_id, symbol, amount_milli)
+    if ok:
+        add_crypto_history(user_id, "buy", symbol, amount_milli, qty_micro, price_before, fee_milli, 0)
+        msg = (
+            f"✅ <b>Ордер исполнен</b>\n\n"
+            f"BUY <b>{crypto_pair(symbol)}</b>\n"
+            f"Сумма: <b>{crypto_money_short(amount_milli)}</b>\n"
+            f"Получено: <b>{crypto_qty_short(qty_micro)} {symbol}</b>"
+        )
+    return ok, msg
+
+
+_old_crypto_sell_binance_ui = crypto_sell
+
+def crypto_sell(user_id: int, symbol: str, part_raw: str) -> tuple[bool, str]:
+    symbol = symbol.upper()
+    before = crypto_user_holding(user_id, symbol)
+    before_qty = int(before[0]) if before else 0
+    before_invested = int(before[1]) if before else 0
+    price_before = crypto_price(symbol) or 0
+    ok, msg = _old_crypto_sell_binance_ui(user_id, symbol, part_raw)
+    after = crypto_user_holding(user_id, symbol)
+    after_qty = int(after[0]) if after else 0
+    sold_qty = max(0, before_qty - after_qty)
+    gross_milli = int(sold_qty * price_before / 1_000_000)
+    fee_milli = int(gross_milli * CRYPTO_FEE_BPS / 10000)
+    receive_milli = max(0, gross_milli - fee_milli)
+    invested_part = int(before_invested * sold_qty / max(1, before_qty)) if before_qty else 0
+    pnl_milli = receive_milli - invested_part
+    if ok:
+        add_crypto_history(user_id, "sell", symbol, receive_milli, sold_qty, price_before, fee_milli, pnl_milli)
+        sign = "+" if pnl_milli >= 0 else ""
+        msg = (
+            f"✅ <b>Ордер исполнен</b>\n\n"
+            f"SELL <b>{crypto_pair(symbol)}</b>\n"
+            f"Получено: <b>{crypto_money_short(receive_milli)}</b>\n"
+            f"PNL: <b>{sign}{crypto_money_short(pnl_milli)}</b>"
+        )
+    return ok, msg
+
+
+async def show_crypto_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+    chat_id = update.effective_chat.id if update.effective_chat else update.callback_query.message.chat.id
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+    await crypto_send_photo_or_text(context=context, chat_id=chat_id, text=crypto_market_text(), photo_key="market", reply_markup=crypto_market_keyboard(), reply_to_message_id=reply_to)
+
+
+async def show_crypto_coin(update: Update, context: ContextTypes.DEFAULT_TYPE, symbol: str):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+    chat_id = update.effective_chat.id if update.effective_chat else update.callback_query.message.chat.id
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+    await crypto_send_photo_or_text(context=context, chat_id=chat_id, text=crypto_coin_text_for_user(update.effective_user.id, symbol), photo_key=symbol.upper(), reply_markup=crypto_pair_keyboard(symbol), reply_to_message_id=reply_to)
+
+
+async def show_crypto_portfolio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+    remember_group(update.effective_chat)
+    chat_id = update.effective_chat.id if update.effective_chat else update.callback_query.message.chat.id
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+    await crypto_send_photo_or_text(context=context, chat_id=chat_id, text=crypto_portfolio_text(update.effective_user.id), photo_key="portfolio", reply_markup=crypto_portfolio_keyboard(), reply_to_message_id=reply_to)
+
+
+_previous_buttons_for_crypto_binance_ui = buttons
+
+async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    data = q.data or ''
+
+    if data == 'crypto_menu':
+        await q.answer()
+        await show_crypto_menu(update, context)
+        return
+    if data == 'crypto_portfolio':
+        await q.answer()
+        await show_crypto_portfolio(update, context)
+        return
+    if data == 'crypto_history':
+        await q.answer()
+        await q.message.reply_text(pe(crypto_history_text(q.from_user.id)), parse_mode='HTML')
+        return
+    if data == 'crypto_commands':
+        await q.answer()
+        await q.message.reply_text(pe(crypto_commands_text()), parse_mode='HTML')
+        return
+    if data.startswith('crypto_coin:'):
+        await q.answer()
+        symbol = data.split(':', 1)[1].upper()
+        await show_crypto_coin(update, context, symbol)
+        return
+    if data.startswith('crypto_buy_open:'):
+        await q.answer()
+        symbol = data.split(':', 1)[1].upper()
+        await q.message.reply_text(pe(crypto_buy_screen_text(q.from_user.id, symbol)), parse_mode='HTML', reply_markup=crypto_trade_buy_keyboard(symbol))
+        return
+    if data.startswith('crypto_sell_open:'):
+        await q.answer()
+        symbol = data.split(':', 1)[1].upper()
+        await q.message.reply_text(pe(crypto_sell_screen_text(q.from_user.id, symbol)), parse_mode='HTML', reply_markup=crypto_trade_sell_keyboard(symbol))
+        return
+    if data.startswith('crypto_sell_pct:'):
+        await q.answer()
+        _, symbol, pct = data.split(':')
+        part = 'все' if pct == '100' else f'{pct}%'
+        ok, msg = crypto_sell(q.from_user.id, symbol, part)
+        await q.message.reply_text(pe(('' if ok else '❌ ') + msg), parse_mode='HTML')
+        return
+
+    return await _previous_buttons_for_crypto_binance_ui(update, context)
+
+# ===== END_FINAL_CRYPTO_BINANCE_MINIMAL_UI =====
+
+
+# ===== FINAL_CRYPTO_NO_LIMIT_FEE_02 =====
+
+CRYPTO_FEE_BPS = 20
+CRYPTO_MAX_PORTFOLIO_INVESTED_MILLI = 10**18
+
+
+def crypto_fee_text() -> str:
+    return "0,2%"
+
+
+def crypto_menu_text() -> str:
+    rows = crypto_market_rows()
+    lines = ["📊 <b>Рынок</b>\n"]
+
+    for symbol, name, price_milli, last_price_milli, updated_at in rows:
+        lines.append(
+            f"<b>{crypto_pair(symbol)}</b>    {crypto_money_short(price_milli)}    {crypto_change_short(price_milli, last_price_milli)}"
+        )
+
+    lines.append(f"\nПокупка от <b>1 💵</b> · комиссия <b>{crypto_fee_text()}</b>")
+    return "\n".join(lines)
+
+
+def crypto_coin_text_for_user(user_id: int, symbol: str) -> str:
+    symbol = symbol.upper()
+    data = None
+
+    for row in crypto_market_rows():
+        if row[0] == symbol:
+            data = row
+            break
+
+    if not data:
+        return "❌ Валюта не найдена."
+
+    symbol, name, price_milli, last_price_milli, updated_at = data
+    holding = crypto_user_holding(user_id, symbol)
+
+    qty_micro = int(holding[0]) if holding else 0
+    invested_milli = int(holding[1]) if holding else 0
+    value_milli = int(qty_micro * int(price_milli) / 1_000_000)
+    pnl_milli = value_milli - invested_milli
+    sign = "+" if pnl_milli >= 0 else ""
+
+    return (
+        f"<b>{crypto_pair(symbol)}</b>\n\n"
+        f"Цена: <b>{crypto_money_short(price_milli)}</b>\n"
+        f"24ч: <b>{crypto_change_short(price_milli, last_price_milli)}</b>\n\n"
+        f"Ваш {symbol}: <b>{crypto_qty_short(qty_micro)}</b>\n"
+        f"Стоимость: <b>{crypto_money_short(value_milli)}</b>\n"
+        f"PNL: <b>{sign}{crypto_money_short(pnl_milli)}</b>\n\n"
+        f"Комиссия: <b>{crypto_fee_text()}</b>"
+    )
+
+
+def crypto_buy_screen_text(user_id: int, symbol: str) -> str:
+    symbol = symbol.upper()
+    price = crypto_price(symbol) or 0
+    row = get_user(user_id)
+    balance = int(row[4]) if row else 0
+
+    return (
+        f"🟢 <b>Купить {crypto_pair(symbol)}</b>\n\n"
+        f"Цена: <b>{crypto_money_short(price)}</b>\n"
+        f"Доступно: <b>{crypto_money_short(balance)}</b>\n"
+        f"Комиссия: <b>{crypto_fee_text()}</b>\n\n"
+        f"Выбери сумму или напиши:\n"
+        f"<code>крипта купить {symbol} 10</code>"
+    )
+
+
+def crypto_buy(user_id: int, symbol: str, amount_milli: int) -> tuple[bool, str]:
+    ensure_crypto_tables()
+    symbol = symbol.upper()
+
+    if symbol not in CRYPTO_COINS:
+        return False, "Такой криптовалюты нет."
+
+    if amount_milli < CRYPTO_MIN_BUY_MILLI:
+        return False, f"Минимальная покупка: {crypto_money_short(CRYPTO_MIN_BUY_MILLI)}."
+
+    user_row = get_user(user_id)
+    if not user_row:
+        return False, "Профиль не найден. Напиши /start."
+
+    balance_milli = int(user_row[4])
+    if balance_milli < amount_milli:
+        return False, f"Недостаточно средств. Баланс: {crypto_money_short(balance_milli)}."
+
+    price_milli = crypto_price(symbol)
+    if not price_milli:
+        return False, "Не удалось получить курс."
+
+    fee_milli = int(amount_milli * CRYPTO_FEE_BPS / 10000)
+    net_milli = amount_milli - fee_milli
+    qty_micro = int(net_milli * 1_000_000 / price_milli)
+
+    if qty_micro <= 0:
+        return False, "Сумма слишком маленькая для покупки."
+
+    ok, msg = take_balance(user_id, amount_milli)
+    if not ok:
+        return False, msg
+
+    now = ts()
+    with db() as conn:
+        old = conn.execute(
+            "SELECT qty_micro, invested_milli FROM crypto_holdings WHERE user_id=? AND symbol=?",
+            (user_id, symbol),
+        ).fetchone()
+
+        if old:
+            old_qty, old_invested = int(old[0] or 0), int(old[1] or 0)
+            new_qty = old_qty + qty_micro
+            new_invested = old_invested + amount_milli
+            avg_price = int(new_invested * 1_000_000 / max(1, new_qty))
+            conn.execute(
+                "UPDATE crypto_holdings SET qty_micro=?, invested_milli=?, avg_price_milli=?, updated_at=? WHERE user_id=? AND symbol=?",
+                (new_qty, new_invested, avg_price, now, user_id, symbol),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO crypto_holdings (user_id, symbol, qty_micro, invested_milli, avg_price_milli, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (user_id, symbol, qty_micro, amount_milli, price_milli, now),
+            )
+
+        conn.commit()
+
+    return True, (
+        f"✅ <b>Ордер исполнен</b>\n\n"
+        f"BUY <b>{crypto_pair(symbol)}</b>\n"
+        f"Сумма: <b>{crypto_money_short(amount_milli)}</b>\n"
+        f"Комиссия: <b>{crypto_money_short(fee_milli)}</b>\n"
+        f"Получено: <b>{crypto_qty_short(qty_micro)} {symbol}</b>"
+    )
+
+# ===== END_FINAL_CRYPTO_NO_LIMIT_FEE_02 =====
+
+
+# ===== FINAL_CRYPTO_PREMIUM_EMOJI_PACK =====
+
+_old_pe_crypto_premium_pack = pe
+
+def pe(text: str) -> str:
+    text = _old_pe_crypto_premium_pack(text)
+
+    replacements = {
+        '📊': PE_CRYPTO_CHART,
+        '💼': PE_CRYPTO_PORTFOLIO,
+        '📜': PE_CRYPTO_HISTORY,
+        '📰': PE_CRYPTO_HISTORY,
+        '🟢': PE_CRYPTO_GREEN,
+        '🔴': PE_CRYPTO_RED,
+        '✅': PE_CRYPTO_OK,
+        '❌': PE_CRYPTO_NO,
+    }
+
+    for normal, premium in replacements.items():
+        text = text.replace(normal, premium)
+
+    return text
+
+# ===== END_FINAL_CRYPTO_PREMIUM_EMOJI_PACK =====
+
+
+# ===== FINAL_CRYPTO_BUTTON_EMOJI_FIX =====
+
+def crypto_pair_keyboard(symbol: str):
+    symbol = symbol.upper()
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🟢 Купить", callback_data=f"crypto_buy_open:{symbol}"),
+            InlineKeyboardButton("🔴 Продать", callback_data=f"crypto_sell_open:{symbol}"),
+        ],
+        [
+            InlineKeyboardButton("25%", callback_data=f"crypto_sell_pct:{symbol}:25"),
+            InlineKeyboardButton("50%", callback_data=f"crypto_sell_pct:{symbol}:50"),
+            InlineKeyboardButton("75%", callback_data=f"crypto_sell_pct:{symbol}:75"),
+            InlineKeyboardButton("100%", callback_data=f"crypto_sell_pct:{symbol}:100"),
+        ],
+        [
+            InlineKeyboardButton("💼 Портфель", callback_data="crypto_portfolio"),
+            InlineKeyboardButton("⬅️ Назад", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_market_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🟠 BTC/USDT", callback_data="crypto_coin:BTC"),
+            InlineKeyboardButton("♦️ ETH/USDT", callback_data="crypto_coin:ETH"),
+        ],
+        [
+            InlineKeyboardButton("💎 TON/USDT", callback_data="crypto_coin:TON"),
+            InlineKeyboardButton("☀️ SOL/USDT", callback_data="crypto_coin:SOL"),
+        ],
+        [
+            InlineKeyboardButton("🐶 DOGE/USDT", callback_data="crypto_coin:DOGE"),
+        ],
+        [
+            InlineKeyboardButton("💼 Портфель", callback_data="crypto_portfolio"),
+            InlineKeyboardButton("📜 История", callback_data="crypto_history"),
+        ],
+        [
+            InlineKeyboardButton("📰 Команды", callback_data="crypto_commands"),
+            InlineKeyboardButton("🔄 Обновить", callback_data="crypto_menu"),
+        ],
+    ])
+
+
+def crypto_trade_buy_keyboard(symbol: str):
+    symbol = symbol.upper()
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🟢 1 💵", callback_data=f"crypto_buy:{symbol}:1000"),
+            InlineKeyboardButton("🟢 5 💵", callback_data=f"crypto_buy:{symbol}:5000"),
+            InlineKeyboardButton("🟢 10 💵", callback_data=f"crypto_buy:{symbol}:10000"),
+        ],
+        [
+            InlineKeyboardButton("🟢 25 💵", callback_data=f"crypto_buy:{symbol}:25000"),
+            InlineKeyboardButton("🟢 50 💵", callback_data=f"crypto_buy:{symbol}:50000"),
+        ],
+        [
+            InlineKeyboardButton("⬅️ Назад", callback_data=f"crypto_coin:{symbol}"),
+        ],
+    ])
+
+
+def crypto_trade_sell_keyboard(symbol: str):
+    symbol = symbol.upper()
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🔴 25%", callback_data=f"crypto_sell_pct:{symbol}:25"),
+            InlineKeyboardButton("🔴 50%", callback_data=f"crypto_sell_pct:{symbol}:50"),
+            InlineKeyboardButton("🔴 75%", callback_data=f"crypto_sell_pct:{symbol}:75"),
+            InlineKeyboardButton("🔴 100%", callback_data=f"crypto_sell_pct:{symbol}:100"),
+        ],
+        [
+            InlineKeyboardButton("⬅️ Назад", callback_data=f"crypto_coin:{symbol}"),
+        ],
+    ])
+
+
+def crypto_portfolio_keyboard():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🔴 Продать всё", callback_data="crypto_sell_all_portfolio"),
+        ],
+        [
+            InlineKeyboardButton("📊 Рынок", callback_data="crypto_menu"),
+            InlineKeyboardButton("📜 История", callback_data="crypto_history"),
+        ],
+    ])
+
+
+def dashboard_message_menu():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton('👤 Профиль', callback_data='profile'),
+            InlineKeyboardButton('📊 Статистика', callback_data='profile_stats'),
+        ],
+        [
+            InlineKeyboardButton('🪙 Криптовалюта', callback_data='crypto_menu'),
+            InlineKeyboardButton('👏 Ежедневный EXP', callback_data='daily_exp'),
+        ],
+        [
+            InlineKeyboardButton('🏰 Кланы', callback_data='clans'),
+            InlineKeyboardButton('💸 Вывести', callback_data='withdraw'),
+        ],
+        [
+            InlineKeyboardButton('👥 Группа', url='https://t.me/bezdnao'),
+        ],
+    ])
+
+# ===== END_FINAL_CRYPTO_BUTTON_EMOJI_FIX =====
 
 if __name__ == '__main__':
     main()
