@@ -13,6 +13,24 @@ from telegram.error import BadRequest
 from telegram.ext import ApplicationHandlerStop, Application, CallbackQueryHandler, CommandHandler, ContextTypes, Defaults, ConversationHandler, MessageHandler, filters
 BOT_TOKEN = '8659612914:AAEVU_gNd4ZCjeVdLlRXjGYuZrrPRLTopz8'
 ADMIN_IDS = {5037478748, 6991875}
+
+PE_DAILY_TOP_TROPHY = '<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji>'
+PE_DAILY_TOP_GOLD = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
+PE_DAILY_TOP_SILVER = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
+PE_DAILY_TOP_BRONZE = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
+PE_DAILY_TOP_USER = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
+PE_DAILY_TOP_ROLES = '<tg-emoji emoji-id="5433982607035474385">📰</tg-emoji>'
+PE_DAILY_TOP_PROFIT = '<tg-emoji emoji-id="5409048419211682843">💵</tg-emoji>'
+PE_DAILY_TOP_CLOCK = '<tg-emoji emoji-id="5382194935057372936">⏱</tg-emoji>'
+
+PE_TOP_TROPHY = '<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji>'
+PE_TOP_GOLD = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
+PE_TOP_SILVER = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
+PE_TOP_BRONZE = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
+PE_TOP_USER = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
+PE_TOP_ROLES = '<tg-emoji emoji-id="5433982607035474385">📰</tg-emoji>'
+PE_TOP_PROFIT = '<tg-emoji emoji-id="5409048419211682843">💵</tg-emoji>'
+PE_TOP_CLOCK = '<tg-emoji emoji-id="5382194935057372936">⏱</tg-emoji>'
 ROLE_LOG_CHAT_ID = -1003782092245
 DB_DIR = 'data'
 DB_PATH = os.path.join(DB_DIR, 'bot.db')
@@ -28,16 +46,16 @@ CASE_SECRET_REWARD_CHANCE = 1  # 1 из 1000
 CASE_DISCOUNT_MILLI = 2000  # скидка 2 💵 на следующий кейс
 CASE_PREFIXES = ["Любитель казика", "Подружка админа", "T1 WORKER"]
 MIN_SLOT_BET_MILLI = 1000       # 1 💵
-MAX_SLOT_BET_MILLI = 6000      # 6 💵
+MAX_SLOT_BET_MILLI = 100000      # 100 💵
 SLOT_WIN_CHANCE_PERCENT = 12  # шанс выигрыша в слотах: 10–15%
 
 MIN_COIN_BET_MILLI = 1000       # 1 💵
-MAX_COIN_BET_MILLI = 6000      # 6 💵
+MAX_COIN_BET_MILLI = 100000      # 100 💵
 MIN_BALL_BET_MILLI = 1000       # 1 💵
-MAX_BALL_BET_MILLI = 6000      # 6 💵
+MAX_BALL_BET_MILLI = 100000      # 100 💵
 BASKETBALL_ANIMATION_DELAY = 4
 MIN_FOOTBALL_BET_MILLI = 2000       # 2 💵
-MAX_FOOTBALL_BET_MILLI = 6000      # 6 💵
+MAX_FOOTBALL_BET_MILLI = 100000      # 100 💵
 FOOTBALL_ANIMATION_DELAY = 4
 
 SLOT_SYMBOLS = ['🍒', '🍋', '💎', '⭐️', '7️⃣']
@@ -230,7 +248,7 @@ def pe(text: str) -> str:
     if text is None:
         return text
     text = str(text)
-    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('🔒', PE_LOCK_EVENT), ('👏', PE_EXP_CLAP), ('🏷', PE_PREFIX_TAG), ('📖', PE_ROLE_DESC), ('❌', PE_CLAN_NO), ('✅', PE_CLAN_OK), ('👤', PE_CLAN_USER), ('🥉', PE_CLAN_BRONZE), ('🥈', PE_CLAN_SILVER), ('🥇', PE_CLAN_GOLD), ('🏆', PE_CLAN_TROPHY), ('🚪', PE_CLAN_DOOR), ('🏰', PE_CLAN_CASTLE), ('👑', PE_CLAN_OWNER), ('🔒', PE_CLAN_LOCK), ('🔓', PE_CLAN_OPEN), ('❗️', PE_EVENT_ALERT), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
+    replacements = [('ℹ️', PE_INFO), ('❗️', PE_WARN), ('⚠️', PE_WARN), ('⭐️', PE_STAR), ('👤', PE_USER), ('✅', PE_OK), ('👥', PE_USERS), ('📣', PE_ANNOUNCE), ('✋', PE_STOP), ('⛔', PE_STOP), ('🚫', PE_STOP), ('💰', PE_WALLET), ('💸', PE_USDT_SYMBOL), ('📰', PE_ROLES_NEWS), ('👋', PE_WAVE_HELLO), ('⏱', PE_TOP_CLOCK), ('💵', PE_TOP_PROFIT), ('📰', PE_TOP_ROLES), ('👤', PE_TOP_USER), ('🥉', PE_TOP_BRONZE), ('🥈', PE_TOP_SILVER), ('🥇', PE_TOP_GOLD), ('🏆', PE_TOP_TROPHY), ('⏱', PE_DAILY_TOP_CLOCK), ('💵', PE_DAILY_TOP_PROFIT), ('📰', PE_DAILY_TOP_ROLES), ('👤', PE_DAILY_TOP_USER), ('🥉', PE_DAILY_TOP_BRONZE), ('🥈', PE_DAILY_TOP_SILVER), ('🥇', PE_DAILY_TOP_GOLD), ('🏆', PE_DAILY_TOP_TROPHY), ('💵', PE_USDT_SYMBOL), ('💵', PE_TRANSFER_USDT), ('🎁', PE_TRANSFER_GIFT), ('💬', PE_TRANSFER_CHAT), ('👤', PE_TRANSFER_USER), ('➕', PE_PLUS), ('📈', PE_CHART), ('📊', PE_CHART), ('💬', PE_CHAT), ('❗', PE_WARN), ('❌', PE_CROSS), ('🏘', PE_HOME), ('🏠', PE_HOME), ('⭐', PE_STAR), ('👁', PE_EYE), ('🔖', PE_UID), ('🆔', PE_UID), ('🏆', PE_TROPHY), ('🥇', PE_TOP1), ('🥈', PE_TOP2), ('🥉', PE_TOP3), ('🔎', PE_SEARCH), ('0⃣', PE_LVL_0), ('1⃣', PE_LVL_1), ('2⃣', PE_LVL_2), ('3⃣', PE_LVL_3), ('🔒', PE_LOCK_EVENT), ('👏', PE_EXP_CLAP), ('🏷', PE_PREFIX_TAG), ('📖', PE_ROLE_DESC), ('❌', PE_CLAN_NO), ('✅', PE_CLAN_OK), ('👤', PE_CLAN_USER), ('🥉', PE_CLAN_BRONZE), ('🥈', PE_CLAN_SILVER), ('🥇', PE_CLAN_GOLD), ('🏆', PE_CLAN_TROPHY), ('🚪', PE_CLAN_DOOR), ('🏰', PE_CLAN_CASTLE), ('👑', PE_CLAN_OWNER), ('🔒', PE_CLAN_LOCK), ('🔓', PE_CLAN_OPEN), ('❗️', PE_EVENT_ALERT), ('⭐', PE_LVL_RUBY), ('➡️', PE_ARROW_RIGHT), ('⏱', PE_CLOCK_NEW), ('⏲', PE_TIMER), ('⏳', PE_TIMER), ('1️⃣', PE_NUM_1), ('2️⃣', PE_NUM_2), ('3️⃣', PE_NUM_3), ('4️⃣', PE_NUM_4), ('5️⃣', PE_NUM_5), ('6️⃣', PE_NUM_6), ('7️⃣', PE_NUM_7), ('8️⃣', PE_NUM_8), ('9️⃣', PE_NUM_9), ('0️⃣', PE_NUM_0), ('🩶', PE_RARITY_COMMON), ('💚', PE_RARITY_RARE), ('🩷', PE_RARITY_EPIC), ('💛', PE_RARITY_LEGENDARY), ('🖤', PE_RARITY_SECRET), ('⭐️', PE_SLOT_STAR), ('🍒', PE_SLOT_CHERRY), ('💎', PE_SLOT_DIAMOND), ('🎭', PE_MASKS), ('⚽️', PE_FOOTBALL), ('🎮', PE_GAMEPAD), ('🏀', PE_BASKETBALL), ('🎰', PE_CASINO), ('🎲', PE_DICE), ('🪙', PE_COIN), ('💲', PE_DOLLAR), ('✖️', PE_X2), ('✖', PE_X2), ('✍️', PE_LOADING), ('✍', PE_LOADING), ('⚙', PE_INFO), ('🔢', PE_INFO), ('📋', PE_CHAT), ('📄', PE_CHAT), ('📛', PE_USER), ('🗄', PE_INFO), ('🗑', PE_CROSS), ('🙈', PE_EYE), ('➖', PE_CROSS), ('⬅', PE_HOME), ('🎁', PE_STAR)]
     placeholders = []
     for index, (old, new) in enumerate(replacements):
         placeholder = f'__PE_{index}__'
@@ -3634,6 +3652,14 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    print('VERSION_CASINO_MAX_BET_100')
+    print('VERSION_CASINO_PHOTOS_DATA_PATH')
+    print('VERSION_TOP3_CMD_NAME_FIX')
+    print('VERSION_CASINO_RESULT_PHOTOS_ASSETS')
+    print('VERSION_UNSUPPORTED_CHARS_TOPDAY_REMOVED')
+    print('VERSION_SEPARATE_TOP3_AND_TOPDAY')
+    print('VERSION_FORCE_TOP3_DAILY_ROLES_PROFIT')
+    print('VERSION_DAILY_TOP3_PROFIT_VISUAL')
     print('VERSION_INDENT_RUNNER_FIX')
     print('VERSION_ADD_NAME_SQL_SAFE_FIX')
     print('VERSION_ADD_CREATED_AT_FIX')
@@ -3723,6 +3749,9 @@ def main():
 
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('admin', admin_cmd))
+    app.add_handler(CommandHandler('top', top_cmd))
+    app.add_handler(CommandHandler('top3', top3_cmd))
+    app.add_handler(CommandHandler('top3', top3_cmd))
     app.add_handler(CommandHandler('resetfraz', resetfraz_cmd))
     app.add_handler(CommandHandler('allclans', allclans_cmd))
     app.add_handler(CommandHandler('clandelete', clandelete_cmd))
@@ -5957,7 +5986,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         '⚽️ <code>/football 1</code> — футбол\n'
         '🎁 <code>/case open</code> — кейс\n\n'
         'Минимальная ставка: <b>1 💵</b>\n'
-        'Максимальная ставка: <b>6 💵</b>\n'
+        'Максимальная ставка: <b>100 💵</b>\n'
         'Доступ: <b>с уровня Gold</b>'
     )
 
@@ -6259,7 +6288,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'В кубе можно выбрать от <b>1</b> до <b>3</b> сторон.\n'
         'Чем меньше сторон выбрано — тем больше выигрыш.\n\n'
         'Минимальная ставка: <b>1 💵</b>\n'
-        'Максимальная ставка: <b>6 💵</b>'
+        'Максимальная ставка: <b>100 💵</b>'
     )
 
     await send_clean_group_result(update, context, text)
@@ -6572,7 +6601,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'В кубе можно выбрать от <b>1</b> до <b>3</b> сторон.\n'
         'Чем меньше сторон выбрано — тем больше выигрыш.\n\n'
         'Минимальная ставка: <b>1 💵</b>\n'
-        'Максимальная ставка: <b>6 💵</b>'
+        'Максимальная ставка: <b>100 💵</b>'
     )
 
     await send_clean_group_result(update, context, text)
@@ -6784,7 +6813,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'В кубе можно выбрать от <b>1</b> до <b>3</b> сторон.\n'
         'Чем меньше сторон выбрано — тем больше выигрыш.\n\n'
         'Минимальная ставка: <b>1 💵</b>\n'
-        'Максимальная ставка: <b>6 💵</b>'
+        'Максимальная ставка: <b>100 💵</b>'
     )
 
     await safe_reply_game(update, context, text)
@@ -7070,7 +7099,7 @@ async def show_casino(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'Чем меньше сторон выбрано — тем больше выигрыш.\n\n'
         'Минимальная ставка: <b>1 💵</b>\n'
         'Футбол от: <b>2 💵</b>\n'
-        'Максимальная ставка: <b>6 💵</b>'
+        'Максимальная ставка: <b>100 💵</b>'
     )
 
     await safe_reply_game(update, context, text)
@@ -9278,6 +9307,340 @@ async def add_name_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 # ===== END_FINAL_ADD_NAME_SQL_SAFE_FIX =====
+
+
+
+
+
+
+
+
+
+
+
+# ===== FINAL_UNSUPPORTED_CHARS_AND_TOPDAY_REMOVE_FIX =====
+
+import unicodedata as _unicodedata_for_safe_text
+
+
+def safe_tg_text(value) -> str:
+    """
+    Убирает символы, из-за которых Telegram иногда отвечает Unsupported characters.
+    Особенно актуально для странных никнеймов/имён пользователей.
+    """
+    value = str(value or '')
+
+    cleaned = []
+    for ch in value:
+        code = ord(ch)
+        cat = _unicodedata_for_safe_text.category(ch)
+
+        # Суррогаты и невалидные unicode-символы.
+        if cat == 'Cs':
+            continue
+
+        # Управляющие символы, кроме переносов и табов.
+        if cat == 'Cc' and ch not in ('\n', '\t', '\r'):
+            continue
+
+        # Невидимые bidi/format-control символы, которые часто ломают Telegram.
+        if code in (
+            0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF,
+            0x202A, 0x202B, 0x202C, 0x202D, 0x202E,
+            0x2066, 0x2067, 0x2068, 0x2069,
+        ):
+            continue
+
+        # Неподдерживаемые несимвольные codepoints.
+        if 0xFDD0 <= code <= 0xFDEF or (code & 0xFFFE) == 0xFFFE:
+            continue
+
+        cleaned.append(ch)
+
+    return ''.join(cleaned)
+
+
+# Заворачиваем pe(), чтобы все сообщения с HTML/premium emoji проходили очистку.
+_old_pe_unsupported_fix = pe
+
+def pe(text: str) -> str:
+    return safe_tg_text(_old_pe_unsupported_fix(text))
+
+
+def safe_name_text(value: str, fallback: str = 'Игрок') -> str:
+    value = safe_tg_text(value or '').strip()
+    return value if value else fallback
+
+
+def mention(user) -> str:
+    name = safe_name_text(getattr(user, 'first_name', None) or getattr(user, 'username', None) or 'Игрок')
+    return f'<a href="tg://user?id={int(user.id)}">{html.escape(name)}</a>'
+
+
+def dashboard_message_menu():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton('👤 Профиль', callback_data='profile'),
+            InlineKeyboardButton('📊 Статистика', callback_data='profile_stats'),
+        ],
+        [
+            InlineKeyboardButton('🏰 Кланы', callback_data='clans'),
+            InlineKeyboardButton('👏 Ежедневный EXP', callback_data='daily_exp'),
+        ],
+        [
+            InlineKeyboardButton('💸 Вывести', callback_data='withdraw'),
+            InlineKeyboardButton('👥 Группа', url='https://t.me/bezdnao'),
+        ],
+    ])
+
+
+async def send_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+    chat = update.effective_chat
+    if not chat and getattr(update, 'callback_query', None) and update.callback_query.message:
+        chat = update.callback_query.message.chat
+
+    if not chat:
+        return None
+
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+    safe_html = pe(text)
+
+    try:
+        return await context.bot.send_message(
+            chat.id,
+            safe_html,
+            parse_mode='HTML',
+            reply_markup=reply_markup,
+            reply_to_message_id=reply_to
+        )
+    except Exception:
+        # Fallback без HTML и tg-emoji, если Telegram всё равно ругнулся.
+        plain = re.sub(r'<tg-emoji emoji-id="\d+">(.*?)</tg-emoji>', r'\1', safe_html)
+        plain = re.sub(r'<a href="[^"]+">(.*?)</a>', r'\1', plain)
+        plain = re.sub(r'</?(?:b|i|u|s|code|pre|blockquote|span)[^>]*>', '', plain)
+        plain = safe_tg_text(plain)
+
+        return await context.bot.send_message(
+            chat.id,
+            plain,
+            reply_markup=reply_markup,
+            reply_to_message_id=reply_to
+        )
+
+
+async def send_clean_group_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+    return await send_result(update, context, text, reply_markup=reply_markup)
+
+
+async def safe_reply_game(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+    return await send_result(update, context, text, reply_markup=reply_markup)
+
+
+# Топ дня удалён. Оставляем обычный Топ 3.
+async def topday_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_result(update, context, '🏆 <b>Топ дня удалён.</b>\n\nИспользуй обычный <b>Топ 3</b>.')
+
+
+# ===== END_FINAL_UNSUPPORTED_CHARS_AND_TOPDAY_REMOVE_FIX =====
+
+
+# ===== FINAL_CASINO_RESULT_PHOTOS_ASSETS =====
+
+from pathlib import Path as _AssetsPath
+
+CASINO_ASSETS_DIR = _AssetsPath("/app/data/assets/casino")
+
+CASINO_PHOTOS = {
+    "football_win": CASINO_ASSETS_DIR / "football_win.jpg",
+    "football_lose": CASINO_ASSETS_DIR / "football_lose.jpg",
+    "basketball_win": CASINO_ASSETS_DIR / "basketball_win.jpg",
+    "basketball_lose": CASINO_ASSETS_DIR / "basketball_lose.jpg",
+    "cube_win": CASINO_ASSETS_DIR / "cube_win.jpg",
+    "cube_lose": CASINO_ASSETS_DIR / "cube_lose.jpg",
+    "top3": CASINO_ASSETS_DIR / "top3.jpg",
+}
+
+
+def casino_photo_path(key: str):
+    path = CASINO_PHOTOS.get(key)
+    if path and path.exists() and path.is_file():
+        return str(path)
+    return None
+
+
+async def send_photo_or_text(context: ContextTypes.DEFAULT_TYPE, chat_id: int, text: str, photo_key: str | None = None, reply_to_message_id: int | None = None, reply_markup=None):
+    photo_path = casino_photo_path(photo_key) if photo_key else None
+    safe_html = pe(text)
+
+    if photo_path:
+        try:
+            with open(photo_path, "rb") as photo:
+                return await context.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=photo,
+                    caption=safe_html,
+                    parse_mode='HTML',
+                    reply_to_message_id=reply_to_message_id,
+                    reply_markup=reply_markup,
+                )
+        except Exception:
+            pass
+
+    try:
+        return await context.bot.send_message(
+            chat_id=chat_id,
+            text=safe_html,
+            parse_mode='HTML',
+            reply_to_message_id=reply_to_message_id,
+            reply_markup=reply_markup,
+        )
+    except Exception:
+        plain = re.sub(r'<tg-emoji emoji-id="\d+">(.*?)</tg-emoji>', r'\1', safe_html)
+        plain = re.sub(r'<a href="[^"]+">(.*?)</a>', r'\1', plain)
+        plain = re.sub(r'</?(?:b|i|u|s|code|pre|blockquote|span)[^>]*>', '', plain)
+        plain = safe_tg_text(plain) if 'safe_tg_text' in globals() else plain
+        return await context.bot.send_message(
+            chat_id=chat_id,
+            text=plain,
+            reply_to_message_id=reply_to_message_id,
+            reply_markup=reply_markup,
+        )
+
+
+def basketball_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
+    if win_milli > 0:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🏀'
+        detail = 'Мяч попал в корзину!'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🏀'
+        detail = 'Мяч не попал в корзину :('
+
+    return (
+        f'{mention(user)}\n'
+        f'{headline}\n\n'
+        f'{detail}\n\n'
+        f'💵 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+async def send_ball_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(BASKETBALL_ANIMATION_DELAY if 'BASKETBALL_ANIMATION_DELAY' in globals() else 4)
+
+    await send_photo_or_text(
+        context=context,
+        chat_id=chat_id,
+        text=basketball_result_text(user, bet_milli, dice_value, win_milli, balance_after),
+        photo_key="basketball_win" if win_milli > 0 else "basketball_lose",
+        reply_to_message_id=message_id,
+        reply_markup=repeat_game_menu('ball', bet_milli),
+    )
+
+
+def football_result_text(user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int) -> str:
+    if win_milli > 0:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре ⚽️'
+        detail = 'ГОООЛ! Мяч в воротах!'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре ⚽️'
+        detail = 'Мяч попал в штангу :(' if int(dice_value or 0) == 2 else 'Мяч не попал в ворота :('
+
+    return (
+        f'{mention(user)}\n'
+        f'{headline}\n\n'
+        f'{detail}\n\n'
+        f'💵 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+async def send_football_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(FOOTBALL_ANIMATION_DELAY if 'FOOTBALL_ANIMATION_DELAY' in globals() else 4)
+
+    await send_photo_or_text(
+        context=context,
+        chat_id=chat_id,
+        text=football_result_text(user, bet_milli, dice_value, win_milli, balance_after),
+        photo_key="football_win" if win_milli > 0 else "football_lose",
+        reply_to_message_id=message_id,
+        reply_markup=repeat_game_menu('football', bet_milli),
+    )
+
+
+def cube_result_text(user, bet_milli: int, chosen_sides: list[int], dice_value: int, win_milli: int, balance_after: int) -> str:
+    sides_text = ', '.join(str(x) for x in chosen_sides)
+
+    if win_milli > 0:
+        headline = f'Выигрыш <b>{money(win_milli)}</b> в игре 🎲'
+        detail = 'Куб выпал на выбранную сторону!'
+    else:
+        headline = f'Проигрыш <b>{money(bet_milli)}</b> в игре 🎲'
+        detail = 'Куб выпал не на твою сторону :('
+
+    return (
+        f'{mention(user)}\n'
+        f'{headline}\n'
+        f'Вы выбрали: <b>{html.escape(sides_text)}</b>\n'
+        f'Выпало: <b>{dice_value}</b>\n\n'
+        f'{detail}\n\n'
+        f'💵 Баланс <b>{money_balance(balance_after)}</b>'
+    )
+
+
+async def send_cube_result_later(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, user, bet_milli: int, chosen_sides: list[int], dice_value: int, win_milli: int, balance_after: int):
+    await asyncio.sleep(CUBE_ANIMATION_DELAY if 'CUBE_ANIMATION_DELAY' in globals() else 4)
+
+    await send_photo_or_text(
+        context=context,
+        chat_id=chat_id,
+        text=cube_result_text(user, bet_milli, chosen_sides, dice_value, win_milli, balance_after),
+        photo_key="cube_win" if win_milli > 0 else "cube_lose",
+        reply_to_message_id=message_id,
+        reply_markup=repeat_game_menu('cube', bet_milli, ','.join(str(x) for x in chosen_sides)),
+    )
+
+
+async def send_clean_group_result(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+    chat = update.effective_chat
+    if not chat and getattr(update, 'callback_query', None) and update.callback_query.message:
+        chat = update.callback_query.message.chat
+
+    if not chat:
+        return None
+
+    reply_to = update.message.message_id if getattr(update, 'message', None) else None
+
+    top_photo = False
+    try:
+        plain = re.sub(r'<[^>]+>', '', str(text)).lower()
+        top_photo = ('топ 3' in plain or 'топ3' in plain) and 'топ дня' not in plain
+    except Exception:
+        top_photo = False
+
+    return await send_photo_or_text(
+        context=context,
+        chat_id=chat.id,
+        text=text,
+        photo_key="top3" if top_photo else None,
+        reply_to_message_id=reply_to,
+        reply_markup=reply_markup,
+    )
+
+
+async def safe_reply_game(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None):
+    return await send_clean_group_result(update, context, text, reply_markup=reply_markup)
+
+
+# ===== END_FINAL_CASINO_RESULT_PHOTOS_ASSETS =====
+
+
+# ===== FINAL_TOP3_CMD_NAME_FIX =====
+
+async def top3_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Совместимость для регистрации app.add_handler(CommandHandler('top3', top3_cmd)).
+    """
+    await top_cmd(update, context)
+
+# ===== END_FINAL_TOP3_CMD_NAME_FIX =====
 
 if __name__ == '__main__':
     main()
